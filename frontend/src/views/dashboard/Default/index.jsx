@@ -10,6 +10,11 @@ import TotalApartmentCard from './TotalApartmentCard';
 import OccupiedApartmentCard from './OccupiedApartmentCard';
 import VacantApartmentCard from './VacantApartmentCard';
 import PendingMaintenanceCard from './PendingMaintenanceCard';
+import OccupancyTrendChart from './charts/OccupancyTrendChart';
+import ApartmentStatusPieChart from './charts/ApartmentStatusPieChart';
+import MaintenanceTrendChart from './charts/MaintenanceTrendChart';
+import RevenueExpenseChart from './charts/RevenueExpenseChart';
+
 import { gridSpacing } from 'store/constant';
 
 // ==============================|| DASHBOARD PAGE ||============================== //
@@ -18,10 +23,9 @@ export default function Dashboard() {
   const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(false);
+    setTimeout(() => setLoading(false), 1000); // simulate loading delay
   }, []);
 
-  // Define your card components in an array for clean iteration
   const cards = [
     { id: 1, component: TotalApartmentCard },
     { id: 2, component: OccupiedApartmentCard },
@@ -31,7 +35,7 @@ export default function Dashboard() {
 
   return (
     <Grid container spacing={gridSpacing}>
-      {/* Card Row */}
+      {/* ==== Summary Cards Row ==== */}
       <Grid item xs={12}>
         <Grid container spacing={2}>
           {cards.map(({ id, component: CardComponent }) => (
@@ -44,19 +48,26 @@ export default function Dashboard() {
         </Grid>
       </Grid>
 
-      {/* Later for additional charts / tables */}
-      {/* 
+      {/* ==== Analytics Charts Section ==== */}
       <Grid item xs={12}>
-        <Grid container spacing={gridSpacing}>
-          <Grid item xs={12} md={8}>
-            <TotalGrowthBarChart isLoading={isLoading} />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <PopularCard isLoading={isLoading} />
-          </Grid>
-        </Grid>
-      </Grid> 
-      */}
+  <Grid container spacing={2}>
+    {/* Row 1: Occupancy trend + pie chart */}
+    <Grid item xs={12} md={8}>
+      <OccupancyTrendChart />
+    </Grid>
+    <Grid item xs={12} md={4}>
+      <ApartmentStatusPieChart />
+    </Grid>
+
+    {/* Row 2: Maintenance + Revenue */}
+    <Grid item xs={12} md={6}>
+      <MaintenanceTrendChart />
+    </Grid>
+    <Grid item xs={12} md={6}>
+      <RevenueExpenseChart />
+    </Grid>
+  </Grid>
+</Grid>
     </Grid>
   );
 }

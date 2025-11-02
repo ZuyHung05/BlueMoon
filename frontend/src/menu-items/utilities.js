@@ -1,15 +1,20 @@
 // assets
-import { IconTypography, IconPalette, IconShadow, IconWindmill } from '@tabler/icons-react';
+// Place to get icon: https://mui.com/material-ui/material-icons/?query=resident
+import ApartmentIcon from '@mui/icons-material/Apartment';
+import PaymentIcon from '@mui/icons-material/Payment';
+import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import EngineeringIcon from '@mui/icons-material/Engineering';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 
 // constant
 const icons = {
-  IconTypography,
-  IconPalette,
-  IconShadow,
-  IconWindmill
+  ApartmentIcon,
+  PaymentIcon,
+  PeopleAltIcon,
+  EngineeringIcon,
+  AssessmentIcon
 };
 
-// ==============================|| UTILITIES MENU ITEMS ||============================== //
 
 const utilities = {
   id: 'utilities',
@@ -18,42 +23,18 @@ const utilities = {
   children: [
     {
       id: 'util-residents',
-      title: '👥 Residents',
+      title: 'Residents',
       type: 'item',
       url: '/residents',
-      icon: icons.IconTypography,
+      icon: icons.PeopleAltIcon,
       breadcrumbs: false
     },
     {
       id: 'util-apartment',
-      title: '🏢 Apartment',
+      title: 'Apartment',
       type: 'item',
       url: '/apartment',
-      icon: icons.IconPalette,
-      breadcrumbs: false
-    },
-    {
-      id: 'util-payments',
-      title: '💰 Payments',
-      type: 'item',
-      url: '/payments',
-      icon: icons.IconShadow,
-      breadcrumbs: false
-    },
-    {
-      id: 'util-maintenance',
-      title: '🛠️ Maintenance',
-      type: 'item',
-      url: '/maintenance',
-      icon: icons.IconShadow,
-      breadcrumbs: false
-    },
-    {
-      id: 'util-reports',
-      title: '🧾 Reports',
-      type: 'item',
-      url: '/reports',
-      icon: icons.IconShadow,
+      icon: icons.ApartmentIcon,
       breadcrumbs: false
     },
     {
@@ -61,9 +42,25 @@ const utilities = {
       title: 'Payments',
       type: 'item',
       url: '/payments',
-      icon: icons.IconShadow,
+      icon: icons.PaymentIcon,
       breadcrumbs: false
     },
+    {
+      id: 'util-maintenance',
+      title: 'Maintenance',
+      type: 'item',
+      url: '/maintenance',
+      icon: icons.EngineeringIcon,
+      breadcrumbs: false
+    },
+    {
+      id: 'util-reports',
+      title: 'Reports',
+      type: 'item',
+      url: '/reports',
+      icon: icons.AssessmentIcon,
+      breadcrumbs: false
+    }
   ]
 };
 
