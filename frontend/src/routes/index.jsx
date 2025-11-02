@@ -2,7 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 
 // routes
 import AuthenticationRoutes from './AuthenticationRoutes';
-import MainRoutes from './MainRoutes';
+import MainRoutes from './AdminRoutes';
 
 // ==============================|| ROUTING RENDER ||============================== //
 

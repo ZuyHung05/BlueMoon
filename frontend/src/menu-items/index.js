@@ -1,11 +1,23 @@
-import dashboard from './dashboard';
-import pages from './pages';
-import utilities from './utilities';
+import adminMenu from './admin';
+import managerMenu from './manager';
+import accountantMenu from './accountant';
 
-// ==============================|| MENU ITEMS ||============================== //
+const role = localStorage.getItem('role'); // or from your AuthContext
 
-const menuItems = {
-  items: [dashboard, pages, utilities]
-};
+let menuToExport;
 
-export default menuItems;
+switch (role) {
+  case 'admin':
+    menuToExport = adminMenu;
+    break;
+  case 'manager':
+    menuToExport = managerMenu;
+    break;
+  case 'accountant':
+    menuToExport = accountantMenu;
+    break;
+  default:
+    menuToExport = adminMenu;
+}
+
+export default menuToExport;

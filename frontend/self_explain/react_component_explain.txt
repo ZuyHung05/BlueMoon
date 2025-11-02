@@ -8,3 +8,4 @@ sm	Small	Tablet (≥600px)
 md	Medium	Small laptop (≥900px)
 lg	Large	Desktop (≥1200px)
 xl	Extra large	Very wide screen (≥1536px)
+
