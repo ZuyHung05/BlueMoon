@@ -10,6 +10,8 @@ import TotalApartmentCard from './TotalApartmentCard';
 import OccupiedApartmentCard from './OccupiedApartmentCard';
 import VacantApartmentCard from './VacantApartmentCard';
 import PendingMaintenanceCard from './PendingMaintenanceCard';
+import UserManagementCard from './UserManagementCard';
+
 import OccupancyTrendChart from './charts/OccupancyTrendChart';
 import ApartmentStatusPieChart from './charts/ApartmentStatusPieChart';
 import MaintenanceTrendChart from './charts/MaintenanceTrendChart';
@@ -26,46 +28,55 @@ export default function Dashboard() {
     setTimeout(() => setLoading(false), 1000); // simulate loading delay
   }, []);
 
-  const cards = [
-    { id: 1, component: TotalApartmentCard },
-    { id: 2, component: OccupiedApartmentCard },
-    { id: 3, component: VacantApartmentCard },
-    { id: 4, component: PendingMaintenanceCard }
-  ];
-
   return (
-    <Grid container spacing={gridSpacing}>
-      {/* ==== Summary Cards Row ==== */}
+    <Grid container spacing={gridSpacing} direction="column">
       <Grid item xs={12}>
-        <Grid container spacing={2}>
-          {cards.map(({ id, component: CardComponent }) => (
-            <Grid item xs={12} sm={6} md={3} key={id}>
+        <Grid container spacing={5} justifyContent="space-evenly" alignItems="stretch">
+          {/* Total Apartments */}
+          <Grid container direction="column">
+            <Grid container justifyContent="space-evenly" spacing={0}>
+              <Grid item xs={12} sm={6} md={3}>
+                  <TotalApartmentCard isLoading={isLoading} />
+              </Grid>
+
+              <Grid item xs={12} sm={6} md={3}>
+                  <UserManagementCard isLoading={isLoading} />
+              </Grid>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
               <Box sx={{ height: 250, display: 'flex', alignItems: 'stretch' }}>
-                <CardComponent isLoading={isLoading} />
+                <OccupiedApartmentCard isLoading={isLoading} />
               </Box>
             </Grid>
-          ))}
+          </Grid>
+          {/* Vacant Apartments */}
+          <Grid item xs={12} sm={6} md={3} size="grow">
+              <VacantApartmentCard isLoading={isLoading} />
+          </Grid>
+
+          {/* Pending Maintenance */}
+          <Grid item xs={12} sm={6} md={3} size="grow">
+              <PendingMaintenanceCard isLoading={isLoading} />
+          </Grid>
         </Grid>
       </Grid>
 
-      {/* ==== Analytics Charts Section ==== */}
       <Grid item xs={12}>
-  <Grid container spacing={2}>
+  <Grid container spacing={5} justifyContent="space-evenly">
     {/* Row 1: Occupancy trend + pie chart */}
-    <Grid item xs={12} md={8}>
+    <Grid item xs={12} md={8} size={6}>
       <OccupancyTrendChart />
     </Grid>
-    <Grid item xs={12} md={4}>
+    <Grid item xs={12} md={4} size="grow">
       <ApartmentStatusPieChart />
     </Grid>
 
     {/* Row 2: Maintenance + Revenue */}
-    <Grid item xs={12} md={6}>
+    <Grid item xs={12} md={6} size="grow">
       <MaintenanceTrendChart />
     </Grid>
-    <Grid item xs={12} md={6}>
-      <RevenueExpenseChart />
-    </Grid>
+
   </Grid>
 </Grid>
     </Grid>
