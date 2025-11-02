@@ -14,31 +14,40 @@ import Box from '@mui/material/Box';
 import Chart from 'react-apexcharts';
 
 // project imports
-import chartOptions from './chart-data/total-order-line-chart';
 import MainCard from 'ui-component/cards/MainCard';
 import SkeletonTotalOrderCard from 'ui-component/cards/Skeleton/EarningCard';
 
-// assets
-import LocalMallOutlinedIcon from '@mui/icons-material/LocalMallOutlined';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+// icons
+import HomeWorkIcon from '@mui/icons-material/HomeWork';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 
-// data
-const monthlyData = [{ data: [45, 66, 41, 89, 25, 44, 9, 54] }];
-const yearlyData = [{ data: [35, 44, 9, 54, 45, 66, 41, 69] }];
+// chart data (customized)
+const monthlyData = [{ data: [72, 74, 76, 78, 80, 81, 82, 84] }];
+const yearlyData = [{ data: [60, 65, 70, 72, 75, 77, 80, 82] }];
 
-export default function TotalOrderLineChartCard({ isLoading }) {
+const chartOptions = {
+  chart: {
+    type: 'line',
+    sparkline: { enabled: true }
+  },
+  stroke: { curve: 'smooth', width: 3 },
+  colors: ['#66bb6a'], // green tone
+  tooltip: { enabled: false },
+  grid: { show: false },
+  xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'] },
+  yaxis: { show: false }
+};
+
+// ==============================|| OCCUPIED APARTMENT CARD ||============================== //
+
+export default function OccupiedApartmentCard({ isLoading }) {
   const theme = useTheme();
-
   const [timeValue, setTimeValue] = React.useState(false);
   const [series, setSeries] = useState(yearlyData);
 
   const handleChangeTime = (_event, newValue) => {
     setTimeValue(newValue);
-    if (newValue) {
-      setSeries(monthlyData);
-    } else {
-      setSeries(yearlyData);
-    }
+    setSeries(newValue ? monthlyData : yearlyData);
   };
 
   return (
@@ -50,20 +59,17 @@ export default function TotalOrderLineChartCard({ isLoading }) {
           border={false}
           content={false}
           sx={{
-            bgcolor: 'primary.dark',
+            bgcolor: 'success.dark',
             color: '#fff',
             overflow: 'hidden',
             position: 'relative',
-            '&>div': {
-              position: 'relative',
-              zIndex: 5
-            },
+            '&>div': { position: 'relative', zIndex: 5 },
             '&:after': {
               content: '""',
               position: 'absolute',
               width: 210,
               height: 210,
-              background: theme.vars.palette.primary[800],
+              background: theme.vars.palette.success[800],
               borderRadius: '50%',
               top: { xs: -85 },
               right: { xs: -95 }
@@ -73,7 +79,7 @@ export default function TotalOrderLineChartCard({ isLoading }) {
               position: 'absolute',
               width: 210,
               height: 210,
-              background: theme.vars.palette.primary[800],
+              background: theme.vars.palette.success[800],
               borderRadius: '50%',
               top: { xs: -125 },
               right: { xs: -15 },
@@ -82,19 +88,22 @@ export default function TotalOrderLineChartCard({ isLoading }) {
           }}
         >
           <Box sx={{ p: 2.25 }}>
+            {/* Header */}
             <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
               <Avatar
                 variant="rounded"
                 sx={{
                   ...theme.typography.largeAvatar,
                   borderRadius: 2,
-                  bgcolor: 'primary.800',
+                  bgcolor: 'success.800',
                   color: 'common.white',
                   mt: 1
                 }}
               >
-                <LocalMallOutlinedIcon fontSize="inherit" />
+                <HomeWorkIcon fontSize="inherit" />
               </Avatar>
+
+              {/* Time toggle buttons */}
               <Box>
                 <Button
                   disableElevation
@@ -117,38 +126,36 @@ export default function TotalOrderLineChartCard({ isLoading }) {
               </Box>
             </Stack>
 
+            {/* Body */}
             <Grid sx={{ mb: 0.75 }}>
               <Grid container sx={{ alignItems: 'center' }}>
-                <Grid size={6}>
+                <Grid item xs={6}>
                   <Box>
                     <Stack direction="row" sx={{ alignItems: 'center' }}>
                       <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>
-                        {timeValue ? '$108' : '$961'}
+                        {timeValue ? '84' : '82'}
                       </Typography>
-                      <Avatar sx={{ ...theme.typography.smallAvatar, bgcolor: 'primary.200', color: 'primary.dark' }}>
-                        <ArrowDownwardIcon fontSize="inherit" sx={{ transform: 'rotate3d(1, 1, 1, 45deg)' }} />
+                      <Avatar sx={{ ...theme.typography.smallAvatar, bgcolor: 'success.200', color: 'success.dark' }}>
+                        <ArrowUpwardIcon
+                          fontSize="inherit"
+                          sx={{ transform: 'rotate3d(1, 1, 1, 45deg)' }}
+                        />
                       </Avatar>
                     </Stack>
                     <Typography
                       sx={{
                         fontSize: '1rem',
                         fontWeight: 500,
-                        color: 'primary.200'
+                        color: 'success.200'
                       }}
                     >
-                      Total Order
+                      Occupied Apartments
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid
-                  size={6}
-                  sx={{
-                    '.apexcharts-tooltip.apexcharts-theme-light': {
-                      color: theme.vars.palette.text.primary,
-                      background: theme.vars.palette.background.default
-                    }
-                  }}
-                >
+
+                {/* Chart */}
+                <Grid item xs={6}>
                   <Chart options={chartOptions} series={series} type="line" height={90} />
                 </Grid>
               </Grid>
@@ -160,4 +167,4 @@ export default function TotalOrderLineChartCard({ isLoading }) {
   );
 }
 
-TotalOrderLineChartCard.propTypes = { isLoading: PropTypes.bool };
+OccupiedApartmentCard.propTypes = { isLoading: PropTypes.bool };

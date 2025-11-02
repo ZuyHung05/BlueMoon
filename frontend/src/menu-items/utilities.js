@@ -17,29 +17,53 @@ const utilities = {
   type: 'group',
   children: [
     {
-      id: 'util-typography',
-      title: 'Typography',
+      id: 'util-residents',
+      title: '👥 Residents',
       type: 'item',
-      url: '/typography',
+      url: '/residents',
       icon: icons.IconTypography,
       breadcrumbs: false
     },
     {
-      id: 'util-color',
-      title: 'Color',
+      id: 'util-apartment',
+      title: '🏢 Apartment',
       type: 'item',
-      url: '/color',
+      url: '/apartment',
       icon: icons.IconPalette,
       breadcrumbs: false
     },
     {
-      id: 'util-shadow',
-      title: 'Shadow',
+      id: 'util-payments',
+      title: '💰 Payments',
       type: 'item',
-      url: '/shadow',
+      url: '/payments',
       icon: icons.IconShadow,
       breadcrumbs: false
-    }
+    },
+    {
+      id: 'util-maintenance',
+      title: '🛠️ Maintenance',
+      type: 'item',
+      url: '/maintenance',
+      icon: icons.IconShadow,
+      breadcrumbs: false
+    },
+    {
+      id: 'util-reports',
+      title: '🧾 Reports',
+      type: 'item',
+      url: '/reports',
+      icon: icons.IconShadow,
+      breadcrumbs: false
+    },
+    {
+      id: 'util-payments',
+      title: 'Payments',
+      type: 'item',
+      url: '/payments',
+      icon: icons.IconShadow,
+      breadcrumbs: false
+    },
   ]
 };
 

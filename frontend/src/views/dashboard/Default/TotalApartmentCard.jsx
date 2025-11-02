@@ -15,27 +15,23 @@ import Box from '@mui/material/Box';
 import MainCard from 'ui-component/cards/MainCard';
 import SkeletonEarningCard from 'ui-component/cards/Skeleton/EarningCard';
 
-// assets
-import EarningIcon from 'assets/images/icons/earning.svg';
+// icons
+import ApartmentIcon from '@mui/icons-material/Apartment';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import HomeWorkIcon from '@mui/icons-material/HomeWork';
 import GetAppTwoToneIcon from '@mui/icons-material/GetAppOutlined';
 import FileCopyTwoToneIcon from '@mui/icons-material/FileCopyOutlined';
 import PictureAsPdfTwoToneIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import ArchiveTwoToneIcon from '@mui/icons-material/ArchiveOutlined';
 
-export default function EarningCard({ isLoading }) {
-  const theme = useTheme();
+// ==============================|| TOTAL APARTMENT CARD ||============================== //
 
+export default function TotalApartmentCard({ isLoading, totalApartments = 120 }) {
+  const theme = useTheme();
   const [anchorEl, setAnchorEl] = React.useState(null);
 
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  const handleClick = (event) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null);
 
   return (
     <>
@@ -46,7 +42,7 @@ export default function EarningCard({ isLoading }) {
           border={false}
           content={false}
           sx={{
-            bgcolor: 'secondary.dark',
+            bgcolor: 'primary.dark',
             color: '#fff',
             overflow: 'hidden',
             position: 'relative',
@@ -55,7 +51,7 @@ export default function EarningCard({ isLoading }) {
               position: 'absolute',
               width: 210,
               height: 210,
-              background: theme.vars.palette.secondary[800],
+              background: theme.vars.palette.primary[800],
               borderRadius: '50%',
               top: { xs: -85 },
               right: { xs: -95 }
@@ -65,7 +61,7 @@ export default function EarningCard({ isLoading }) {
               position: 'absolute',
               width: 210,
               height: 210,
-              background: theme.vars.palette.secondary[800],
+              background: theme.vars.palette.primary[800],
               borderRadius: '50%',
               top: { xs: -125 },
               right: { xs: -15 },
@@ -74,36 +70,39 @@ export default function EarningCard({ isLoading }) {
           }}
         >
           <Box sx={{ p: 2.25 }}>
+            {/* Header */}
             <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
               <Avatar
                 variant="rounded"
                 sx={{
                   ...theme.typography.largeAvatar,
                   borderRadius: 2,
-                  bgcolor: 'secondary.800',
+                  bgcolor: 'primary.800',
                   mt: 1
                 }}
               >
-                <CardMedia sx={{ width: 30, height: 30 }} component="img" src={EarningIcon} alt="Notification" />
+                <HomeWorkIcon fontSize="inherit" />
               </Avatar>
               <Avatar
                 variant="rounded"
                 sx={{
                   ...theme.typography.commonAvatar,
                   ...theme.typography.mediumAvatar,
-                  bgcolor: 'secondary.dark',
-                  color: 'secondary.200',
+                  bgcolor: 'primary.dark',
+                  color: 'primary.200',
                   zIndex: 1
                 }}
-                aria-controls="menu-earning-card"
+                aria-controls="menu-apartment-card"
                 aria-haspopup="true"
                 onClick={handleClick}
               >
                 <MoreHorizIcon fontSize="inherit" />
               </Avatar>
             </Stack>
+
+            {/* Menu */}
             <Menu
-              id="menu-earning-card"
+              id="menu-apartment-card"
               anchorEl={anchorEl}
               keepMounted
               open={Boolean(anchorEl)}
@@ -119,33 +118,34 @@ export default function EarningCard({ isLoading }) {
               }}
             >
               <MenuItem onClick={handleClose}>
-                <GetAppTwoToneIcon sx={{ mr: 1.75 }} /> Import Card
+                <GetAppTwoToneIcon sx={{ mr: 1.75 }} /> Import Data
               </MenuItem>
               <MenuItem onClick={handleClose}>
-                <FileCopyTwoToneIcon sx={{ mr: 1.75 }} /> Copy Data
+                <FileCopyTwoToneIcon sx={{ mr: 1.75 }} /> Copy Info
               </MenuItem>
               <MenuItem onClick={handleClose}>
-                <PictureAsPdfTwoToneIcon sx={{ mr: 1.75 }} /> Export
+                <PictureAsPdfTwoToneIcon sx={{ mr: 1.75 }} /> Export Report
               </MenuItem>
               <MenuItem onClick={handleClose}>
-                <ArchiveTwoToneIcon sx={{ mr: 1.75 }} /> Archive File
+                <ArchiveTwoToneIcon sx={{ mr: 1.75 }} /> Archive
               </MenuItem>
             </Menu>
+
+            {/* Main content */}
             <Stack direction="row" sx={{ alignItems: 'center' }}>
-              <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>$500.00</Typography>
-              <Avatar sx={{ ...theme.typography.smallAvatar, bgcolor: 'secondary.200', color: 'secondary.dark' }}>
-                <ArrowUpwardIcon fontSize="inherit" sx={{ transform: 'rotate3d(1, 1, 1, 45deg)' }} />
-              </Avatar>
+              <Typography sx={{ fontSize: '2.125rem', fontWeight: 600, mr: 1, mt: 1.75, mb: 0.75 }}>
+                {totalApartments}
+              </Typography>
             </Stack>
             <Typography
               sx={{
                 mb: 1.25,
                 fontSize: '1rem',
                 fontWeight: 500,
-                color: 'secondary.200'
+                color: 'primary.200'
               }}
             >
-              Total Earning
+              Total Apartments
             </Typography>
           </Box>
         </MainCard>
@@ -154,4 +154,7 @@ export default function EarningCard({ isLoading }) {
   );
 }
 
-EarningCard.propTypes = { isLoading: PropTypes.bool };
+TotalApartmentCard.propTypes = {
+  isLoading: PropTypes.bool,
+  totalApartments: PropTypes.number
+};

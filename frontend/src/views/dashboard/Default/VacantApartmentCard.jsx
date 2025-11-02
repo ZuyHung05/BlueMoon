@@ -15,27 +15,22 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
 // project imports
-import BajajAreaChartCard from './BajajAreaChartCard';
 import MainCard from 'ui-component/cards/MainCard';
 import SkeletonPopularCard from 'ui-component/cards/Skeleton/PopularCard';
 import { gridSpacing } from 'store/constant';
 
-// assets
-import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
+// icons
+import HomeWorkIcon from '@mui/icons-material/HomeWork';
 import MoreHorizOutlinedIcon from '@mui/icons-material/MoreHorizOutlined';
-import KeyboardArrowUpOutlinedIcon from '@mui/icons-material/KeyboardArrowUpOutlined';
 import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDownOutlined';
+import KeyboardArrowUpOutlinedIcon from '@mui/icons-material/KeyboardArrowUpOutlined';
+import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
 
-export default function PopularCard({ isLoading }) {
+export default function VacantApartmentCard({ isLoading }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
 
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  const handleClick = (event) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null);
 
   return (
     <>
@@ -45,20 +40,23 @@ export default function PopularCard({ isLoading }) {
         <MainCard content={false}>
           <CardContent>
             <Stack sx={{ gap: gridSpacing }}>
+              {/* Header */}
               <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant="h4">Popular Stocks</Typography>
+                <Typography variant="h4">Vacant Apartments</Typography>
                 <IconButton size="small" sx={{ mt: -0.625 }}>
                   <MoreHorizOutlinedIcon
                     fontSize="small"
                     sx={{ cursor: 'pointer' }}
-                    aria-controls="menu-popular-card"
+                    aria-controls="menu-vacant-card"
                     aria-haspopup="true"
                     onClick={handleClick}
                   />
                 </IconButton>
               </Stack>
+
+              {/* Menu */}
               <Menu
-                id="menu-popular-card"
+                id="menu-vacant-card"
                 anchorEl={anchorEl}
                 keepMounted
                 open={Boolean(anchorEl)}
@@ -67,20 +65,50 @@ export default function PopularCard({ isLoading }) {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               >
-                <MenuItem onClick={handleClose}> Today</MenuItem>
-                <MenuItem onClick={handleClose}> This Month</MenuItem>
+                <MenuItem onClick={handleClose}> Today </MenuItem>
+                <MenuItem onClick={handleClose}> This Month </MenuItem>
                 <MenuItem onClick={handleClose}> This Year </MenuItem>
               </Menu>
 
-              <BajajAreaChartCard />
+              {/* Apartment List */}
               <Box>
+                {/* Block A */}
                 <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
                   <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                    Bajaj Finery
+                    Block A
                   </Typography>
                   <Stack direction="row" sx={{ alignItems: 'center' }}>
                     <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                      $1839.00
+                      12 vacant
+                    </Typography>
+                    <Avatar
+                      variant="rounded"
+                      sx={{
+                        width: 16,
+                        height: 16,
+                        borderRadius: '5px',
+                        bgcolor: 'error.light',
+                        color: 'error.dark',
+                        ml: 2
+                      }}
+                    >
+                      <KeyboardArrowUpOutlinedIcon fontSize="small" color="inherit" />
+                    </Avatar>
+                  </Stack>
+                </Stack>
+                <Typography variant="subtitle2" sx={{ color: 'error.dark' }}>
+                  +3 new vacancies
+                </Typography>
+                <Divider sx={{ my: 1.5 }} />
+
+                {/* Block B */}
+                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
+                    Block B
+                  </Typography>
+                  <Stack direction="row" sx={{ alignItems: 'center' }}>
+                    <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
+                      8 vacant
                     </Typography>
                     <Avatar
                       variant="rounded"
@@ -93,21 +121,23 @@ export default function PopularCard({ isLoading }) {
                         ml: 2
                       }}
                     >
-                      <KeyboardArrowUpOutlinedIcon fontSize="small" color="inherit" />
+                      <KeyboardArrowDownOutlinedIcon fontSize="small" color="inherit" />
                     </Avatar>
                   </Stack>
                 </Stack>
                 <Typography variant="subtitle2" sx={{ color: 'success.dark' }}>
-                  10% Profit
+                  2 units occupied
                 </Typography>
                 <Divider sx={{ my: 1.5 }} />
+
+                {/* Block C */}
                 <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
                   <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                    TTML
+                    Block C
                   </Typography>
                   <Stack direction="row" sx={{ alignItems: 'center' }}>
                     <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                      $100.00
+                      5 vacant
                     </Typography>
                     <Avatar
                       variant="rounded"
@@ -115,26 +145,28 @@ export default function PopularCard({ isLoading }) {
                         width: 16,
                         height: 16,
                         borderRadius: '5px',
-                        bgcolor: 'orange.light',
-                        color: 'orange.dark',
-                        marginLeft: 1.875
+                        bgcolor: 'error.light',
+                        color: 'error.dark',
+                        ml: 2
                       }}
                     >
-                      <KeyboardArrowDownOutlinedIcon fontSize="small" color="inherit" />
+                      <KeyboardArrowUpOutlinedIcon fontSize="small" color="inherit" />
                     </Avatar>
                   </Stack>
                 </Stack>
-                <Typography variant="subtitle2" sx={{ color: 'orange.dark' }}>
-                  10% loss
+                <Typography variant="subtitle2" sx={{ color: 'error.dark' }}>
+                  +1 new vacancy
                 </Typography>
                 <Divider sx={{ my: 1.5 }} />
+
+                {/* Block D */}
                 <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
                   <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                    Reliance
+                    Block D
                   </Typography>
                   <Stack direction="row" sx={{ alignItems: 'center' }}>
                     <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                      $200.00
+                      9 vacant
                     </Typography>
                     <Avatar
                       variant="rounded"
@@ -147,74 +179,21 @@ export default function PopularCard({ isLoading }) {
                         ml: 2
                       }}
                     >
-                      <KeyboardArrowUpOutlinedIcon fontSize="small" color="inherit" />
+                      <KeyboardArrowDownOutlinedIcon fontSize="small" color="inherit" />
                     </Avatar>
                   </Stack>
                 </Stack>
                 <Typography variant="subtitle2" sx={{ color: 'success.dark' }}>
-                  10% Profit
-                </Typography>
-                <Divider sx={{ my: 1.5 }} />
-                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                    TTML
-                  </Typography>
-                  <Stack direction="row" sx={{ alignItems: 'center' }}>
-                    <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                      $189.00
-                    </Typography>
-                    <Avatar
-                      variant="rounded"
-                      sx={{
-                        width: 16,
-                        height: 16,
-                        borderRadius: '5px',
-                        bgcolor: 'orange.light',
-                        color: 'orange.dark',
-                        ml: 2
-                      }}
-                    >
-                      <KeyboardArrowDownOutlinedIcon fontSize="small" color="inherit" />
-                    </Avatar>
-                  </Stack>
-                </Stack>
-                <Typography variant="subtitle2" sx={{ color: 'orange.dark' }}>
-                  10% loss
-                </Typography>
-                <Divider sx={{ my: 1.5 }} />
-                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                    Stolon
-                  </Typography>
-                  <Stack direction="row" sx={{ alignItems: 'center' }}>
-                    <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                      $189.00
-                    </Typography>
-                    <Avatar
-                      variant="rounded"
-                      sx={{
-                        width: 16,
-                        height: 16,
-                        borderRadius: '5px',
-                        bgcolor: 'orange.light',
-                        color: 'orange.dark',
-                        ml: 2
-                      }}
-                    >
-                      <KeyboardArrowDownOutlinedIcon fontSize="small" color="inherit" />
-                    </Avatar>
-                  </Stack>
-                </Stack>
-                <Typography variant="subtitle2" sx={{ color: 'orange.dark' }}>
-                  10% loss
+                  1 unit occupied
                 </Typography>
               </Box>
             </Stack>
           </CardContent>
+
+          {/* Footer */}
           <CardActions sx={{ p: 1.25, pt: 0, justifyContent: 'center' }}>
             <Button size="small" disableElevation>
-              View All
-              <ChevronRightOutlinedIcon />
+              View Details <ChevronRightOutlinedIcon />
             </Button>
           </CardActions>
         </MainCard>
@@ -223,4 +202,4 @@ export default function PopularCard({ isLoading }) {
   );
 }
 
-PopularCard.propTypes = { isLoading: PropTypes.bool };
+VacantApartmentCard.propTypes = { isLoading: PropTypes.bool };
