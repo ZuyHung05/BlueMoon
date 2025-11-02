@@ -8,3 +8,12 @@ sm	Small	Tablet (≥600px)
 md	Medium	Small laptop (≥900px)
 lg	Large	Desktop (≥1200px)
 xl	Extra large	Very wide screen (≥1536px)
+
+GRID Behavior:
+-> horizontal by default 
+
+<Grid container spacing={2}>
+  <Grid item xs={4}>A</Grid>
+  <Grid item xs={4}>B</Grid>
+  <Grid item xs={4}>C</Grid>
+</Grid> -> [A] [B] [C]
