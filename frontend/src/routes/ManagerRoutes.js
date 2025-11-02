@@ -5,19 +5,19 @@ import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 
 // dashboard routing
-const DashboardDefault = Loadable(lazy(() => import('views/admin/dashboard/Default')));
+const DashboardDefault = Loadable(lazy(() => import('views/manager/dashboard/Default')));
 
 // utilities routing
-const UtilsTypography = Loadable(lazy(() => import('views/admin/utilities/Typography')));
-const UtilsColor = Loadable(lazy(() => import('views//admin/utilities/Color')));
-const UtilsShadow = Loadable(lazy(() => import('views/admin/utilities/Shadow')));
+const UtilsTypography = Loadable(lazy(() => import('views/manager/utilities/Typography')));
+const UtilsColor = Loadable(lazy(() => import('views/manager/utilities/Color')));
+const UtilsShadow = Loadable(lazy(() => import('views/manager/utilities/Shadow')));
 
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
-const MainRoutes = {
+const ManagerRoutes = {
   path: '/',
   element: <MainLayout />,
   children: [
@@ -53,4 +53,4 @@ const MainRoutes = {
   ]
 };
 
-export default MainRoutes;
+export default ManagerRoutes;
