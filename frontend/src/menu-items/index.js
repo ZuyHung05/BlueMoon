@@ -1,6 +1,6 @@
 import adminMenu from './admin';
-import managerMenu from './manager';
-import accountantMenu from './accountant';
+import managerMenu from './engineer';
+import accountantMenu from './user';
 
 const role = localStorage.getItem('role'); // or from your AuthContext
 
@@ -10,10 +10,10 @@ switch (role) {
   case 'admin':
     menuToExport = adminMenu;
     break;
-  case 'manager':
+  case 'engineer':
     menuToExport = managerMenu;
     break;
-  case 'accountant':
+  case 'user':
     menuToExport = accountantMenu;
     break;
   default:

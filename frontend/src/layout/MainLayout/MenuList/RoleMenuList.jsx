@@ -1,15 +1,15 @@
 import menuAdmin from 'menu-items/admin';
-import menuManager from 'menu-items/manager';
-import menuAccountant from 'menu-items/accountant';
+import menuManager from 'menu-items/engineer';
+import menuAccountant from 'menu-items/user';
 import menuDefault from 'menu-items';
 
 const RoleMenuList = ({ role }) => {
   switch (role) {
     case 'admin':
       return menuAdmin;
-    case 'manager':
+    case 'engineer':
       return menuManager;
-    case 'accountant':
+    case 'user':
       return menuAccountant;
     default:
       return menuDefault;
