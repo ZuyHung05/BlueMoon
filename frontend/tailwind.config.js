@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./index.html", "./src/**/*.{js,jsx}"],
+  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   mode: "jit",
   theme: {
     extend: {
@@ -14,8 +14,8 @@ module.exports = {
         "white": "hsl(0, 0%, 100%)",
       },
       backgroundImage: {
-        'desktop-background': "url('/src/assets/BackgroundCurveDesktop.svg')",
-        'mobile-background': "url('/src/assets/BackgroundCurveMobile.svg')",
+        'desktop-background': "url('/src/assets/landing_page/BackgroundCurveDesktop.svg')",
+        'mobile-background': "url('/src/assets/landinge_page/BackgroundCurveMobile.svg')",
       },
       fontFamily: {
         "raleway": ["Raleway", "sans-serif"],

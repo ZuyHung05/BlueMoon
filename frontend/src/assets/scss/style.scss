@@ -1,6 +1,7 @@
+
 // color variants
 @use 'themes-vars.module.scss' as *;
-
+@use "./tailwind.css";
 // third party
 @use 'simplebar-react/dist/simplebar.min.css';
 
