@@ -9,7 +9,7 @@ const DashboardDefault = Loadable(lazy(() => import('views/admin/dashboard/Defau
 
 // utilities routing
 const UtilsTypography = Loadable(lazy(() => import('views/admin/utilities/Typography')));
-const UtilsColor = Loadable(lazy(() => import('views//admin/utilities/Color')));
+const UtilsColor = Loadable(lazy(() => import('views/admin/utilities/Color')));
 const UtilsShadow = Loadable(lazy(() => import('views/admin/utilities/Shadow')));
 
 // sample page routing
@@ -17,22 +17,13 @@ const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
-const MainRoutes = {
-  path: '/',
+const AdminRoutes = {
+  path: '/admin',
   element: <MainLayout />,
   children: [
     {
-      path: '/',
-      element: <DashboardDefault />
-    },
-    {
       path: 'dashboard',
-      children: [
-        {
-          path: 'default',
-          element: <DashboardDefault />
-        }
-      ]
+      element: <DashboardDefault />
     },
     {
       path: 'typography',
@@ -47,10 +38,10 @@ const MainRoutes = {
       element: <UtilsShadow />
     },
     {
-      path: '/sample-page',
+      path: 'sample-page',
       element: <SamplePage />
     }
   ]
 };
 
-export default MainRoutes;
+export default AdminRoutes;

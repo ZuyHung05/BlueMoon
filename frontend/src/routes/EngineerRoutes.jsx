@@ -18,21 +18,12 @@ const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const EngineerRoutes = {
-  path: '/',
+  path: '/engineer',
   element: <MainLayout />,
   children: [
     {
-      path: '/',
-      element: <DashboardDefault />
-    },
-    {
       path: 'dashboard',
-      children: [
-        {
-          path: 'default',
-          element: <DashboardDefault />
-        }
-      ]
+      element: <DashboardDefault />
     },
     {
       path: 'typography',
@@ -47,7 +38,7 @@ const EngineerRoutes = {
       element: <UtilsShadow />
     },
     {
-      path: '/sample-page',
+      path: 'sample-page',
       element: <SamplePage />
     }
   ]

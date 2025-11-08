@@ -6,7 +6,7 @@ import MainLayout from 'layout/MainLayout';
 const Landing = Loadable(lazy(() => import('views/user/landing')));
 
 const UserRoutes = {
-  path: '/',
+  path: '/user',
   element: <Landing />
   // children: [
   //   {

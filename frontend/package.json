@@ -34,6 +34,7 @@
     "web-vitals": "5.1.0",
     "yup": "1.7.1"
   },
+  "type": "module",
   "scripts": {
     "start": "vite",
     "build": "vite build",
