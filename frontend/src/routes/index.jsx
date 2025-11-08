@@ -6,7 +6,7 @@ import MainRoutes from './AdminRoutes';
 import EngineerRoutes from './EngineerRoutes';
 import UserRoutes from './UserRoutes';
 
-const router = createBrowserRouter([UserRoutes, AuthenticationRoutes], {
+const router = createBrowserRouter([EngineerRoutes, AuthenticationRoutes], {
   basename: import.meta.env.VITE_APP_BASE_NAME
 });
 
