@@ -31,5 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
-
+*/.env
+.env
 frontend_test/
+Landing-page/
+*/guideline.txt
