@@ -14,12 +14,16 @@ const UtilsShadow = Loadable(lazy(() => import('views/admin/utilities/Shadow')))
 
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
-
+import ProtectedRoute from './ProtectedRoutes';
 // ==============================|| MAIN ROUTING ||============================== //
 
 const AdminRoutes = {
   path: '/admin',
-  element: <MainLayout />,
+   element: (
+    <ProtectedRoute allowedRoles={['admin']}>
+      <MainLayout />
+    </ProtectedRoute>
+  ),
   children: [
     {
       path: 'dashboard',

@@ -60,8 +60,14 @@ export default function AuthLogin() {
 
       if (response.ok) {
         console.log('✅ Login success:', data);
+        const { token, user } = data;
         localStorage.setItem('token', data.token);
-        navigate('/user'); // or /admin/dashboard based on role
+        localStorage.setItem('role', user.role);
+
+        if (user.role === 'admin') navigate('/admin/dashboard');
+        else if (user.role === 'engineer') navigate('/engineer/dashboard');
+        else navigate('/landing');
+
       } else {
         console.error('❌ Login failed:', data.message || data.error);
       }

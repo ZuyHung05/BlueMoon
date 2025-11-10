@@ -3,7 +3,7 @@ import { lazy } from 'react';
 // project imports
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
-
+import ProtectedRoute from './ProtectedRoutes';
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/engineer/dashboard')));
 
@@ -19,7 +19,11 @@ const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 
 const EngineerRoutes = {
   path: '/engineer',
-  element: <MainLayout />,
+  element: (
+      <ProtectedRoute allowedRoles={['engineer']}>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
   children: [
     {
       path: 'dashboard',
