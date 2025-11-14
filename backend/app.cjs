@@ -7,22 +7,25 @@ const connectDB = require('./config/db');
 // Load env vars
 dotenv.config();
 
+// Register models so populate works
+require('./models/Role');
+require('./models/User');
+
 const app = express();
 
-// Connect to database
+// Connect to MongoDB
 connectDB();
 
 // Middleware
 app.use(cors());
-app.use(morgan('dev')); // HTTP request logger
+app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Routes
-const authRoutes = require('./routes/auth');
-app.use('/api/auth', authRoutes); // whatever requests start with /api/auth, sent to authRouters
+app.use('/api/auth', require('./routes/auth'));
 
-// Error handling middleware
+// Error Handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
@@ -33,14 +36,6 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-});
-
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-  console.log('UNHANDLED REJECTION! 💥 Shutting down...');
-  console.log(err.name, err.message);
-  process.exit(1);
-});
+app.listen(PORT, () =>
+  console.log(`Server running on port ${PORT}`)
+);

@@ -48,7 +48,7 @@ export default function AuthLogin() {
 
     try {
       // 👇 Make sure this URL matches your backend port (5000 if using Express)
-      const response = await fetch('http://localhost:3000/api/auth/login', {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

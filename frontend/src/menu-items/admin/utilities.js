@@ -24,10 +24,10 @@ const utilities = {
   children: [
    
     {
-      id: 'util-analytics',
-      title: 'Analytics',
+      id: 'util-assign',
+      title: 'Assign',
       type: 'item',
-      url: '/analytics',
+      url: '/admin/assign',
       icon: icons.ShowChartIcon,
       breadcrumbs: false
     },

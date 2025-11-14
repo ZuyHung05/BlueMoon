@@ -8,7 +8,7 @@ import Loadable from 'ui-component/Loadable';
 const DashboardDefault = Loadable(lazy(() => import('views/admin/dashboard/Default')));
 
 // utilities routing
-const UtilsTypography = Loadable(lazy(() => import('views/admin/utilities/Typography')));
+const UtilsTypography = Loadable(lazy(() => import('views/admin/assignPage')));
 const UtilsColor = Loadable(lazy(() => import('views/admin/utilities/Color')));
 const UtilsShadow = Loadable(lazy(() => import('views/admin/utilities/Shadow')));
 
@@ -30,7 +30,7 @@ const AdminRoutes = {
       element: <DashboardDefault />
     },
     {
-      path: 'typography',
+      path: 'assign',
       element: <UtilsTypography />
     },
     {
