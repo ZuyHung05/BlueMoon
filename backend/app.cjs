@@ -2,30 +2,43 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
-const connectDB = require('./config/db');
+const connectDB = require('./config/db'); 
 
-// Load env vars
+// Load env vars (Luôn đặt lên đầu)
 dotenv.config();
 
-// Register models so populate works
-require('./models/Role');
-require('./models/User');
+// ==========================================================
+// Pre-load TẤT CẢ các models để đảm bảo populate() lồng nhau
+// (User -> Role -> Permission) hoạt động ổn định.
+// ==========================================================
+require('./models/Permission'); 
+require('./models/Role');       
+require('./models/User');       
+require('./models/IncidentType'); 
+require('./models/Team');         
+require('./models/Incident');     
 
 const app = express();
 
-// Connect to MongoDB
+// Kết nối DB (Sau khi load .env và models)
 connectDB();
 
 // Middleware
-app.use(cors());
-app.use(morgan('dev'));
-app.use(express.json());
+app.use(cors());      // Cho phép Frontend gọi
+app.use(morgan('dev')); // Log request ra console
+app.use(express.json()); // Đọc body dạng JSON
 app.use(express.urlencoded({ extended: false }));
 
-// Routes
+
+// Đây là API Lộc đang làm (đã sửa)
 app.use('/api/auth', require('./routes/auth'));
 
-// Error Handler
+// TODO (Lộc): sẽ thêm các API routes mới ở đây khi code
+// app.use('/api/incidents', require('./routes/incidentRoutes'));
+// app.use('/api/teams', require('./routes/teamRoutes'));
+
+
+// Error Handler (Giữ nguyên của Lộc, rất tốt)
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
@@ -37,5 +50,5 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
-  console.log(`Server running on port ${PORT}`)
+  console.log(`Server running on port ${PORT} (Connecting to DB...)`)
 );

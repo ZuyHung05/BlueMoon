@@ -1,0 +1,20 @@
+Bước 1: Tạo file .env lưu địa chỉ Local: 
+- File này KHÔNG được đẩy lên Git.
+
+1. Chuỗi kết nối MongoDB (chạy Local)
+
+'UrbanIncidentDB' là tên database, có thể đổi tên này nếu muốn.
+
+MONGODB_URI=mongodb://localhost:27017/UrbanIncidentDB
+
+2. Chuỗi bí mật cho JWT (BẮT BUỘC)
+
+Dùng một chuỗi ngẫu nhiên, dài và phức tạp
+
+JWT_SECRET=CHUOI_BI_MAT_CUC_KY_AN_TOAN_CUA_NHOM_06_HAY_THAY_DOI_NO
+
+Bước 2: Chạy node seeder.js -> nạp data mới
+
+Bước 3: Chạy node app.cjs -> Khởi động server
+
+Bước 4: Test bằng Postman: Gọi POST /api/register với dữ liệu mới.

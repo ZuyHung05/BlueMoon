@@ -1,16 +1,18 @@
 const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
-const roleSchema = new mongoose.Schema({
+const roleSchema = new Schema({
   name: {
     type: String,
     required: true,
     unique: true,
-    enum: ['admin', 'engineer', 'user'] // optional — limits role names
+    enum: ['citizen', 'authority', 'technician'] // Đã sửa
   },
-  permissions: {
-    type: [String],
-    default: []
-  }
+  // THAY ĐỔI: Chuyển từ [String] sang Tham chiếu (Ref)
+  permissions: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Permission' // Tham chiếu đến Model 'Permission'
+  }]
 });
 
 module.exports = mongoose.model('Role', roleSchema);
