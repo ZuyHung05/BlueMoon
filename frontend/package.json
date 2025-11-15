@@ -29,6 +29,7 @@
     "web-vitals": "5.1.0",
     "yup": "1.7.1"
   },
+  
   "scripts": {
     "start": "vite",
     "build": "vite build",
@@ -69,6 +70,5 @@
     "prettier-eslint-cli": "8.0.1",
     "sass": "1.93.2",
     "vite": "^7.1.12"
-  },
-  "packageManager": "yarn@4.10.3"
+  }
 }

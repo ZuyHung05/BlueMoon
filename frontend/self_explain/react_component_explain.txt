@@ -9,6 +9,7 @@ md	Medium	Small laptop (≥900px)
 lg	Large	Desktop (≥1200px)
 xl	Extra large	Very wide screen (≥1536px)
 
+<<<<<<< HEAD
 GRID Behavior:
 -> horizontal by default 
 
@@ -17,3 +18,5 @@ GRID Behavior:
   <Grid item xs={4}>B</Grid>
   <Grid item xs={4}>C</Grid>
 </Grid> -> [A] [B] [C]
+=======
+>>>>>>> 4517065e2d2b7bf617bae4d00424420a12086999
