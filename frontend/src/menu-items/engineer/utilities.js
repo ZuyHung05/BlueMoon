@@ -24,26 +24,26 @@ const utilities = {
   children: [
    
     {
-      id: 'util-assign',
-      title: 'Assign',
+      id: 'util-my_task',
+      title: 'My Task',
       type: 'item',
-      url: '/admin/assign',
+      url: '/engineer/my_task',
       icon: icons.ShowChartIcon,
       breadcrumbs: false
     },
     {
-      id: 'util-engineer',
-      title: 'Engineer',
+      id: 'util-task_update',
+      title: 'Task Updates',
       type: 'item',
-      url: '/admin/engineer',
+      url: '/engineer/task_update',
       icon: icons.EngineeringIcon,
       breadcrumbs: false
     },
     {
-      id: 'util-report',
-      title: 'Reports',
+      id: 'util-history',
+      title: 'History',
       type: 'item',
-      url: '/admin/report',
+      url: '/engineer/history',
       icon: icons.AssessmentIcon,
       breadcrumbs: false
     }

@@ -8,9 +8,9 @@ import ProtectedRoute from './ProtectedRoutes';
 const DashboardDefault = Loadable(lazy(() => import('views/engineer/dashboard')));
 
 // utilities routing
-const UtilsTypography = Loadable(lazy(() => import('views/engineer/utilities/Typography')));
-const UtilsColor = Loadable(lazy(() => import('views/engineer/utilities/Color')));
-const UtilsShadow = Loadable(lazy(() => import('views/engineer/utilities/Shadow')));
+const TaskUpdatePage = Loadable(lazy(() => import('views/engineer/taskUpdatePage')));
+const HistoryPage = Loadable(lazy(() => import('views/engineer/historyPage')));
+const MyTaskPage = Loadable(lazy(() => import('views/engineer/myTaskPage')));
 
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
@@ -20,7 +20,7 @@ const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 const EngineerRoutes = {
   path: '/engineer',
   element: (
-      <ProtectedRoute allowedRoles={['engineer']}>
+      <ProtectedRoute allowedRoles={['technician']}>
         <MainLayout />
       </ProtectedRoute>
     ),
@@ -30,20 +30,16 @@ const EngineerRoutes = {
       element: <DashboardDefault />
     },
     {
-      path: 'typography',
-      element: <UtilsTypography />
+      path: 'my_task',
+      element: <MyTaskPage />
     },
     {
-      path: 'color',
-      element: <UtilsColor />
+      path: 'task_update',
+      element: <TaskUpdatePage />
     },
     {
-      path: 'shadow',
-      element: <UtilsShadow />
-    },
-    {
-      path: 'sample-page',
-      element: <SamplePage />
+      path: 'history',
+      element: <HistoryPage />
     }
   ]
 };

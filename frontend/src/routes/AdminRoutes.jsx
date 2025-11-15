@@ -7,20 +7,19 @@ import Loadable from 'ui-component/Loadable';
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/admin/dashboard/Default')));
 
-// utilities routing
-const UtilsTypography = Loadable(lazy(() => import('views/admin/assignPage')));
-const UtilsColor = Loadable(lazy(() => import('views/admin/utilities/Color')));
-const UtilsShadow = Loadable(lazy(() => import('views/admin/utilities/Shadow')));
+// utilities routing  
+const AssignPage = Loadable(lazy(() => import('views/admin/assignPage')));
+const ReportPage = Loadable(lazy(() => import('views/admin/reportPage')));
+const EngineerPage = Loadable(lazy(() => import('views/admin/engineerPage')));
 
-// sample page routing
-const SamplePage = Loadable(lazy(() => import('views/sample-page')));
+
 import ProtectedRoute from './ProtectedRoutes';
 // ==============================|| MAIN ROUTING ||============================== //
 
 const AdminRoutes = {
   path: '/admin',
    element: (
-    <ProtectedRoute allowedRoles={['admin']}>
+    <ProtectedRoute allowedRoles={['authority']}>
       <MainLayout />
     </ProtectedRoute>
   ),
@@ -31,19 +30,15 @@ const AdminRoutes = {
     },
     {
       path: 'assign',
-      element: <UtilsTypography />
+      element: <AssignPage />
     },
     {
-      path: 'color',
-      element: <UtilsColor />
+      path: 'report',
+      element: <ReportPage />
     },
-    {
-      path: 'shadow',
-      element: <UtilsShadow />
-    },
-    {
-      path: 'sample-page',
-      element: <SamplePage />
+     {
+      path: 'engineer',
+      element: <EngineerPage />
     }
   ]
 };

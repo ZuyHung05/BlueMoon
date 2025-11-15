@@ -13,9 +13,9 @@ const dashboard = {
   children: [
     {
       id: 'engineer-dashboard',
-      title: 'Engineer Dashboard',
+      title: 'Dashboard',
       type: 'item',
-      url: '/dashboard/engineer',
+      url: '/engineer/dashboard',
       icon: icons.ManageAccountsIcon,
       breadcrumbs: false
     }

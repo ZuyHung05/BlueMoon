@@ -7,16 +7,17 @@ const role = localStorage.getItem('role'); // or from your AuthContext
 let menuToExport;
 
 switch (role) {
-  case 'admin':
+  case 'authority':
     menuToExport = adminMenu;
     break;
-  case 'engineer':
+  case 'technician':
     menuToExport = managerMenu;
     break;
-  case 'user':
+  case 'citizen':
     menuToExport = accountantMenu;
     break;
   default:
+    console.log("Do not match any role!")
     menuToExport = adminMenu;
 }
 

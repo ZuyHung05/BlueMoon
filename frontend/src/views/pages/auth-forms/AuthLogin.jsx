@@ -56,17 +56,19 @@ export default function AuthLogin() {
         body: JSON.stringify(formData)
       });
 
-      const data = await response.json();
+      console.log(response)
 
+      const data = await response.json();
+      
       if (response.ok) {
         console.log('✅ Login success:', data);
         const { token, user } = data;
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', user.role);
 
-        if (user.role === 'admin') navigate('/admin/dashboard');
-        else if (user.role === 'engineer') navigate('/engineer/dashboard');
-        else navigate('/landing');
+        if (user.role === 'authority') navigate('/admin/dashboard');
+        else if (user.role === 'technician') navigate('/engineer/dashboard');
+        else navigate('/user');
 
       } else {
         console.error('❌ Login failed:', data.message || data.error);

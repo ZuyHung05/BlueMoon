@@ -5,11 +5,11 @@ import menuDefault from 'menu-items';
 
 const RoleMenuList = ({ role }) => {
   switch (role) {
-    case 'admin':
+    case 'authority':
       return menuAdmin;
-    case 'engineer':
+    case 'technician':
       return menuManager;
-    case 'user':
+    case 'citizen':
       return menuAccountant;
     default:
       return menuDefault;
