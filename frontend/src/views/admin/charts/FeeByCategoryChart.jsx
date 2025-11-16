@@ -9,18 +9,18 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-// Mock data — you can replace this with real API data later
+// Replace with real API data later
 const data = [
-  { name: 'Rác thải', value: 40 },
-  { name: 'Ổ gà', value: 25 },
-  { name: 'Đèn hỏng', value: 20 },
-  { name: 'Nước rò rỉ', value: 15 }
+  { name: 'Phí dịch vụ', value: 45 },
+  { name: 'Phí quản lý', value: 30 },
+  { name: 'Phí gửi xe', value: 15 },
+  { name: 'Đóng góp / tự nguyện', value: 10 }
 ];
 
 // Color palette for categories
 const COLORS = ['#42A5F5', '#66BB6A', '#FFA726', '#EF5350'];
 
-export default function ReportsByCategoryChart() {
+export default function FeeByCategoryChart() {
   return (
     <Card
       sx={{
@@ -32,7 +32,7 @@ export default function ReportsByCategoryChart() {
     >
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          Phân loại sự cố
+          Phân loại khoản thu
         </Typography>
 
         <Box sx={{ width: '100%', height: 300 }}>
@@ -53,10 +53,12 @@ export default function ReportsByCategoryChart() {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
+
               <Tooltip
                 formatter={(value) => `${value}%`}
                 contentStyle={{ backgroundColor: '#fff', borderRadius: '8px' }}
               />
+
               <Legend verticalAlign="bottom" height={36} />
             </PieChart>
           </ResponsiveContainer>

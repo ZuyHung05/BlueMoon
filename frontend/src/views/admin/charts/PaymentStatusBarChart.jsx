@@ -8,21 +8,21 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend
+  Legend,
+  Cell
 } from 'recharts';
 
-// Mock data — replace later with backend API data
+// Replace with API later
 const data = [
-  { status: 'Chờ xử lý', count: 28 },
-  { status: 'Đã phân công', count: 46 },
-  { status: 'Đang xử lý', count: 78 },
-  { status: 'Hoàn tất', count: 190 }
+  { status: 'Chưa thanh toán', count: 32 },
+  { status: 'Đang chờ xác nhận', count: 18 },
+  { status: 'Đã thanh toán', count: 224 },
+  { status: 'Trễ hạn', count: 6 }
 ];
 
-// Define colors for each status
-const COLORS = ['#FFB300', '#42A5F5', '#66BB6A', '#2E7D32'];
+const COLORS = ['#E53935', '#FB8C00', '#43A047', '#8E24AA'];
 
-export default function ReportStatusBarChart() {
+export default function PaymentStatusBarChart() {
   return (
     <Card
       sx={{
@@ -34,7 +34,7 @@ export default function ReportStatusBarChart() {
     >
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          Trạng thái xử lý báo cáo
+          Trạng thái thanh toán
         </Typography>
 
         <Box sx={{ width: '100%', height: 350 }}>
@@ -47,13 +47,13 @@ export default function ReportStatusBarChart() {
               <XAxis dataKey="status" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip
-                formatter={(value) => [`${value} báo cáo`, 'Số lượng']}
+                formatter={(value) => [`${value} hộ`, 'Số lượng']}
                 contentStyle={{ backgroundColor: '#fff', borderRadius: '8px' }}
               />
               <Legend verticalAlign="bottom" height={36} />
-              <Bar dataKey="count" name="Số báo cáo">
+              <Bar dataKey="count" name="Số hộ">
                 {data.map((entry, index) => (
-                  <cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Bar>
             </BarChart>

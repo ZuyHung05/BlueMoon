@@ -24,27 +24,19 @@ const utilities = {
   children: [
    
     {
-      id: 'util-my_task',
-      title: 'My Task',
+      id: 'util-resident',
+      title: 'Residents',
       type: 'item',
-      url: '/engineer/my_task',
-      icon: icons.ShowChartIcon,
+      url: '/manager/resident',
+      icon: icons.PeopleAltIcon,
       breadcrumbs: false
     },
     {
-      id: 'util-task_update',
-      title: 'Task Updates',
+      id: 'util-household',
+      title: 'Household',
       type: 'item',
-      url: '/engineer/task_update',
-      icon: icons.EngineeringIcon,
-      breadcrumbs: false
-    },
-    {
-      id: 'util-history',
-      title: 'History',
-      type: 'item',
-      url: '/engineer/history',
-      icon: icons.AssessmentIcon,
+      url: '/manager/household',
+      icon: icons.ApartmentIcon,
       breadcrumbs: false
     }
   ]

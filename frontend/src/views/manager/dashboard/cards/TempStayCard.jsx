@@ -1,14 +1,14 @@
 import React from 'react';
 import { Card, CardContent, Typography, Box, Skeleton } from '@mui/material';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
-export default function OutstandingPaymentsCard({ isLoading }) {
+export default function TempStayCard({ isLoading }) {
   return (
     <Card
       sx={{
         height: '100%',
-        background: 'linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%)',
+        background: 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)',
         boxShadow: 2,
         borderRadius: 2
       }}
@@ -19,26 +19,29 @@ export default function OutstandingPaymentsCard({ isLoading }) {
         ) : (
           <Box display="flex" alignItems="center" justifyContent="space-between">
 
-            {/* Left */}
+            {/* Left side */}
             <Box>
-              <Typography variant="h6" sx={{ color: '#C62828' }}>
-                Hộ còn nợ phí
+              <Typography variant="h6" sx={{ color: '#E65100' }}>
+                Tạm trú / Tạm vắng
               </Typography>
-              <Typography variant="h3" fontWeight="bold" color="#B71C1C">
-                12
+
+              <Typography variant="h3" fontWeight="bold" color="#EF6C00">
+                5
               </Typography>
-              <Typography variant="body2" color="textSecondary">
-                Hộ chưa thanh toán trong kỳ hiện tại
+
+              <Typography variant="body2" color="text.secondary">
+                Số cư dân đang khai báo trong khu vực
               </Typography>
             </Box>
 
-            {/* Right */}
+            {/* Right side */}
             <Box display="flex" alignItems="center" flexDirection="column">
-              <WarningAmberIcon sx={{ fontSize: 40, color: '#D32F2F' }} />
+              <AssignmentIndIcon sx={{ fontSize: 40, color: '#FB8C00' }} />
+
               <Box display="flex" alignItems="center" mt={1}>
-                <TrendingUpIcon sx={{ fontSize: 18, color: '#D32F2F', mr: 0.5 }} />
-                <Typography variant="caption" color="#D32F2F">
-                  +2 hôm nay
+                <TrendingUpIcon sx={{ fontSize: 18, color: '#EF6C00', mr: 0.5 }} />
+                <Typography variant="caption" color="#EF6C00">
+                  +1 tuần này
                 </Typography>
               </Box>
             </Box>

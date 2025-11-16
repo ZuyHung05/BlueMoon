@@ -12,10 +12,10 @@ import OutstandingPaymentsCard from './cards/OutstandingPaymentsCard';
 import TotalHouseholdsCard from './cards/TotalHouseHoldsCard';
 import UnpaidHouseholdsCard from './cards/UnpaidHouseholdsCard';
 
-import ReportsByCategoryChart from './charts/ReportsByCategoryChart';
-import ReportStatusBarChart from './charts/ReportStatusBarChart';
-import ReportsOverTimeChart from './charts/ReportsOverTimeChart';
-import TeamPerformanceChart from './charts/TeamPerformanceChart';
+import FeeByCategoryChart from './charts/FeeByCategoryChart';
+import CollectionPerformanceChart from './charts/CollectionPerformanceChart';
+import PaymentStatusBarChart from './charts/PaymentStatusBarChart';
+import RevenueOverTimeChart from './charts/RevenueOverTimeChart';
 
 import { gridSpacing } from 'store/constant';
 
@@ -57,10 +57,10 @@ export default function Dashboard() {
           </Grid>
         </Grid>
         <Grid size={3}>
-            <ReportsByCategoryChart />
+            <FeeByCategoryChart />
           </Grid>
         <Grid size="grow">
-          <ReportsOverTimeChart />
+          <CollectionPerformanceChart />
         </Grid>
       </Grid>
       {/* ======== CHARTS & ANALYTICS ======== */}
@@ -68,11 +68,11 @@ export default function Dashboard() {
         <Grid container spacing={3} justifyContent="space-evenly">
 
           <Grid size={6}>
-            <ReportStatusBarChart />
+            <PaymentStatusBarChart />
           </Grid>
 
           <Grid size="grow">
-            <TeamPerformanceChart />
+            <RevenueOverTimeChart />
           </Grid>
 
         </Grid>

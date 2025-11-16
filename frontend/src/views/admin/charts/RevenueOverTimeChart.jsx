@@ -11,23 +11,23 @@ import {
   Legend
 } from 'recharts';
 
-// Mock data — replace later with your backend data
+// Mock data (replace with real backend response)
 const data = [
-  { name: 'Tháng 1', reports: 45 },
-  { name: 'Tháng 2', reports: 62 },
-  { name: 'Tháng 3', reports: 51 },
-  { name: 'Tháng 4', reports: 73 },
-  { name: 'Tháng 5', reports: 89 },
-  { name: 'Tháng 6', reports: 120 },
-  { name: 'Tháng 7', reports: 97 },
-  { name: 'Tháng 8', reports: 110 },
-  { name: 'Tháng 9', reports: 134 },
-  { name: 'Tháng 10', reports: 148 },
-  { name: 'Tháng 11', reports: 139 },
-  { name: 'Tháng 12', reports: 152 }
+  { name: 'Tháng 1', revenue: 45000000 },
+  { name: 'Tháng 2', revenue: 52000000 },
+  { name: 'Tháng 3', revenue: 48000000 },
+  { name: 'Tháng 4', revenue: 62000000 },
+  { name: 'Tháng 5', revenue: 73000000 },
+  { name: 'Tháng 6', revenue: 81000000 },
+  { name: 'Tháng 7', revenue: 76000000 },
+  { name: 'Tháng 8', revenue: 88000000 },
+  { name: 'Tháng 9', revenue: 94000000 },
+  { name: 'Tháng 10', revenue: 102000000 },
+  { name: 'Tháng 11', revenue: 97000000 },
+  { name: 'Tháng 12', revenue: 115000000 }
 ];
 
-export default function ReportsOverTimeChart() {
+export default function RevenueOverTimeChart() {
   return (
     <Card
       sx={{
@@ -39,7 +39,7 @@ export default function ReportsOverTimeChart() {
     >
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          Báo cáo theo thời gian
+          Tổng thu theo thời gian
         </Typography>
 
         <Box sx={{ width: '100%', height: 350 }}>
@@ -49,17 +49,24 @@ export default function ReportsOverTimeChart() {
               margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
+
               <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
+              <YAxis
+                tick={{ fontSize: 12 }}
+                tickFormatter={(value) => `${(value / 1_000_000).toFixed(0)}M`}
+              />
+
               <Tooltip
-                formatter={(value) => [`${value} báo cáo`, 'Số lượng']}
+                formatter={(value) => [`${value.toLocaleString()} ₫`, 'Tổng thu']}
                 contentStyle={{ backgroundColor: '#fff', borderRadius: '8px' }}
               />
+
               <Legend verticalAlign="bottom" height={36} />
+
               <Line
                 type="monotone"
-                dataKey="reports"
-                name="Số báo cáo"
+                dataKey="revenue"
+                name="Tổng thu (₫)"
                 stroke="#1976D2"
                 strokeWidth={3}
                 activeDot={{ r: 6 }}

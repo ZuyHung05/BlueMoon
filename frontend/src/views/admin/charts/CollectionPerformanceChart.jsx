@@ -11,21 +11,20 @@ import {
   Legend
 } from 'recharts';
 
-// Mock data — replace later with real API data
+// Mock data — replace with API later
 const data = [
-  { team: 'Đội A', completed: 28, avgTime: 3.1 },
-  { team: 'Đội B', completed: 22, avgTime: 5.2 },
-  { team: 'Đội C', completed: 18, avgTime: 2.7 },
-  { team: 'Đội D', completed: 24, avgTime: 4.0 }
+  { cycle: 'Tháng 1', paid: 85, avgDays: 3.2 },
+  { cycle: 'Tháng 2', paid: 78, avgDays: 4.1 },
+  { cycle: 'Tháng 3', paid: 92, avgDays: 2.5 },
+  { cycle: 'Tháng 4', paid: 88, avgDays: 3.7 }
 ];
 
-// Colors for the bars
 const COLORS = {
-  completed: '#42A5F5',
-  avgTime: '#66BB6A'
+  paid: '#42A5F5',
+  avgDays: '#66BB6A'
 };
 
-export default function TeamPerformanceChart() {
+export default function CollectionPerformanceChart() {
   return (
     <Card
       sx={{
@@ -37,7 +36,7 @@ export default function TeamPerformanceChart() {
     >
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          Hiệu suất đội kỹ thuật
+          Hiệu suất đợt thu
         </Typography>
 
         <Box sx={{ width: '100%', height: 350 }}>
@@ -48,33 +47,37 @@ export default function TeamPerformanceChart() {
               margin={{ top: 20, right: 30, left: 20, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
+
               <XAxis type="number" />
               <YAxis
-                dataKey="team"
+                dataKey="cycle"
                 type="category"
                 tick={{ fontSize: 13 }}
-                width={80}
+                width={90}
               />
+
               <Tooltip
                 formatter={(value, name) =>
-                  name === 'avgTime'
-                    ? [`${value} giờ`, 'Thời gian trung bình']
-                    : [`${value} nhiệm vụ`, 'Hoàn thành']
+                  name === 'avgDays'
+                    ? [`${value} ngày`, 'Thời gian thanh toán TB']
+                    : [`${value}% hộ`, 'Tỷ lệ thanh toán']
                 }
                 contentStyle={{ backgroundColor: '#fff', borderRadius: '8px' }}
               />
+
               <Legend verticalAlign="bottom" height={36} />
+
               <Bar
-                dataKey="completed"
-                name="Nhiệm vụ hoàn thành"
-                fill={COLORS.completed}
+                dataKey="paid"
+                name="Tỷ lệ thanh toán (%)"
+                fill={COLORS.paid}
                 barSize={15}
                 radius={[5, 5, 0, 0]}
               />
               <Bar
-                dataKey="avgTime"
-                name="Thời gian trung bình (giờ)"
-                fill={COLORS.avgTime}
+                dataKey="avgDays"
+                name="Số ngày thanh toán TB"
+                fill={COLORS.avgDays}
                 barSize={15}
                 radius={[5, 5, 0, 0]}
               />

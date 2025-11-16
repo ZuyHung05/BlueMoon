@@ -18,27 +18,30 @@ export default function TotalHouseholdsCard({ isLoading }) {
           <Skeleton variant="rectangular" height={60} />
         ) : (
           <Box display="flex" alignItems="center" justifyContent="space-between">
-            
-            {/* Left */}
+
+            {/* Left side */}
             <Box>
               <Typography variant="h6" sx={{ color: '#0D47A1' }}>
-                Tổng số hộ gia đình
+                Tổng số hộ khẩu
               </Typography>
+
               <Typography variant="h3" fontWeight="bold" color="#1565C0">
-                342
+                42
               </Typography>
-              <Typography variant="body2" color="textSecondary">
-                Hộ đang sinh sống tại chung cư
+
+              <Typography variant="body2" color="text.secondary">
+                Hộ đang quản lý trong khu vực
               </Typography>
             </Box>
 
-            {/* Right */}
-            <Box display="flex" flexDirection="column" alignItems="center">
+            {/* Right side */}
+            <Box display="flex" alignItems="center" flexDirection="column">
               <HomeWorkIcon sx={{ fontSize: 40, color: '#1976D2' }} />
+
               <Box display="flex" alignItems="center" mt={1}>
                 <TrendingUpIcon sx={{ fontSize: 18, color: 'green', mr: 0.5 }} />
                 <Typography variant="caption" color="green">
-                  +5 hộ mới
+                  +1 hôm nay
                 </Typography>
               </Box>
             </Box>

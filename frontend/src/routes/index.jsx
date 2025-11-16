@@ -1,14 +1,14 @@
 import { createBrowserRouter } from 'react-router-dom';
 import AuthenticationRoutes from './AuthenticationRoutes';
 import AdminRoutes from './AdminRoutes';
-import EngineerRoutes from './EngineerRoutes';
+import ManagerRoutes from './ManagerRoutes';
 import UserRoutes from './UserRoutes';
 
 const router = createBrowserRouter(
   [
     AuthenticationRoutes,
     AdminRoutes,
-    EngineerRoutes,
+    ManagerRoutes,
     UserRoutes
   ],
   {

@@ -5,12 +5,10 @@ import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 import ProtectedRoute from './ProtectedRoutes';
 // dashboard routing
-const DashboardDefault = Loadable(lazy(() => import('views/engineer/dashboard')));
+const DashboardDefault = Loadable(lazy(() => import('views/manager/dashboard')));
+const HouseholdPage = Loadable(lazy(() => import('views/manager/householdPage')));
+const ResidentPage = Loadable(lazy(() => import('views/manager/residentPage')));
 
-// utilities routing
-const TaskUpdatePage = Loadable(lazy(() => import('views/engineer/taskUpdatePage')));
-const HistoryPage = Loadable(lazy(() => import('views/engineer/historyPage')));
-const MyTaskPage = Loadable(lazy(() => import('views/engineer/myTaskPage')));
 
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
@@ -18,7 +16,7 @@ const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const EngineerRoutes = {
-  path: '/engineer',
+  path: '/manager',
   element: (
         <MainLayout />
     ),
@@ -28,17 +26,14 @@ const EngineerRoutes = {
       element: <DashboardDefault />
     },
     {
-      path: 'my_task',
-      element: <MyTaskPage />
+      path: 'resident',
+      element: <ResidentPage />
     },
-    {
-      path: 'task_update',
-      element: <TaskUpdatePage />
-    },
-    {
-      path: 'history',
-      element: <HistoryPage />
+     {
+      path: 'household',
+      element: <HouseholdPage />
     }
+  
   ]
 };
 

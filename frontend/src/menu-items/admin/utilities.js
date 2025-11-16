@@ -6,6 +6,8 @@ import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+
 // constant
 const icons = {
   ApartmentIcon,
@@ -13,7 +15,8 @@ const icons = {
   PeopleAltIcon,
   EngineeringIcon,
   AssessmentIcon,
-  ShowChartIcon
+  ShowChartIcon,
+  ManageAccountsIcon
 };
 
 
@@ -24,21 +27,14 @@ const utilities = {
   children: [
    
     {
-      id: 'util-assign',
-      title: 'Assign',
+      id: 'util-residents',
+      title: 'Residents',
       type: 'item',
-      url: '/admin/assign',
-      icon: icons.ShowChartIcon,
+      url: '/admin/resident',
+      icon: icons.PeopleAltIcon,
       breadcrumbs: false
     },
-    {
-      id: 'util-engineer',
-      title: 'Engineer',
-      type: 'item',
-      url: '/admin/engineer',
-      icon: icons.EngineeringIcon,
-      breadcrumbs: false
-    },
+    
     {
       id: 'util-report',
       title: 'Reports',
@@ -46,7 +42,15 @@ const utilities = {
       url: '/admin/report',
       icon: icons.AssessmentIcon,
       breadcrumbs: false
-    }
+    },
+     {
+      id: 'util-user_management',
+      title: 'User Management',
+      type: 'item',
+      url: '/admin/user_management',
+      icon: icons.ManageAccountsIcon,
+      breadcrumbs: false
+    },
   ]
 };
 

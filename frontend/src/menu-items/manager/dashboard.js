@@ -1,8 +1,9 @@
 // assets
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 
 // constant
-const icons = { ManageAccountsIcon };
+const icons = { DashboardIcon };
 
 // ==============================|| MANAGER DASHBOARD MENU ITEMS ||============================== //
 
@@ -15,8 +16,8 @@ const dashboard = {
       id: 'engineer-dashboard',
       title: 'Dashboard',
       type: 'item',
-      url: '/engineer/dashboard',
-      icon: icons.ManageAccountsIcon,
+      url: '/manager/dashboard',
+      icon: icons.DashboardIcon,
       breadcrumbs: false
     }
   ]
