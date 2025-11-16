@@ -8,7 +8,7 @@ import BlueMoon.example.BlueMoon.dto.response.VehicleResponse;
 import java.util.List;
 
 public interface VehicleService {
-    
+
     VehicleResponse addVehicle(AddVehicleRequest request);
 
     void deleteVehicle(Long vehicleId);
