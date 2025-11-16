@@ -3,9 +3,9 @@ import { lazy } from 'react';
 // project imports
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
-
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/admin/dashboard/Default')));
+
 
 // utilities routing
 const UtilsTypography = Loadable(lazy(() => import('views/admin/utilities/Typography')));
@@ -15,6 +15,8 @@ const UtilsShadow = Loadable(lazy(() => import('views/admin/utilities/Shadow')))
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 
+//
+const UserManager = Loadable(lazy(() => import('views/admin/usermanager/ResidentManagement')));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -49,6 +51,11 @@ const MainRoutes = {
     {
       path: '/sample-page',
       element: <SamplePage />
+    }
+    ,
+    {
+      path: 'admin/user-manager',
+      element: <UserManager />
     }
   ]
 };

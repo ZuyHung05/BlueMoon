@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-
+import 'antd/dist/reset.css';
 // project imports
 import App from 'App';
 import * as serviceWorker from 'serviceWorker';
