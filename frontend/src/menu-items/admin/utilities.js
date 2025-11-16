@@ -5,14 +5,15 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import AssessmentIcon from '@mui/icons-material/Assessment';
-
+import ShowChartIcon from '@mui/icons-material/ShowChart';
 // constant
 const icons = {
   ApartmentIcon,
   PaymentIcon,
   PeopleAltIcon,
   EngineeringIcon,
-  AssessmentIcon
+  AssessmentIcon,
+  ShowChartIcon
 };
 
 
@@ -21,43 +22,28 @@ const utilities = {
   title: 'Utilities',
   type: 'group',
   children: [
+   
     {
-      id: 'util-residents',
-      title: 'Residents',
+      id: 'util-assign',
+      title: 'Assign',
       type: 'item',
-      url: '/residents',
-      icon: icons.PeopleAltIcon,
+      url: '/admin/assign',
+      icon: icons.ShowChartIcon,
       breadcrumbs: false
     },
     {
-      id: 'util-apartment',
-      title: 'Apartment',
+      id: 'util-engineer',
+      title: 'Engineer',
       type: 'item',
-      url: '/apartment',
-      icon: icons.ApartmentIcon,
-      breadcrumbs: false
-    },
-    {
-      id: 'util-payments',
-      title: 'Payments',
-      type: 'item',
-      url: '/payments',
-      icon: icons.PaymentIcon,
-      breadcrumbs: false
-    },
-    {
-      id: 'util-maintenance',
-      title: 'Maintenance',
-      type: 'item',
-      url: '/maintenance',
+      url: '/admin/engineer',
       icon: icons.EngineeringIcon,
       breadcrumbs: false
     },
     {
-      id: 'util-reports',
+      id: 'util-report',
       title: 'Reports',
       type: 'item',
-      url: '/reports',
+      url: '/admin/report',
       icon: icons.AssessmentIcon,
       breadcrumbs: false
     }

@@ -1,3 +1,4 @@
+// this is the parent page, while the uath-forms/AuthLogin is just the login box region only
 import { Link } from 'react-router-dom';
 
 import useMediaQuery from '@mui/material/useMediaQuery';

@@ -1,6 +1,0 @@
-✅ Exactly — you’ve got it 100% right.
-
-When a user signs in, your React app:
-1️⃣ receives their role (e.g., "admin", "manager", "accountant") from the backend,
-2️⃣ saves it (usually in localStorage, Context, or Redux),
-3️⃣ then decides which page, dashboard, or route to show — all based on that role.
