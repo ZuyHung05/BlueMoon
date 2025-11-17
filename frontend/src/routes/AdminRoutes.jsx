@@ -8,9 +8,10 @@ import Loadable from 'ui-component/Loadable';
 const DashboardDefault = Loadable(lazy(() => import('views/admin/dashboard/Default')));
 
 // utilities routing  
-const AdminResidentPage = Loadable(lazy(() => import('views/admin/residentPage')));
 const ReportPage = Loadable(lazy(() => import('views/admin/reportPage')));
 const AdminUserManagementPage = Loadable(lazy(() => import('views/admin/adminUserManagementPage')));
+
+const UserManager = Loadable(lazy(() => import('views/admin/usermanager/ResidentManagement')));
 
 
 import ProtectedRoute from './ProtectedRoutes';
@@ -28,7 +29,7 @@ const AdminRoutes = {
     },
     {
       path: 'resident',
-      element: <AdminResidentPage />
+      element: <UserManager />
     },
     {
       path: 'report',
