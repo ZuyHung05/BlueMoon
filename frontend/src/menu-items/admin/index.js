@@ -4,7 +4,7 @@ import pages from './pages';
 import usermanager from './usermanager';
 
 const menuItems = {
-  items: [dashboard, utilities, pages, usermanager]
+  items: [dashboard, utilities, pages, usermanager] 
 };
 
 export default menuItems;
