@@ -13,6 +13,9 @@ const AdminUserManagementPage = Loadable(lazy(() => import('views/admin/adminUse
 
 const UserManager = Loadable(lazy(() => import('views/admin/usermanager/ResidentManagement')));
 const DefaultFeeManagement = Loadable(lazy(() => import('views/admin/feemanager/DefaultFeeManagement')));
+
+const VehicleManagement = Loadable(lazy(() => import('views/admin/vehicle/VehicleManagement')));
+
 // ==============================|| MAIN ROUTING ||============================== //
 
 const AdminRoutes = {
@@ -38,7 +41,11 @@ const AdminRoutes = {
         {
             path: 'default-fee',
             element: <DefaultFeeManagement />
-        }
+        },
+        {
+            path: 'vehicle',
+            element: <VehicleManagement />
+        },
     ]
 };
 

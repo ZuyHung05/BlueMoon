@@ -7,6 +7,7 @@ import EngineeringIcon from '@mui/icons-material/Engineering';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 
 // constant
 const icons = {
@@ -16,7 +17,8 @@ const icons = {
     EngineeringIcon,
     AssessmentIcon,
     ShowChartIcon,
-    ManageAccountsIcon
+    ManageAccountsIcon,
+    DirectionsCarIcon
 };
 
 const utilities = {
@@ -30,6 +32,14 @@ const utilities = {
             type: 'item',
             url: '/admin/resident',
             icon: icons.PeopleAltIcon,
+            breadcrumbs: false
+        },
+        {
+            id: 'util-vehicle', // <--- 3. Thêm mục Phương tiện
+            title: 'Vehicles',
+            type: 'item',
+            url: '/admin/vehicle',
+            icon: icons.DirectionsCarIcon,
             breadcrumbs: false
         },
         {
