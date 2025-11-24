@@ -8,6 +8,7 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import DateRangeIcon from '@mui/icons-material/DateRange';
 
 // constant
 const icons = {
@@ -18,7 +19,8 @@ const icons = {
     AssessmentIcon,
     ShowChartIcon,
     ManageAccountsIcon,
-    DirectionsCarIcon
+    DirectionsCarIcon,
+    DateRangeIcon
 };
 
 const utilities = {
@@ -47,7 +49,15 @@ const utilities = {
             title: 'Default Fee',
             type: 'item',
             url: '/admin/default-fee',
-            icon: icons.AttachMoneyIcon, 
+            icon: icons.AttachMoneyIcon,
+            breadcrumbs: false
+        },
+        {
+            id: 'util-payment-period', // <--- 3. Thêm mục Đợt thu
+            title: 'Fee Periods',
+            type: 'item',
+            url: '/admin/payment-period',
+            icon: icons.DateRangeIcon,
             breadcrumbs: false
         },
         {

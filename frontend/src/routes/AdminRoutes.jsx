@@ -16,6 +16,8 @@ const DefaultFeeManagement = Loadable(lazy(() => import('views/admin/feemanager/
 
 const VehicleManagement = Loadable(lazy(() => import('views/admin/vehicle/VehicleManagement')));
 
+const PaymentPeriodManagement = Loadable(lazy(() => import('views/admin/feemanager/PaymentPeriodManagement')));
+
 // ==============================|| MAIN ROUTING ||============================== //
 
 const AdminRoutes = {
@@ -46,6 +48,10 @@ const AdminRoutes = {
             path: 'vehicle',
             element: <VehicleManagement />
         },
+        {
+            path: 'payment-period',
+            element: <PaymentPeriodManagement />
+        }
     ]
 };
 
