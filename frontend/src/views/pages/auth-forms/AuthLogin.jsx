@@ -27,6 +27,9 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 // ===============================|| JWT - LOGIN ||=============================== //
 
 export default function AuthLogin() {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    console.log("Đang gọi API tới:", apiUrl);
+
     const navigate = useNavigate();
     const [checked, setChecked] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
@@ -44,7 +47,19 @@ export default function AuthLogin() {
 
         try {
             // [THAY ĐỔI 2] Gửi key 'username' lên Backend
+            /*
             const response = await fetch('http://localhost:8080/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: formData.username,
+                    password: formData.password
+                })
+            });
+            */
+            const response = await fetch(`${apiUrl}/api/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
