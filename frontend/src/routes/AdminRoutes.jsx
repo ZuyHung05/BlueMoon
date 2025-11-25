@@ -11,13 +11,14 @@ const DashboardDefault = Loadable(lazy(() => import('views/admin/dashboard/Defau
 const ReportPage = Loadable(lazy(() => import('views/admin/reportPage')));
 const AdminUserManagementPage = Loadable(lazy(() => import('views/admin/adminUserManagementPage')));
 
-const UserManager = Loadable(lazy(() => import('views/admin/usermanager/ResidentManagement')));
+const ResidentManagement = Loadable(lazy(() => import('views/admin/residentmanager/ResidentManagement')));
 const DefaultFeeManagement = Loadable(lazy(() => import('views/admin/feemanager/DefaultFeeManagement')));
 
 const VehicleManagement = Loadable(lazy(() => import('views/admin/vehicle/VehicleManagement')));
 
 const PaymentPeriodManagement = Loadable(lazy(() => import('views/admin/feemanager/PaymentPeriodManagement')));
-
+    
+const HouseholdManagement = Loadable(lazy(() => import('views/admin/household/HouseholdManagement')));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const AdminRoutes = {
@@ -30,7 +31,7 @@ const AdminRoutes = {
         },
         {
             path: 'resident',
-            element: <UserManager />
+            element: <ResidentManagement />
         },
         {
             path: 'report',
@@ -51,6 +52,10 @@ const AdminRoutes = {
         {
             path: 'payment-period',
             element: <PaymentPeriodManagement />
+        },
+        {
+            path: 'household',
+            element: <HouseholdManagement />
         }
     ]
 };

@@ -9,6 +9,7 @@ import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import DateRangeIcon from '@mui/icons-material/DateRange';
+import HomeWorkIcon from '@mui/icons-material/HomeWork';
 
 // constant
 const icons = {
@@ -20,14 +21,31 @@ const icons = {
     ShowChartIcon,
     ManageAccountsIcon,
     DirectionsCarIcon,
-    DateRangeIcon
+    DateRangeIcon,
+    HomeWorkIcon,
 };
 
 const utilities = {
     id: 'utilities',
-    title: 'Utilities',
+    title: 'Menu',
     type: 'group',
     children: [
+        {
+            id: 'util-user_management',
+            title: 'Account',
+            type: 'item',
+            url: '/admin/user_management',
+            icon: icons.ManageAccountsIcon,
+            breadcrumbs: false
+        },
+        {
+            id: 'util-household', // <--- 3. Thêm mục Hộ khẩu
+            title: 'Households',
+            type: 'item',
+            url: '/admin/household',
+            icon: icons.HomeWorkIcon,
+            breadcrumbs: false
+        },
         {
             id: 'util-residents',
             title: 'Residents',
@@ -68,14 +86,6 @@ const utilities = {
             icon: icons.AssessmentIcon,
             breadcrumbs: false
         },
-        {
-            id: 'util-user_management',
-            title: 'User Management',
-            type: 'item',
-            url: '/admin/user_management',
-            icon: icons.ManageAccountsIcon,
-            breadcrumbs: false
-        }
     ]
 };
 
