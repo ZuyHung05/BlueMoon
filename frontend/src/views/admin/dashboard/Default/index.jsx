@@ -12,6 +12,7 @@ import OutstandingPaymentsCard from './cards/OutstandingPaymentsCard';
 import TotalHouseholdsCard from './cards/TotalHouseHoldsCard';
 import UnpaidHouseholdsCard from './cards/UnpaidHouseholdsCard';
 
+import Bot from 'ui-component/chatbot/Chat';
 import FeeByCategoryChart from './charts/FeeByCategoryChart';
 import CollectionPerformanceChart from './charts/CollectionPerformanceChart';
 import PaymentStatusBarChart from './charts/PaymentStatusBarChart';
@@ -78,5 +79,6 @@ export default function Dashboard() {
         </Grid>
       </Grid>
     </Grid>
+    
   );
 }

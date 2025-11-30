@@ -2,6 +2,7 @@
 // color variants
 @use 'themes-vars.module.scss' as *;
 @use "./tailwind.css";
+@use "./chatbot.scss";
 // third party
 @use 'simplebar-react/dist/simplebar.min.css';
 
