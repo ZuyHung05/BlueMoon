@@ -16,15 +16,20 @@ import { useGetMenuMaster } from 'api/menu';
 function MenuList() {
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
-
   const [selectedID, setSelectedID] = useState('');
 
-  const lastItem = null;
+  // --- [FIX QUAN TRỌNG] KIỂM TRA DỮ LIỆU ĐỂ KHÔNG CRASH ---
+  // Nếu không có items, dừng render ngay lập tức
+  if (!menuItems?.items) {
+      return null; 
+  }
 
+  const lastItem = null;
   let lastItemIndex = menuItems.items.length - 1;
   let remItems = [];
   let lastItemId;
 
+  // Xử lý logic cắt menu (nếu có)
   if (lastItem && lastItem < menuItems.items.length) {
     lastItemId = menuItems.items[lastItem - 1].id;
     lastItemIndex = lastItem - 1;
@@ -32,12 +37,11 @@ function MenuList() {
       title: item.title,
       elements: item.children,
       icon: item.icon,
-      ...(item.url && {
-        url: item.url
-      })
+      ...(item.url && { url: item.url })
     }));
   }
 
+  // --- [FIX QUAN TRỌNG] THÊM ?. VÀO VÒNG LẶP MAP ---
   const navItems = menuItems.items.slice(0, lastItemIndex + 1).map((item, index) => {
     switch (item.type) {
       case 'group':
@@ -49,7 +53,6 @@ function MenuList() {
             </List>
           );
         }
-
         return (
           <NavGroup
             key={item.id}

@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client';
 // import './index.css'
 // project imports
+import 'antd/dist/reset.css';
 import App from 'App';
 import * as serviceWorker from 'serviceWorker';
 import reportWebVitals from 'reportWebVitals';
@@ -30,9 +31,9 @@ import '@fontsource/poppins/700.css';
 const container = document.getElementById('root');
 const root = createRoot(container);
 root.render(
-  <ConfigProvider>
-    <App />
-  </ConfigProvider>
+    <ConfigProvider>
+        <App />
+    </ConfigProvider>
 );
 
 // If you want your app to work offline and load faster, you can change

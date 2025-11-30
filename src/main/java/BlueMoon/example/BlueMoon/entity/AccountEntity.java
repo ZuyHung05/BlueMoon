@@ -1,38 +1,32 @@
 package BlueMoon.example.BlueMoon.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import javax.management.relation.Role;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "account") 
 @Data
-@Table(name = "account")
-@NoArgsConstructor
-@AllArgsConstructor
 public class AccountEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "account_id")
+    @Column(name = "account_id") 
     private Long accountId;
 
-    @Column(name = "username")
-    private String username;
+    @Column(nullable = false, unique = true)
+    private String username; 
 
-    @Column(name = "password")
-    private String password;
+    @Column(nullable = false)
+    private String password; 
 
-    @Column(name = "role")
+    @Column(length = 20)
     private String role;
 
-    @Column(name = "phone")
+    @Column(nullable = false)
     private String phone;
 
     @Column(name = "last_login")
-    private LocalDateTime lastLogin;
+    private LocalDateTime lastLogin; 
 }
 

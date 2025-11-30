@@ -1,13 +1,13 @@
 import { memo, useMemo } from 'react';
 
 import useMediaQuery from '@mui/material/useMediaQuery';
-import Chip from '@mui/material/Chip';
+// import Chip from '@mui/material/Chip'; // Removed as it is no longer used
 import Drawer from '@mui/material/Drawer';
-import Stack from '@mui/material/Stack';
+// import Stack from '@mui/material/Stack'; // Removed as it is no longer used
 import Box from '@mui/material/Box';
 import MiniDrawerStyled from '../MiniDrawerStyled';
 // project imports
-import MenuCard from './MenuCard';
+// import MenuCard from './MenuCard'; // <--- 1. REMOVED IMPORT
 import MenuList from '../MenuList';
 import LogoSection from '../LogoSection';
 
@@ -39,14 +39,7 @@ function Sidebar() {
   );
 
   const drawer = useMemo(() => {
-    const drawerContent = (
-      <>
-        <MenuCard />
-        <Stack direction="row" sx={{ justifyContent: 'center', mb: 2 }}>
-          <Chip label={import.meta.env.VITE_APP_VERSION} size="small" color="default" />
-        </Stack>
-      </>
-    );
+    // <--- 2. REMOVED drawerContent DEFINITION (It contained MenuCard and Chip)
 
     let drawerSX = { paddingLeft: '0px', paddingRight: '0px', marginTop: '20px' };
     if (drawerOpen) drawerSX = { paddingLeft: '16px', paddingRight: '16px', marginTop: '0px' };
@@ -56,12 +49,12 @@ function Sidebar() {
         {downMD ? (
           <Box sx={drawerSX}>
             <MenuList />
-            {drawerOpen && drawerContent}
+            {/* Removed drawerContent rendering */}
           </Box>
         ) : (
           <SimpleBar sx={{ height: 'calc(100vh - 90px)', ...drawerSX }}>
             <MenuList />
-            {drawerOpen && drawerContent}
+            {/* Removed drawerContent rendering */}
           </SimpleBar>
         )}
       </>
