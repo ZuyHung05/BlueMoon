@@ -12,12 +12,11 @@ import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import Alert from '@mui/material/Alert'; // Thêm Alert
-import Collapse from '@mui/material/Collapse'; // Thêm hiệu ứng
-
-// project imports
-import AnimateButton from 'ui-component/extended/AnimateButton';
-import CustomFormControl from 'ui-component/extended/Form/CustomFormControl';
+import Alert from '@mui/material/Alert';
+import Collapse from '@mui/material/Collapse';
+import CircularProgress from '@mui/material/CircularProgress';
+import Backdrop from '@mui/material/Backdrop';
+import FormControl from '@mui/material/FormControl'; // Import FormControl chuẩn
 
 // assets
 import Visibility from '@mui/icons-material/Visibility';
@@ -27,15 +26,14 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 // ===============================|| JWT - LOGIN ||=============================== //
 
 export default function AuthLogin() {
-    const apiUrl = import.meta.env.VITE_API_URL;
-    console.log("Đang gọi API tới:", apiUrl);
-
     const navigate = useNavigate();
     const [checked, setChecked] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
-    const [errorMsg, setErrorMsg] = useState(''); // State lưu thông báo lỗi
+    const [errorMsg, setErrorMsg] = useState('');
+    
+    // State loading
+    const [isLoading, setIsLoading] = useState(false);
 
-    // [THAY ĐỔI 1] Khởi tạo state dùng 'username'
     const [formData, setFormData] = useState({ username: '', password: '' });
 
     const handleClickShowPassword = () => setShowPassword(!showPassword);
@@ -44,21 +42,12 @@ export default function AuthLogin() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrorMsg('');
+        setIsLoading(true); // Bắt đầu loading
 
         try {
-            // [THAY ĐỔI 2] Gửi key 'username' lên Backend
-            /*
-            const response = await fetch('http://localhost:8080/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    username: formData.username,
-                    password: formData.password
-                })
-            });
-            */
+            const apiUrl = import.meta.env.VITE_API_URL;
+            console.log("Đang gọi API tới:", apiUrl);
+
             const response = await fetch(`${apiUrl}/api/login`, {
                 method: 'POST',
                 headers: {
@@ -73,7 +62,6 @@ export default function AuthLogin() {
             const data = await response.json();
 
             if (!response.ok) {
-                // Hiển thị lỗi từ backend (ví dụ: Sai mật khẩu, không phải Admin)
                 throw new Error(data.message || 'Đăng nhập thất bại');
             }
 
@@ -81,7 +69,7 @@ export default function AuthLogin() {
 
             // Lưu token và role
             localStorage.setItem('token', data.token);
-            localStorage.setItem('role', data.role); // Backend trả về role trong response
+            localStorage.setItem('role', data.role);
 
             // Điều hướng
             if (data.role === 'ADMIN') {
@@ -89,87 +77,118 @@ export default function AuthLogin() {
             } else {
                 window.location.href = '/';
             }
+
         } catch (err) {
-            console.error(err);
-            setErrorMsg(err.message);
+            console.error("Lỗi đăng nhập:", err);
+            setErrorMsg(err.message || "Không thể kết nối đến server. Vui lòng thử lại.");
+            setIsLoading(false); // Tắt loading nếu có lỗi để người dùng nhập lại
         }
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            {/* Hiển thị lỗi nếu có */}
-            <Collapse in={!!errorMsg}>
-                <Alert severity="error" sx={{ mb: 2 }}>
-                    {errorMsg}
-                </Alert>
-            </Collapse>
+        <>
+            {/* --- HIỆU ỨNG LOADING TOÀN MÀN HÌNH --- */}
+            <Backdrop
+                sx={{ 
+                    color: '#fff', 
+                    zIndex: (theme) => theme.zIndex.drawer + 1,
+                    flexDirection: 'column',
+                    gap: 2
+                }}
+                open={isLoading}
+            >
+                <CircularProgress color="inherit" size={60} thickness={4} />
+                <Typography variant="h6" sx={{ fontWeight: 'bold', letterSpacing: 1 }}>
+                    Đang đăng nhập...
+                </Typography>
+            </Backdrop>
 
-            {/* --- INPUT USERNAME (ĐÃ SỬA) --- */}
-            <CustomFormControl fullWidth sx={{ mb: 3 }}>
-                <InputLabel htmlFor="username-login">Username</InputLabel>
-                <OutlinedInput
-                    id="username-login"
-                    type="text" // [THAY ĐỔI 3] Dùng text thay vì email
-                    value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    label="Username"
-                    sx={{ borderRadius: '12px' }}
-                    endAdornment={
-                        <InputAdornment position="end">
-                            <AccountCircle color="primary" />
-                        </InputAdornment>
-                    }
-                />
-            </CustomFormControl>
+            <form onSubmit={handleSubmit}>
+                {/* Hiển thị lỗi nếu có */}
+                <Collapse in={!!errorMsg}>
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {errorMsg}
+                    </Alert>
+                </Collapse>
 
-            {/* --- INPUT PASSWORD --- */}
-            <CustomFormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel htmlFor="password-login">Password</InputLabel>
-                <OutlinedInput
-                    id="password-login"
-                    type={showPassword ? 'text' : 'password'}
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    label="Password"
-                    sx={{ borderRadius: '12px' }}
-                    endAdornment={
-                        <InputAdornment position="end">
-                            <IconButton
-                                aria-label="toggle password visibility"
-                                onClick={handleClickShowPassword}
-                                onMouseDown={handleMouseDownPassword}
-                                edge="end"
-                            >
-                                {showPassword ? <Visibility /> : <VisibilityOff />}
-                            </IconButton>
-                        </InputAdornment>
-                    }
-                />
-            </CustomFormControl>
-
-            {/* --- CHECKBOX --- */}
-            <Grid container alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-                <Grid item>
-                    <FormControlLabel
-                        control={<Checkbox checked={checked} onChange={(e) => setChecked(e.target.checked)} color="primary" />}
-                        label={
-                            <Typography variant="body2" color="textSecondary">
-                                Keep me logged in
-                            </Typography>
+                {/* --- INPUT USERNAME --- */}
+                {/* Sử dụng FormControl chuẩn thay vì CustomFormControl bị lỗi */}
+                <FormControl fullWidth sx={{ mb: 3 }} variant="outlined">
+                    <InputLabel htmlFor="username-login">Username</InputLabel>
+                    <OutlinedInput
+                        id="username-login"
+                        type="text"
+                        value={formData.username}
+                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                        label="Username"
+                        disabled={isLoading} // Khóa input khi đang load
+                        sx={{ borderRadius: '12px' }}
+                        endAdornment={
+                            <InputAdornment position="end">
+                                <AccountCircle color={isLoading ? "disabled" : "primary"} />
+                            </InputAdornment>
                         }
                     />
-                </Grid>
-            </Grid>
+                </FormControl>
 
-            {/* --- BUTTON --- */}
-            <Box sx={{ mt: 2 }}>
-                <AnimateButton>
+                {/* --- INPUT PASSWORD --- */}
+                <FormControl fullWidth sx={{ mb: 2 }} variant="outlined">
+                    <InputLabel htmlFor="password-login">Password</InputLabel>
+                    <OutlinedInput
+                        id="password-login"
+                        type={showPassword ? 'text' : 'password'}
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        label="Password"
+                        disabled={isLoading} // Khóa input khi đang load
+                        sx={{ borderRadius: '12px' }}
+                        endAdornment={
+                            <InputAdornment position="end">
+                                <IconButton
+                                    aria-label="toggle password visibility"
+                                    onClick={handleClickShowPassword}
+                                    onMouseDown={handleMouseDownPassword}
+                                    edge="end"
+                                    disabled={isLoading}
+                                >
+                                    {showPassword ? <Visibility /> : <VisibilityOff />}
+                                </IconButton>
+                            </InputAdornment>
+                        }
+                    />
+                </FormControl>
+
+                {/* --- CHECKBOX --- */}
+                <Grid container alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+                    <Grid item>
+                        <FormControlLabel
+                            control={
+                                <Checkbox 
+                                    checked={checked} 
+                                    onChange={(e) => setChecked(e.target.checked)} 
+                                    color="primary"
+                                    disabled={isLoading} 
+                                />
+                            }
+                            label={
+                                <Typography variant="body2" color="textSecondary">
+                                    Keep me logged in
+                                </Typography>
+                            }
+                        />
+                    </Grid>
+                </Grid>
+
+                {/* --- BUTTON --- */}
+                <Box sx={{ mt: 2 }}>
+                    {/* Loại bỏ AnimateButton bị lỗi, dùng Button chuẩn */}
                     <Button
                         disableElevation
                         fullWidth
                         size="large"
                         type="submit"
                         variant="contained"
+                        disabled={isLoading} // Khóa nút khi đang load
                         sx={{
                             borderRadius: '12px',
                             py: 1.5,
@@ -186,10 +205,10 @@ export default function AuthLogin() {
                             }
                         }}
                     >
-                        Sign In
+                        {isLoading ? 'Processing...' : 'Sign In'}
                     </Button>
-                </AnimateButton>
-            </Box>
-        </form>
+                </Box>
+            </form>
+        </>
     );
 }
