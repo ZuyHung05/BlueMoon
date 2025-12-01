@@ -896,6 +896,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@google/generative-ai@npm:^0.24.1":
+  version: 0.24.1
+  resolution: "@google/generative-ai@npm:0.24.1"
+  checksum: 10c0/8da77fc648b04fc2ecef53e75230e2ee67a8fd29a34b6b8874e77a7332b2a1e4b51d44dd9eb604fb063ed8ea46d293aac5b1e2a955ae2435e2582a265f2cb80d
+  languageName: node
+  linkType: hard
+
 "@humanfs/core@npm:^0.19.1":
   version: 0.19.1
   resolution: "@humanfs/core@npm:0.19.1"
@@ -2740,6 +2747,7 @@ __metadata:
     "@fortawesome/fontawesome-svg-core": "npm:^7.1.0"
     "@fortawesome/free-brands-svg-icons": "npm:^7.1.0"
     "@fortawesome/react-fontawesome": "npm:^3.1.0"
+    "@google/generative-ai": "npm:^0.24.1"
     "@mui/icons-material": "npm:7.3.4"
     "@mui/material": "npm:7.3.4"
     "@tabler/icons-react": "npm:3.35.0"
@@ -2765,6 +2773,7 @@ __metadata:
     prettier-eslint-cli: "npm:8.0.1"
     react: "npm:19.2.0"
     react-apexcharts: "npm:1.7.0"
+    react-chatbotify: "npm:^2.5.0"
     react-device-detect: "npm:2.2.3"
     react-dom: "npm:19.2.0"
     react-hook-form: "npm:^7.66.0"
@@ -6574,6 +6583,16 @@ __metadata:
     apexcharts: ">=4.0.0"
     react: ">=0.13"
   checksum: 10c0/0533cd8b44df4d6a0b157c8a8adbcddb33a0575420b3fa1b5c90fa8553a39884bcc1122cce912252e452c8bffd1c4eaf2d9f9cfa4e515e81e7067fa36fcffe52
+  languageName: node
+  linkType: hard
+
+"react-chatbotify@npm:^2.5.0":
+  version: 2.5.0
+  resolution: "react-chatbotify@npm:2.5.0"
+  peerDependencies:
+    react: ">=16.14.0"
+    react-dom: ">=16.14.0"
+  checksum: 10c0/671c7fb286743ab94c6365179a4da857b97b9fe196804cf6b2079530567d0886fdcd575138cd4d3836e73c5f71640905042e37f6d7a33831cd1e4d2ce156c791
   languageName: node
   linkType: hard
 
