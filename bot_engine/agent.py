@@ -1,17 +1,22 @@
 import os
+from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.utilities import SQLDatabase
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain.agents import create_agent
 from .utils import read_json, read_txt
 
-os.environ["GOOGLE_API_KEY"] = "AIzaSyCZ74MKTstZnw9GsAoGAJIOVhOKsGP1sco"
+load_dotenv()
 
-model = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+DB_URI = os.getenv("DB_URI")
+MODEL_NAME = os.getenv("MODEL_NAME", "gemini-2.0-flash")  
 
-uri = "postgresql+psycopg2://postgres.bqacliyspyocscmqfies:ktpm20251@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres?sslmode=require"
+os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
 
-db = SQLDatabase.from_uri(uri)
+model = ChatGoogleGenerativeAI(model=MODEL_NAME)
+
+db = SQLDatabase.from_uri(DB_URI)
 toolkit = SQLDatabaseToolkit(db=db, llm=model)
 tools = toolkit.get_tools()
 
