@@ -1,3 +1,0 @@
-curl -X POST "http://localhost:8000/stream" \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Hello, how are you?"}'
