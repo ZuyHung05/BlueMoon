@@ -7,38 +7,47 @@ import BotAvatar from "assets/images/gigachad.png";
 import UserAvatar from "assets/images/gigachad.png";
 
 export default function Bot() {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-  const modelType = "gemini-2.0-flash"; // streaming-supported model
 
-  const gemini_stream = async (params) => {
-    try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: modelType });
+  const backend_stream = async (params) => {
+  try {
+    const response = await fetch("http://localhost:8000/stream", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message: params.userInput })
+    });
 
-      const result = await model.generateContentStream(params.userInput);
 
-      let text = "";
-      let offset = 0;
-
-      for await (const chunk of result.stream) {
-        const chunkText = chunk.text() || "";
-        text += chunkText;
-
-        // stream one character at a time
-        for (let i = offset; i < text.length; i++) {
-          await params.streamMessage(text.slice(0, i + 1));
-          await new Promise((resolve) => setTimeout(resolve, 10));
-        }
-
-        offset = text.length;
-      }
-
-      await params.endStreamMessage();
-    } catch (error) {
-      console.error("Gemini error:", error);
-      await params.injectMessage("⚠️ Không thể tải mô hình LLM. Vui lòng kiểm tra API key!");
+    if (!response.ok || !response.body) {
+      throw new Error("No streaming body");
     }
-  };
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let partialText = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      partialText += chunk;
+
+      // simulate streaming — stream 1 char at a time
+      for (let i = 0; i < chunk.length; i++) {
+        await params.streamMessage(partialText.slice(0, partialText.length - chunk.length + i + 1));
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+    }
+
+    await params.endStreamMessage();
+
+  } catch (error) {
+    console.error("Backend streaming error:", error);
+    await params.injectMessage("⚠️ Lỗi backend. Hãy kiểm tra FastAPI server!");
+  }
+};
 
   const flow = {
     start: {
@@ -48,7 +57,7 @@ export default function Bot() {
 
     chat_loop: {
       message: async (params) => {
-        await gemini_stream(params);
+        await backend_stream(params);
       },
       path: "chat_loop"
     }
@@ -78,16 +87,31 @@ export default function Bot() {
     },
 
     botBubble: {
-      simulateStream: true
+      simulateStream: true,
+      background: "#eef6ff",
+      textColor: "#000",
+      borderRadius: "16px",
+      padding: "12px",
+      fontSize: "15px",
     },
 
     chatWindow: {
       title: "Trợ lý ảo",
-      showCloseButton: true
+      width: "400px",
+      height: "550px",
+      borderRadius: "20px",
+      background: "#ffffff",
+      showCloseButton: true,
     },
 
+
     launchButton: {
-      iconColor: "#fff"
+      background: "#000",
+      iconColor: "#fff",
+      size: "55px",
+      bottom: "40px",
+      right: "40px",
+      borderRadius: "50%",
     }
   };
 
