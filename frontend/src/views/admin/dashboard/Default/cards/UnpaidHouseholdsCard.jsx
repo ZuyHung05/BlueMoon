@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card, CardContent, Typography, Box, Skeleton } from '@mui/material';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import { Wallet, TrendingUp } from 'lucide-react';
 
 export default function UnpaidHouseholdsCard({ isLoading }) {
   return (
@@ -34,9 +33,9 @@ export default function UnpaidHouseholdsCard({ isLoading }) {
 
             {/* Right */}
             <Box display="flex" alignItems="center" flexDirection="column">
-              <AccountBalanceWalletIcon sx={{ fontSize: 40, color: '#EF6C00' }} />
+              <Wallet size={40} color="#EF6C00" />
               <Box display="flex" alignItems="center" mt={1}>
-                <TrendingUpIcon sx={{ fontSize: 18, color: 'red', mr: 0.5 }} />
+                <TrendingUp size={18} color="red" style={{ marginRight: 4 }} />
                 <Typography variant="caption" color="red">
                   +3 hôm nay
                 </Typography>

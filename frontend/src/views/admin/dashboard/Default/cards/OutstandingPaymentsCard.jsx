@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card, CardContent, Typography, Box, Skeleton } from '@mui/material';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import { AlertTriangle, TrendingUp } from 'lucide-react';
 
 export default function OutstandingPaymentsCard({ isLoading }) {
   return (
@@ -34,9 +33,9 @@ export default function OutstandingPaymentsCard({ isLoading }) {
 
             {/* Right */}
             <Box display="flex" alignItems="center" flexDirection="column">
-              <WarningAmberIcon sx={{ fontSize: 40, color: '#D32F2F' }} />
+              <AlertTriangle size={40} color="#D32F2F" />
               <Box display="flex" alignItems="center" mt={1}>
-                <TrendingUpIcon sx={{ fontSize: 18, color: '#D32F2F', mr: 0.5 }} />
+                <TrendingUp size={18} color="#D32F2F" style={{ marginRight: 4 }} />
                 <Typography variant="caption" color="#D32F2F">
                   +2 hôm nay
                 </Typography>

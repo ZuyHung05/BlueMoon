@@ -14,7 +14,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import TotalIncomeCard from 'ui-component/cards/Skeleton/TotalIncomeCard';
 
 // assets
-import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
+import { Table2 } from 'lucide-react';
 
 // styles
 const CardWrapper = styled(MainCard)(({ theme }) => ({
@@ -66,7 +66,7 @@ export default function TotalIncomeDarkCard({ isLoading }) {
                       color: 'common.white'
                     }}
                   >
-                    <TableChartOutlinedIcon fontSize="inherit" />
+                    <Table2 size={24} color="inherit" />
                   </Avatar>
                 </ListItemAvatar>
                 <ListItemText

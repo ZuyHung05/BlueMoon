@@ -77,7 +77,8 @@ function Sidebar() {
                 width: drawerWidth,
                 bgcolor: 'background.default',
                 color: 'text.primary',
-                borderRight: 'none'
+                borderRight: '1px solid rgba(255, 255, 255, 0.05)', // Subtle border
+                boxShadow: 'none'
               }
             }
           }}

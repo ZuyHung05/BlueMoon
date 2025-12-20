@@ -5,15 +5,20 @@ export default function OutlinedInput(theme, borderRadius, outlinedFilled) {
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          background: outlinedFilled ? theme.vars.palette.grey[50] : 'transparent',
+          background: outlinedFilled ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
           borderRadius: `${borderRadius}px`,
 
           '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: theme.vars.palette.grey[400]
+            borderColor: 'rgba(255, 255, 255, 0.15)'
           },
 
-          '&:hover $notchedOutline': {
-            borderColor: theme.vars.palette.primary.light
+          '&:hover .MuiOutlinedInput-notchedOutline': {
+            borderColor: theme.vars.palette.primary.main
+          },
+
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: theme.vars.palette.primary.main,
+            boxShadow: `0 0 8px ${theme.vars.palette.primary.main}40` // Neon subtle glow
           },
 
           '&.MuiInputBase-multiline': {
@@ -22,7 +27,7 @@ export default function OutlinedInput(theme, borderRadius, outlinedFilled) {
         },
         input: {
           fontWeight: 500,
-          background: outlinedFilled ? theme.vars.palette.grey[50] : 'transparent',
+          background: outlinedFilled ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
           padding: '15.5px 14px',
           borderRadius: `${borderRadius}px`,
 

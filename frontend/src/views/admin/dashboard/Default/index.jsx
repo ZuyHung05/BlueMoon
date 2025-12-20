@@ -31,7 +31,7 @@ export default function Dashboard() {
   return (
     <Grid container spacing={gridSpacing} direction="column">
       {/* ======== TOP METRIC CARDS ======== */}
-      <Grid container direction="row">
+      {/* <Grid container direction="row">
         <Grid>
           <Grid item xs={12}>
             <Grid container spacing={2} justifyContent="space-evenly">
@@ -40,7 +40,7 @@ export default function Dashboard() {
                     <TotalHouseholdsCard isLoading={isLoading} />
                   </Grid>
 
-                  {/* In Progress Reports */}
+                  // In Progress Reports
                   <Grid item xs={12} sm={6} md={3}>
                     <CompletedPaymentsCard isLoading={isLoading} />
                   </Grid>
@@ -48,7 +48,7 @@ export default function Dashboard() {
                     <OutstandingPaymentsCard isLoading={isLoading} />
                   </Grid>
 
-                  {/* Urgent Reports */}
+                  // Urgent Reports
                   <Grid item xs={12} sm={6} md={3}>
                     <UnpaidHouseholdsCard isLoading={isLoading} />
                   </Grid>
@@ -62,9 +62,9 @@ export default function Dashboard() {
         <Grid size="grow">
           <CollectionPerformanceChart />
         </Grid>
-      </Grid>
+      </Grid> */}
       {/* ======== CHARTS & ANALYTICS ======== */}
-      <Grid item xs={12}>
+      {/* <Grid item xs={12}>
         <Grid container spacing={3} justifyContent="space-evenly">
 
           <Grid size={6}>
@@ -76,7 +76,7 @@ export default function Dashboard() {
           </Grid>
 
         </Grid>
-      </Grid>
+      </Grid> */}
     </Grid>
   );
 }

@@ -101,12 +101,13 @@ export default function NavGroup({ item, lastItem, remItems, lastItemId, setSele
               gutterBottom
               sx={{
                 display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: 'text.heading',
-                padding: 0.75,
-                textTransform: 'capitalize',
-                marginTop: 1.25
+                fontSize: '0.75rem', // Smaller text
+                fontWeight: 600, // Semi-bold
+                color: 'grey.400', // Lighter for dark theme
+                padding: '16px 12px 8px 12px', // Better padding
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em', // Added tracking
+                marginTop: 0
               }}
             >
               {currentItem.title}

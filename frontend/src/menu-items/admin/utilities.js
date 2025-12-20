@@ -1,28 +1,23 @@
 // assets
-// Place to get icon: https://mui.com/material-ui/material-icons/?query=resident
-import ApartmentIcon from '@mui/icons-material/Apartment';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
-import EngineeringIcon from '@mui/icons-material/Engineering';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
-import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
-import DateRangeIcon from '@mui/icons-material/DateRange';
-import HomeWorkIcon from '@mui/icons-material/HomeWork';
+import {
+  UserCog,
+  Building,
+  Users,
+  Car,
+  DollarSign,
+  CalendarRange,
+  BarChart3
+} from 'lucide-react';
 
 // constant
 const icons = {
-    ApartmentIcon,
-    AttachMoneyIcon,
-    PeopleAltIcon,
-    EngineeringIcon,
-    AssessmentIcon,
-    ShowChartIcon,
-    ManageAccountsIcon,
-    DirectionsCarIcon,
-    DateRangeIcon,
-    HomeWorkIcon,
+  UserCog,
+  Building,
+  Users,
+  Car,
+  DollarSign,
+  CalendarRange,
+  BarChart3
 };
 
 const utilities = {
@@ -35,7 +30,7 @@ const utilities = {
             title: 'Account',
             type: 'item',
             url: '/admin/user_management',
-            icon: icons.ManageAccountsIcon,
+            icon: icons.UserCog,
             breadcrumbs: false
         },
         {
@@ -43,7 +38,7 @@ const utilities = {
             title: 'Households',
             type: 'item',
             url: '/admin/household',
-            icon: icons.HomeWorkIcon,
+            icon: icons.Building,
             breadcrumbs: false
         },
         {
@@ -51,7 +46,7 @@ const utilities = {
             title: 'Residents',
             type: 'item',
             url: '/admin/resident',
-            icon: icons.PeopleAltIcon,
+            icon: icons.Users,
             breadcrumbs: false
         },
         {
@@ -59,7 +54,7 @@ const utilities = {
             title: 'Vehicles',
             type: 'item',
             url: '/admin/vehicle',
-            icon: icons.DirectionsCarIcon,
+            icon: icons.Car,
             breadcrumbs: false
         },
         {
@@ -67,7 +62,7 @@ const utilities = {
             title: 'Default Fee',
             type: 'item',
             url: '/admin/default-fee',
-            icon: icons.AttachMoneyIcon,
+            icon: icons.DollarSign,
             breadcrumbs: false
         },
         {
@@ -75,7 +70,7 @@ const utilities = {
             title: 'Fee Periods',
             type: 'item',
             url: '/admin/payment-period',
-            icon: icons.DateRangeIcon,
+            icon: icons.CalendarRange,
             breadcrumbs: false
         },
         {
@@ -83,7 +78,7 @@ const utilities = {
             title: 'Reports',
             type: 'item',
             url: '/admin/report',
-            icon: icons.AssessmentIcon,
+            icon: icons.BarChart3,
             breadcrumbs: false
         },
     ]

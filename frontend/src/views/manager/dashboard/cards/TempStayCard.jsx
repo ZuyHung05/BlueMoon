@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card, CardContent, Typography, Box, Skeleton } from '@mui/material';
-import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import { UserPlus, TrendingUp } from 'lucide-react';
 
 export default function TempStayCard({ isLoading }) {
   return (
@@ -36,10 +35,10 @@ export default function TempStayCard({ isLoading }) {
 
             {/* Right side */}
             <Box display="flex" alignItems="center" flexDirection="column">
-              <AssignmentIndIcon sx={{ fontSize: 40, color: '#FB8C00' }} />
+              <UserPlus size={40} color="#FB8C00" />
 
               <Box display="flex" alignItems="center" mt={1}>
-                <TrendingUpIcon sx={{ fontSize: 18, color: '#EF6C00', mr: 0.5 }} />
+                <TrendingUp size={18} color="#EF6C00" style={{ marginRight: 4 }} />
                 <Typography variant="caption" color="#EF6C00">
                   +1 tuần này
                 </Typography>

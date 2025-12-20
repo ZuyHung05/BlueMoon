@@ -21,6 +21,7 @@
     "framer-motion": "12.23.22",
     "leaflet": "^1.9.4",
     "lodash-es": "4.17.21",
+    "lucide-react": "^0.562.0",
     "material-ui-popup-state": "5.3.6",
     "react": "19.2.0",
     "react-apexcharts": "1.7.0",

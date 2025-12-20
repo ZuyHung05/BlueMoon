@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card, CardContent, Typography, Box, Skeleton } from '@mui/material';
-import HomeWorkIcon from '@mui/icons-material/HomeWork';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import { Building2, TrendingUp } from 'lucide-react';
 
 export default function TotalHouseholdsCard({ isLoading }) {
   return (
@@ -36,10 +35,10 @@ export default function TotalHouseholdsCard({ isLoading }) {
 
             {/* Right side */}
             <Box display="flex" alignItems="center" flexDirection="column">
-              <HomeWorkIcon sx={{ fontSize: 40, color: '#1976D2' }} />
+              <Building2 size={40} color="#1976D2" />
 
               <Box display="flex" alignItems="center" mt={1}>
-                <TrendingUpIcon sx={{ fontSize: 18, color: 'green', mr: 0.5 }} />
+                <TrendingUp size={18} color="green" style={{ marginRight: 4 }} />
                 <Typography variant="caption" color="green">
                   +1 hôm nay
                 </Typography>

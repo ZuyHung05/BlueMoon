@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card, CardContent, Typography, Box, Skeleton } from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import { CheckCircle2, TrendingUp } from 'lucide-react';
 
 export default function CompletedPaymentsCard({ isLoading }) {
   return (
@@ -34,9 +33,9 @@ export default function CompletedPaymentsCard({ isLoading }) {
 
             {/* Right side */}
             <Box display="flex" alignItems="center" flexDirection="column">
-              <CheckCircleIcon sx={{ fontSize: 40, color: '#2E7D32' }} />
+              <CheckCircle2 size={40} color="#2E7D32" />
               <Box display="flex" alignItems="center" mt={1}>
-                <TrendingUpIcon sx={{ fontSize: 18, color: 'green', mr: 0.5 }} />
+                <TrendingUp size={18} color="green" style={{ marginRight: 4 }} />
                 <Typography variant="caption" color="green">
                   +10 hôm nay
                 </Typography>

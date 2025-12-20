@@ -1,19 +1,10 @@
 // assets
-// Place to get icon: https://mui.com/material-ui/material-icons/?query=resident
-import ApartmentIcon from '@mui/icons-material/Apartment';
-import PaymentIcon from '@mui/icons-material/Payment';
-import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
-import EngineeringIcon from '@mui/icons-material/Engineering';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
+import { Users, Building2 } from 'lucide-react';
+
 // constant
 const icons = {
-  ApartmentIcon,
-  PaymentIcon,
-  PeopleAltIcon,
-  EngineeringIcon,
-  AssessmentIcon,
-  ShowChartIcon
+  Users,
+  Building2
 };
 
 
@@ -28,7 +19,7 @@ const utilities = {
       title: 'Residents',
       type: 'item',
       url: '/manager/resident',
-      icon: icons.PeopleAltIcon,
+      icon: icons.Users,
       breadcrumbs: false
     },
     {
@@ -36,7 +27,7 @@ const utilities = {
       title: 'Household',
       type: 'item',
       url: '/manager/household',
-      icon: icons.ApartmentIcon,
+      icon: icons.Building2,
       breadcrumbs: false
     }
   ]

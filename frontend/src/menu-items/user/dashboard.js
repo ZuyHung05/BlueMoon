@@ -1,12 +1,11 @@
 // assets
-import HomeFilledIcon from '@mui/icons-material/HomeFilled';
-import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
-import AssessmentIcon from '@mui/icons-material/Assessment';
+import { Home, MessageCircleQuestion, FileText } from 'lucide-react';
 
 // constant
-const icons = { HomeFilledIcon,
-  QuestionAnswerIcon,
-  AssessmentIcon
+const icons = {
+  Home,
+  MessageCircleQuestion,
+  FileText
 };
 
 // ==============================|| ACCOUNTANT DASHBOARD MENU ITEMS ||============================== //
@@ -21,7 +20,7 @@ const dashboard = {
       title: 'Home',
       type: 'item',
       url: '/user/home',
-      icon: icons.HomeFilledIcon,
+      icon: icons.Home,
       breadcrumbs: false
     },
     {
@@ -29,7 +28,7 @@ const dashboard = {
       title: 'Report Problem',
       type: 'item',
       url: '/user/report_problem',
-      icon: icons.QuestionAnswerIcon,
+      icon: icons.MessageCircleQuestion,
       breadcrumbs: false
     },
     {
@@ -37,7 +36,7 @@ const dashboard = {
       title: 'My Reports',
       type: 'item',
       url: '/user/my_report',
-      icon: icons.AssessmentIcon,
+      icon: icons.FileText,
       breadcrumbs: false
     }
   ]

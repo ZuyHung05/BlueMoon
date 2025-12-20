@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card, CardContent, Typography, Box, Skeleton } from '@mui/material';
-import GroupsIcon from '@mui/icons-material/Groups';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import { Users, TrendingUp } from 'lucide-react';
 
 export default function TotalResidentsCard({ isLoading }) {
   return (
@@ -36,10 +35,10 @@ export default function TotalResidentsCard({ isLoading }) {
 
             {/* Right side */}
             <Box display="flex" alignItems="center" flexDirection="column">
-              <GroupsIcon sx={{ fontSize: 40, color: '#2E7D32' }} />
+              <Users size={40} color="#2E7D32" />
 
               <Box display="flex" alignItems="center" mt={1}>
-                <TrendingUpIcon sx={{ fontSize: 18, color: 'green', mr: 0.5 }} />
+                <TrendingUp size={18} color="green" style={{ marginRight: 4 }} />
                 <Typography variant="caption" color="green">
                   +3 tháng này
                 </Typography>

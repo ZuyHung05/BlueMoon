@@ -25,7 +25,7 @@ import useConfig from 'hooks/useConfig';
 import useMenuCollapse from 'hooks/useMenuCollapse';
 
 // assets
-import { IconChevronDown, IconChevronRight, IconChevronUp } from '@tabler/icons-react';
+import { ChevronDown, ChevronRight, ChevronUp } from 'lucide-react';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 
 export default function NavCollapse({ menu, level, parentId }) {
@@ -115,7 +115,15 @@ export default function NavCollapse({ menu, level, parentId }) {
 
   const Icon = menu.icon;
   const menuIcon = menu.icon ? (
-    <Icon strokeWidth={1.5} size={drawerOpen ? '20px' : '24px'} />
+    <Icon
+      strokeWidth={1.5}
+      size={drawerOpen ? 20 : 24}
+      color="#22d3ee" // Cyan 400
+      style={{
+        filter: 'drop-shadow(0 0 8px rgba(34,211,238,0.8))' // Neon glow
+      }}
+      className="animate-pulse" // Pulse animation
+    />
   ) : (
     <FiberManualRecordIcon
       sx={{
@@ -127,9 +135,9 @@ export default function NavCollapse({ menu, level, parentId }) {
   );
 
   const collapseIcon = drawerOpen ? (
-    <IconChevronUp stroke={1.5} size="16px" style={{ marginTop: 'auto', marginBottom: 'auto' }} />
+    <ChevronUp strokeWidth={1.5} size={16} style={{ marginTop: 'auto', marginBottom: 'auto' }} />
   ) : (
-    <IconChevronRight stroke={1.5} size="16px" style={{ marginTop: 'auto', marginBottom: 'auto' }} />
+    <ChevronRight strokeWidth={1.5} size={16} style={{ marginTop: 'auto', marginBottom: 'auto' }} />
   );
 
   return (
@@ -145,6 +153,11 @@ export default function NavCollapse({ menu, level, parentId }) {
             py: level === 1 ? 0 : 1,
             '&:hover': { bgcolor: 'transparent' },
             '&.Mui-selected': { '&:hover': { bgcolor: 'transparent' }, bgcolor: 'transparent' }
+          }),
+          // Centering for collapsed state
+          ...(!drawerOpen && {
+             justifyContent: 'center',
+             px: 0
           })
         }}
         selected={isSelected}
@@ -215,7 +228,7 @@ export default function NavCollapse({ menu, level, parentId }) {
           </Tooltip>
         )}
 
-        {openMini || open ? collapseIcon : <IconChevronDown stroke={1.5} size="16px" style={{ marginTop: 'auto', marginBottom: 'auto' }} />}
+        {openMini || open ? collapseIcon : <ChevronDown strokeWidth={1.5} size={16} style={{ marginTop: 'auto', marginBottom: 'auto' }} />}
 
         {!drawerOpen && (
           <Popper
