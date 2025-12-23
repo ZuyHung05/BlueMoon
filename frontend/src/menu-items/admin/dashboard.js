@@ -1,7 +1,7 @@
 // assets
-import DashboardIcon from '@mui/icons-material/Dashboard';
+import { LayoutDashboard } from 'lucide-react';
 // constant
-const icons = { DashboardIcon };
+const icons = { LayoutDashboard };
 
 // ==============================|| DASHBOARD MENU ITEMS ||============================== //
 
@@ -14,8 +14,8 @@ const dashboard = {
       id: 'default',
       title: 'Dashboard',
       type: 'item',
-      url: '/dashboard/default',
-      icon: icons.DashboardIcon,
+      url: '/admin/dashboard',
+      icon: icons.LayoutDashboard,
       breadcrumbs: false
     }
   ]

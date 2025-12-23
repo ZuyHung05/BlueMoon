@@ -8,10 +8,12 @@ export default function Paper(borderRadius) {
       },
       styleOverrides: {
         root: {
-          backgroundImage: 'none'
-        },
-        rounded: {
-          borderRadius: `${borderRadius}px`
+          backgroundImage: 'none',
+          border: '1px solid rgba(255, 255, 255, 0.12)', // Subtle border for dark theme
+          boxShadow: 'none', // Flat look preferred with border
+          '&.MuiPaper-rounded': {
+             borderRadius: '12px'
+          }
         }
       }
     }

@@ -7,6 +7,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Box from '@mui/material/Box';
+import Bot from 'ui-component/chatbot/Chat';
 
 // project imports
 import Footer from './Footer';
@@ -65,7 +66,8 @@ export default function MainLayout() {
           <Footer />
         </Box>
       </MainContentStyled>
-      <Customization />
+      {/* <Customization /> */}
+      <Bot/>
     </Box>
   );
 }

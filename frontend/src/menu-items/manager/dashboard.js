@@ -1,8 +1,8 @@
 // assets
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import { LayoutDashboard } from 'lucide-react';
 
 // constant
-const icons = { ManageAccountsIcon };
+const icons = { LayoutDashboard };
 
 // ==============================|| MANAGER DASHBOARD MENU ITEMS ||============================== //
 
@@ -12,11 +12,11 @@ const dashboard = {
   type: 'group',
   children: [
     {
-      id: 'manager-dashboard',
-      title: 'Manager Dashboard',
+      id: 'engineer-dashboard',
+      title: 'Dashboard',
       type: 'item',
-      url: '/dashboard/manager',
-      icon: icons.ManageAccountsIcon,
+      url: '/manager/dashboard',
+      icon: icons.LayoutDashboard,
       breadcrumbs: false
     }
   ]

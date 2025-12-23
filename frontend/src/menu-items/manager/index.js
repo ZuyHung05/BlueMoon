@@ -1,8 +1,8 @@
 import dashboard from './dashboard';
-// import reports from './reports';
+import utilities from './utilities';
 
 const menuItems = {
-  items: [dashboard]
+  items: [dashboard, utilities]
 };
 
 export default menuItems;

@@ -3,61 +3,61 @@ import { lazy } from 'react';
 // project imports
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
+
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/admin/dashboard/Default')));
 
-
 // utilities routing
-const UtilsTypography = Loadable(lazy(() => import('views/admin/utilities/Typography')));
-const UtilsColor = Loadable(lazy(() => import('views//admin/utilities/Color')));
-const UtilsShadow = Loadable(lazy(() => import('views/admin/utilities/Shadow')));
+const ReportPage = Loadable(lazy(() => import('views/admin/reportPage')));
+const AdminUserManagementPage = Loadable(lazy(() => import('views/admin/adminUserManagementPage')));
 
-// sample page routing
-const SamplePage = Loadable(lazy(() => import('views/sample-page')));
+const ResidentManagement = Loadable(lazy(() => import('views/admin/residentmanager/ResidentManagement')));
+const DefaultFeeManagement = Loadable(lazy(() => import('views/admin/feemanager/DefaultFeeManagement')));
 
-//
-const UserManager = Loadable(lazy(() => import('views/admin/usermanager/ResidentManagement')));
+const VehicleManagement = Loadable(lazy(() => import('views/admin/vehicle/VehicleManagement')));
+
+const PaymentPeriodManagement = Loadable(lazy(() => import('views/admin/feemanager/PaymentPeriodManagement')));
+    
+const HouseholdManagement = Loadable(lazy(() => import('views/admin/household/HouseholdManagement')));
 // ==============================|| MAIN ROUTING ||============================== //
 
-const MainRoutes = {
-  path: '/',
-  element: <MainLayout />,
-  children: [
-    {
-      path: '/',
-      element: <DashboardDefault />
-    },
-    {
-      path: 'dashboard',
-      children: [
+const AdminRoutes = {
+    path: '/admin',
+    element: <MainLayout />,
+    children: [
         {
-          path: 'default',
-          element: <DashboardDefault />
+            path: 'dashboard',
+            element: <DashboardDefault />
+        },
+        {
+            path: 'resident',
+            element: <ResidentManagement />
+        },
+        {
+            path: 'report',
+            element: <ReportPage />
+        },
+        {
+            path: 'user_management',
+            element: <AdminUserManagementPage />
+        },
+        {
+            path: 'default-fee',
+            element: <DefaultFeeManagement />
+        },
+        {
+            path: 'vehicle',
+            element: <VehicleManagement />
+        },
+        {
+            path: 'payment-period',
+            element: <PaymentPeriodManagement />
+        },
+        {
+            path: 'household',
+            element: <HouseholdManagement />
         }
-      ]
-    },
-    {
-      path: 'typography',
-      element: <UtilsTypography />
-    },
-    {
-      path: 'color',
-      element: <UtilsColor />
-    },
-    {
-      path: 'shadow',
-      element: <UtilsShadow />
-    },
-    {
-      path: '/sample-page',
-      element: <SamplePage />
-    }
-    ,
-    {
-      path: 'admin/user-manager',
-      element: <UserManager />
-    }
-  ]
+    ]
 };
 
-export default MainRoutes;
+export default AdminRoutes;

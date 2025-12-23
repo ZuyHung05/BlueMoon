@@ -38,9 +38,32 @@ export default function ThemeCustomization({ children }) {
       },
       typography: themeTypography,
       colorSchemes: {
+        dark: {
+          palette: palette,
+          customShadows: CustomShadows(palette, 'dark')
+        },
         light: {
-          palette: palette.light,
-          customShadows: CustomShadows(palette.light, 'light')
+          palette: {
+            ...palette,
+            mode: 'light',
+            text: {
+              primary: '#1e293b', // Slate 800 - dark text for readability
+              secondary: '#475569', // Slate 600
+              dark: '#0f172a', // Slate 900
+              hint: '#64748b', // Slate 500
+              heading: '#0f172a' // Slate 900
+            },
+            background: {
+              paper: '#ffffff',
+              default: '#f8fafc' // Slate 50
+            },
+            action: {
+              hover: 'rgba(0, 0, 0, 0.04)',
+              selected: 'rgba(0, 0, 0, 0.08)'
+            },
+            divider: 'rgba(0, 0, 0, 0.12)'
+          },
+          customShadows: CustomShadows(palette, 'light')
         }
       },
       cssVariables: {
@@ -56,7 +79,7 @@ export default function ThemeCustomization({ children }) {
 
   return (
     <StyledEngineProvider injectFirst>
-      <ThemeProvider disableTransitionOnChange theme={themes} modeStorageKey="theme-mode" defaultMode={DEFAULT_THEME_MODE}>
+      <ThemeProvider disableTransitionOnChange theme={themes} modeStorageKey="theme-mode" defaultMode="dark">
         <CssBaseline enableColorScheme />
         {children}
       </ThemeProvider>

@@ -14,82 +14,79 @@ export function buildPalette(presetColor) {
       colors = defaultColor;
   }
 
-  const lightColors = {
+  // Neon Dark Theme Colors
+  const neonDarkColors = {
     primary: {
-      light: colors.primaryLight,
-      main: colors.primaryMain,
-      dark: colors.primaryDark,
-      200: colors.primary200,
-      800: colors.primary800
+      light: '#67e8f9', // Cyan 300
+      main: '#22d3ee', // Cyan 400
+      dark: '#06b6d4', // Cyan 500
+      200: '#a5f3fc',
+      800: '#0891b2'
     },
     secondary: {
-      light: colors.secondaryLight,
-      main: colors.secondaryMain,
-      dark: colors.secondaryDark,
-      200: colors.secondary200,
-      800: colors.secondary800
+      light: '#a78bfa',
+      main: '#8b5cf6', // Violet
+      dark: '#7c3aed',
+      200: '#ddd6fe',
+      800: '#5b21b6'
     },
     error: {
-      light: colors.errorLight,
-      main: colors.errorMain,
-      dark: colors.errorDark
+      light: '#fca5a5',
+      main: '#ef4444',
+      dark: '#b91c1c'
     },
     orange: {
-      light: colors.orangeLight,
-      main: colors.orangeMain,
-      dark: colors.orangeDark
+      light: '#fdba74',
+      main: '#f97316',
+      dark: '#c2410c'
     },
     warning: {
-      light: colors.warningLight,
-      main: colors.warningMain,
-      dark: colors.warningDark,
-      contrastText: colors.grey700
+      light: '#fde047',
+      main: '#eab308',
+      dark: '#a16207',
+      contrastText: '#1e293b' // Dark text for contrast
     },
     success: {
-      light: colors.successLight,
-      200: colors.success200,
-      main: colors.successMain,
-      dark: colors.successDark
+      light: '#86efac',
+      200: '#bbf7d0',
+      main: '#22c55e',
+      dark: '#15803d'
     },
     grey: {
-      50: colors.grey50,
-      100: colors.grey100,
-      500: colors.grey500,
-      600: colors.grey600,
-      700: colors.grey700,
-      900: colors.grey900
+      50: '#f8fafc',
+      100: '#f1f5f9',
+      500: '#64748b',
+      600: '#475569',
+      700: '#334155',
+      900: '#0f172a'
     },
     dark: {
-      light: colors.darkTextPrimary,
-      main: colors.darkLevel1,
-      dark: colors.darkLevel2,
-      800: colors.darkBackground,
-      900: colors.darkPaper
+      light: '#e2e8f0',
+      main: '#94a3b8',
+      dark: '#64748b',
+      800: '#1e293b',
+      900: '#0f172a'
     },
     text: {
-      primary: colors.grey700,
-      secondary: colors.grey500,
-      dark: colors.grey900,
-      hint: colors.grey100,
-      heading: colors.grey900
+      primary: '#f1f5f9', // Slate 100
+      secondary: '#94a3b8', // Slate 400
+      dark: '#e2e8f0',
+      hint: '#64748b',
+      heading: '#f8fafc'
     },
-    divider: colors.grey200,
+    divider: 'rgba(255, 255, 255, 0.12)', // Subtle light border
     background: {
-      paper: colors.paper,
-      default: colors.paper
+      paper: '#0f172a', // Slate 900
+      default: '#020617' // Slate 950 (Very dark blue)
     }
   };
 
-  const commonColor = { common: { black: colors.darkPaper, white: '#fff' } };
-
-  const extendedLight = extendPaletteWithChannels(lightColors);
-  const extendedCommon = extendPaletteWithChannels(commonColor);
-
   return {
-    light: {
-      mode: 'light',
-      ...extendedCommon,
-      ...extendedLight
-    }
+    mode: 'dark', // Force dark mode
+    common: {
+      black: '#000',
+      white: '#fff'
+    },
+    ...neonDarkColors
   };
 }

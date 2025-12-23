@@ -1,67 +1,87 @@
 // assets
-// Place to get icon: https://mui.com/material-ui/material-icons/?query=resident
-import ApartmentIcon from '@mui/icons-material/Apartment';
-import PaymentIcon from '@mui/icons-material/Payment';
-import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
-import EngineeringIcon from '@mui/icons-material/Engineering';
-import AssessmentIcon from '@mui/icons-material/Assessment';
+import {
+  UserCog,
+  Building,
+  Users,
+  Car,
+  DollarSign,
+  CalendarRange,
+  BarChart3
+} from 'lucide-react';
 
 // constant
 const icons = {
-  ApartmentIcon,
-  PaymentIcon,
-  PeopleAltIcon,
-  EngineeringIcon,
-  AssessmentIcon
+  UserCog,
+  Building,
+  Users,
+  Car,
+  DollarSign,
+  CalendarRange,
+  BarChart3
 };
 
-
 const utilities = {
-  id: 'utilities',
-  title: 'Utilities',
-  type: 'group',
-  children: [
-    {
-      id: 'util-residents',
-      title: 'Residents',
-      type: 'item',
-      url: '/residents',
-      icon: icons.PeopleAltIcon,
-      breadcrumbs: false
-    },
-    {
-      id: 'util-apartment',
-      title: 'Apartment',
-      type: 'item',
-      url: '/apartment',
-      icon: icons.ApartmentIcon,
-      breadcrumbs: false
-    },
-    {
-      id: 'util-payments',
-      title: 'Payments',
-      type: 'item',
-      url: '/payments',
-      icon: icons.PaymentIcon,
-      breadcrumbs: false
-    },
-    {
-      id: 'util-maintenance',
-      title: 'Maintenance',
-      type: 'item',
-      url: '/maintenance',
-      icon: icons.EngineeringIcon,
-      breadcrumbs: false
-    },
-    {
-      id: 'util-reports',
-      title: 'Reports',
-      type: 'item',
-      url: '/reports',
-      icon: icons.AssessmentIcon,
-      breadcrumbs: false
-    }
-  ]
+    id: 'utilities',
+    title: 'Menu',
+    type: 'group',
+    children: [
+        {
+            id: 'util-user_management',
+            title: 'Account',
+            type: 'item',
+            url: '/admin/user_management',
+            icon: icons.UserCog,
+            breadcrumbs: false
+        },
+        {
+            id: 'util-household', // <--- 3. Thêm mục Hộ khẩu
+            title: 'Households',
+            type: 'item',
+            url: '/admin/household',
+            icon: icons.Building,
+            breadcrumbs: false
+        },
+        {
+            id: 'util-residents',
+            title: 'Residents',
+            type: 'item',
+            url: '/admin/resident',
+            icon: icons.Users,
+            breadcrumbs: false
+        },
+        {
+            id: 'util-vehicle', // <--- 3. Thêm mục Phương tiện
+            title: 'Vehicles',
+            type: 'item',
+            url: '/admin/vehicle',
+            icon: icons.Car,
+            breadcrumbs: false
+        },
+        {
+            id: 'util-default-fee',
+            title: 'Default Fee',
+            type: 'item',
+            url: '/admin/default-fee',
+            icon: icons.DollarSign,
+            breadcrumbs: false
+        },
+        {
+            id: 'util-payment-period', // <--- 3. Thêm mục Đợt thu
+            title: 'Fee Periods',
+            type: 'item',
+            url: '/admin/payment-period',
+            icon: icons.CalendarRange,
+            breadcrumbs: false
+        },
+        {
+            id: 'util-report',
+            title: 'Reports',
+            type: 'item',
+            url: '/admin/report',
+            icon: icons.BarChart3,
+            breadcrumbs: false
+        },
+    ]
 };
 
 export default utilities;
