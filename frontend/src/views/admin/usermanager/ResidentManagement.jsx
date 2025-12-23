@@ -14,10 +14,14 @@ import {
     DatePicker,
     Select,
     message,
-} from 'antd';import PartnerSearch from './';
+} from 'antd';
+// Giả định PartnerSearch là component con để tìm kiếm
+import PartnerSearch from './';
 import { EyeOutlined, EditOutlined, DeleteOutlined, } from '@ant-design/icons';
-import dayjs from 'dayjs'; // <-- THÊM: Cần thiết cho DatePicker
-import customParseFormat from 'dayjs/plugin/customParseFormat'; // <-- THÊM
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import axios from 'axios';
+dayjs.extend(customParseFormat);
 
 const { Title } = Typography;
 const { Content } = Layout;
@@ -30,35 +34,39 @@ export default function ResidentManagement() {
     const [loading, setLoading] = useState(false);
 
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+    // editingResident sẽ chứa toàn bộ dữ liệu của cư dân đang sửa (bao gồm cả id)
     const [editingResident, setEditingResident] = useState(null);
     const [form] = Form.useForm();
 
     const columns = [
         {
             title: 'Họ và tên',
-            dataIndex: 'full_name',
-            key: 'full_name',
+            dataIndex: 'fullName',
+            key: 'fullName',
         },
         {
             title: 'Giới tính',
             dataIndex: 'gender',
             key: 'gender',
-            render: (gender) => (gender === 'male' ? 'Nam' : 'Nữ'),
+            // Xử lý giá trị M/F từ BE sang Nam/Nữ
+            render: (gender) => (gender === 'M' ? 'Nam' : 'Nữ'),
         },
         {
             title: 'Ngày sinh',
-            dataIndex: 'date_of_birth',
-            key: 'date_of_birth',
+            dataIndex: 'dateOfBirth',
+            key: 'dateOfBirth',
+            // Dữ liệu trong state đã là đối tượng dayjs, giờ format lại
+            render: (date) => (date ? dayjs(date).format('DD/MM/YYYY') : '-'),
         },
         {
             title: 'Số điện thoại',
-            dataIndex: 'phone_number',
-            key: 'phone_number',
+            dataIndex: 'phoneNumber',
+            key: 'phoneNumber',
         },
         {
             title: 'Quan hệ với chủ hộ',
-            dataIndex: 'family_role',
-            key: 'family_role',
+            dataIndex: 'familyRole',
+            key: 'familyRole',
         },
         {
             title: 'Công việc',
@@ -73,10 +81,9 @@ export default function ResidentManagement() {
                     <Button
                         type="link"
                         icon={<DeleteOutlined />}
-                        danger // <-- Thêm 'danger' để nút có màu đỏ
-                        onClick={() => handleDeleteConfirm(record)} // <-- Gọi hàm xác nhận
+                        danger
+                        onClick={() => handleDeleteConfirm(record)}
                     />
-                    {/* 4. Thêm onClick để gọi hàm sửa */}
                     <Button
                         type="link"
                         icon={<EditOutlined />}
@@ -90,61 +97,167 @@ export default function ResidentManagement() {
 
     const handleShowAddModal = () => {
         setEditingResident(null); // Đảm bảo đang là chế độ thêm mới
-        form.resetFields();       // Xóa rác từ lần mở trước
+        form.resetFields();
         setIsFormModalOpen(true);
     };
 
-    // 6. Hàm MỞ Modal cho chế độ CẬP NHẬT (từ nút Sửa trong bảng)
+    // 🔴 ĐÃ SỬA: Đổ dữ liệu từ record lên Form (record.dateOfBirth đã là Dayjs object)
     const handleShowEditModal = (record) => {
         setEditingResident(record); // Đặt dữ liệu cư dân đang sửa
 
-        // Xử lý dữ liệu trước khi đổ lên Form
-        const formData = {
-            ...record,
-            // Convert chuỗi "DD/MM/YYYY" sang đối tượng dayjs
-            date_of_birth: record.date_of_birth ? dayjs(record.date_of_birth, 'DD/MM/YYYY') : null,
-        };
-
-        form.setFieldsValue(formData); // Đổ dữ liệu của 'record' vào form
+        // record đã chứa dateOfBirth là Dayjs object (từ hàm handleSearch)
+        // và các key khác (fullName, gender,...) đã khớp với Form.Item name
+        form.setFieldsValue(record);
         setIsFormModalOpen(true);
     };
 
-    // 7. Hàm ĐÓNG Modal (cho cả 2 chế độ)
     const handleCancelModal = () => {
         setIsFormModalOpen(false);
-        setEditingResident(null); // Luôn reset khi đóng
+        setEditingResident(null);
         form.resetFields();
     };
 
-    const handleFormSubmit = (values) => {
-        // Convert lại ngày sinh từ dayjs sang chuỗi string
+    // 🚀 ĐÃ SỬA: Thêm logic CẬP NHẬT
+    const handleFormSubmit = async (values) => {
+        // 1. Tiền xử lý dữ liệu trước khi gửi lên BE
+        // Lấy tất cả các trường từ form (values)
         const processedValues = {
             ...values,
-            date_of_birth: values.date_of_birth ? values.date_of_birth.format('DD/MM/YYYY') : null,
+            // Chuyển đổi đối tượng Dayjs sang chuỗi YYYY-MM-DD để gửi lên BE
+            dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : null,
+            // Đảm bảo householdId và idNumber được gửi lên một cách tường minh
+            householdId: values.householdId,
+            idNumber: values.idNumber,
         };
 
         if (editingResident) {
-            // --- Chế độ CẬP NHẬT ---
-            console.log('Dữ liệu CẬP NHẬT (ID:', editingResident.resident_id, '):', processedValues);
-            // Nơi bạn gọi API để CẬP NHẬT
-            // Ví dụ: updateResidentApi(editingResident.resident_id, processedValues);
-        } else {
-            // --- Chế độ THÊM MỚI ---
-            console.log('Dữ liệu THÊM MỚI:', processedValues);
-            // Nơi bạn gọi API để TẠO MỚI
-            // Ví dụ: createResidentApi(processedValues);
+            // --- Xử lý CẬP NHẬT (UPDATE) ---
+            const residentId = editingResident.id; // Lấy ID đã được map (là residentId)
+
+            // ⚠️ Kiểm tra tính hợp lệ của ID trước khi gọi API
+            if (!residentId) {
+                message.error('Lỗi: Không tìm thấy ID cư dân để cập nhật.');
+                return;
+            }
+
+            try {
+                const response = await axios.post(
+                    // URL hợp lệ: /resident/update/{residentId}
+                    `http://localhost:8080/resident/update/${residentId}`,
+                    processedValues // Dữ liệu form đã được xử lý
+                );
+
+                const { code, message: msg } = response.data;
+
+                if (code === 1000) {
+                    message.success(msg || 'Cập nhật cư dân thành công!');
+
+                    // Cập nhật lại danh sách trong UI
+                    const updatedRecord = {
+                        ...editingResident,
+                        // Sử dụng tất cả các giá trị mới từ form (bao gồm cả Dayjs object cho dateOfBirth)
+                        ...values,
+                    };
+
+                    setSearchResults(prevResults =>
+                        prevResults.map(resident =>
+                            resident.id === residentId ? updatedRecord : resident
+                        )
+                    );
+
+                    handleCancelModal();
+                } else {
+                    message.error(msg || 'Đã xảy ra lỗi nghiệp vụ từ máy chủ khi cập nhật.');
+                }
+            } catch (error) {
+                console.error("Lỗi khi gọi API cập nhật cư dân:", error);
+
+                if (error.response && error.response.data) {
+                    // Xử lý lỗi từ phản hồi BE (nếu không phải lỗi CORS)
+                    const { message: msg } = error.response.data;
+                    message.error(`Cập nhật thất bại: ${msg || 'Lỗi không xác định.'}`);
+                } else {
+                    // Xử lý lỗi mạng (bao gồm lỗi CORS sau khi thất bại POST)
+                    message.error('Đã xảy ra lỗi kết nối mạng. Vui lòng thử lại.');
+                }
+            }
+
+            return;
         }
 
-        handleCancelModal(); // Đóng modal sau khi xử lý xong
-        // Bạn có thể gọi lại API load danh sách ở đây
+        // --- Xử lý THÊM MỚI (ADD) ---
+        try {
+            const response = await axios.post(
+                'http://localhost:8080/resident/add',
+                processedValues
+            );
+
+            const { code, message: msg } = response.data;
+
+            if (code === 1000) {
+                // Thành công
+                message.success(msg || 'Thêm cư dân mới thành công!');
+                handleCancelModal();
+                // Lý tưởng: Gọi lại hàm handleSearch để làm mới danh sách
+            } else {
+                message.error(msg || 'Đã xảy ra lỗi nghiệp vụ từ máy chủ.');
+            }
+
+        } catch (error) {
+            console.error("Lỗi khi gọi API thêm cư dân:", error);
+
+            if (error.response && error.response.data) {
+                const { code, message: msg } = error.response.data;
+                let errorMessage = msg;
+                let fieldToSetError = null;
+
+                if (code === 9999 || code === 1001) {
+
+                    const regex = /\"(.*?)\"/;
+                    const match = msg.match(regex);
+
+                    if (match && match[1]) {
+                        errorMessage = match[1];
+                    } else if (msg) {
+                        errorMessage = msg;
+                    }
+
+                    if (errorMessage.includes("Mã hộ gia đình") || errorMessage.includes("NOT_FOUND")) {
+                        fieldToSetError = 'householdId';
+                    } else if (errorMessage.includes("Số điện thoại")) {
+                        fieldToSetError = 'phoneNumber';
+                    }
+
+                    if (fieldToSetError) {
+                        form.setFields([
+                            {
+                                name: fieldToSetError,
+                                errors: [errorMessage],
+                            },
+                        ]);
+                        message.warning(`Vui lòng kiểm tra lại trường ${fieldToSetError}.`);
+                        return;
+                    }
+
+                    message.error(`Thêm cư dân thất bại: ${errorMessage}`);
+
+                } else {
+                    message.error(`Lỗi máy chủ: ${error.response.status}. Vui lòng thử lại.`);
+                }
+            } else {
+                message.error('Đã xảy ra lỗi kết nối. Vui lòng kiểm tra mạng.');
+            }
+        }
     };
+
+
 
     const handleDeleteConfirm = (record) => {
         Modal.confirm({
             title: 'Xác nhận xoá',
             content: (
                 <>
-                    Bạn có chắc muốn xoá cư dân "<b>{record.full_name}</b>"?
+                    Bạn có chắc muốn xoá cư dân "<b>{record.fullName}</b>"?
                     <br />
                     Hành động này không thể hoàn tác.
                 </>
@@ -154,15 +267,16 @@ export default function ResidentManagement() {
             cancelText: 'Huỷ',
             async onOk() {
                 try {
-                    // SỬA Ở ĐÂY: Dùng record.id thay vì record.resident_id
-                    console.log('Đang gọi API để xoá resident_id (thực tế là id):', record.id);
+                    // Giả lập API xoá
+                    console.log('Đang gọi API để xoá resident ID:', record.id);
+                    // Ở đây bạn sẽ thay bằng gọi axios.delete:
+                    // await axios.delete(`http://localhost:8080/resident/delete/${record.id}`);
 
-                    // ... (Giả lập API) ...
+                    // Giả lập thành công
                     await new Promise(resolve => setTimeout(resolve, 500));
 
-                    message.success(`Đã xoá thành công "${record.full_name}".`);
+                    message.success(`Đã xoá thành công "${record.fullName}".`);
 
-                    // SỬA Ở ĐÂY: Lọc theo resident.id
                     setSearchResults(prevResults =>
                         prevResults.filter(resident => resident.id !== record.id)
                     );
@@ -174,17 +288,51 @@ export default function ResidentManagement() {
             },
         });
     };
-    const handleSearch = (searchValues) => {
+
+    // ✅ LƯU Ý: Đã sửa logic mapping trong handleSearch để đảm bảo dateOfBirth là Dayjs object
+    const handleSearch = async (searchValues) => {
         console.log('Dữ liệu tìm kiếm nhận được từ con:', searchValues);
         setLoading(true);
-        setTimeout(() => {
-            const fakeApiResult = [
-                { id: 1, full_name: 'Nguyễn Văn A', household_id: 'H001', gender: 'male', phone_number: '0987654321' },
-                { id: 2, full_name: 'Trần Thị B', household_id: 'H002', gender: 'female', phone_number: '0901234567' },
-            ];
-            setSearchResults(fakeApiResult);
+
+        const payload = {
+            fullName: searchValues.fullName,
+            householdId: searchValues.householdId,
+            gender: searchValues.gender,
+            phoneNumber: searchValues.phoneNumber,
+            job: searchValues.job,
+        };
+
+        try {
+            const response = await axios.post(
+                'http://localhost:8080/resident/search',
+                payload
+            );
+
+            if (response.data && response.data.result) {
+
+                const mappedResults = response.data.result.map((item, index) => ({
+                    // 🔴 ĐÃ SỬA: Dùng 'residentId' làm khóa chính 'id' cho Ant Design Table (rowKey="id")
+                    // Nếu residentId là null/undefined, dùng index làm key dự phòng để tránh lỗi React key
+                    id: item.residentId || index,
+                    ...item,
+                    // CHUYỂN ĐỔI CHUỖI YYYY-MM-DD TỪ BE SANG ĐỐI TƯỢNG DAYJS
+                    dateOfBirth: item.dateOfBirth ? dayjs(item.dateOfBirth, 'YYYY-MM-DD') : null,
+                }));
+
+                setSearchResults(mappedResults);
+                message.success(`Tìm kiếm thành công, tìm thấy ${mappedResults.length} cư dân.`);
+            } else {
+                setSearchResults([]);
+                message.info('Không tìm thấy cư dân nào khớp với điều kiện.');
+            }
+
+        } catch (error) {
+            console.error("Lỗi khi gọi API tìm kiếm cư dân:", error);
+            message.error("Đã xảy ra lỗi khi tìm kiếm cư dân.");
+            setSearchResults([]);
+        } finally {
             setLoading(false);
-        }, 1000);
+        }
     };
 
     return (
@@ -204,13 +352,12 @@ export default function ResidentManagement() {
                     columns={columns}
                     dataSource={searchResults}
                     loading={loading}
-                    rowKey="id"
+                    rowKey="id" // Dùng 'id' làm key cho hàng
                 />
             </Card>
 
-            {/* 7. Thêm Modal để thêm cư dân */}
+            {/* Modal Form */}
             <Modal
-                // 9. Title động
                 title={editingResident ? 'Cập nhật cư dân' : 'Thêm cư dân mới'}
                 open={isFormModalOpen}
                 onOk={() => form.submit()}
@@ -226,34 +373,58 @@ export default function ResidentManagement() {
                     {/* HÀNG 1: HỌ TÊN, NGÀY SINH */}
                     <Row gutter={16}>
                         <Col span={12}>
-                            <Form.Item name="full_name" label="Họ và tên" rules={[{ required: true, /* ... */ }]}>
+                            <Form.Item
+                                name="fullName"
+                                label="Họ và tên"
+                                rules={[
+                                    { required: true, message: 'Vui lòng nhập họ và tên.' },
+                                    {
+                                        pattern: /^[a-zA-Z\s\u00C0-\u1EF9'-]+$/,
+                                        message: 'Họ và tên không được chứa số hoặc ký tự đặc biệt.'
+                                    }
+                                ]}
+                            >
                                 <Input placeholder="Nhập họ và tên" />
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item name="date_of_birth" label="Ngày sinh" rules={[{ required: true }]}>
-                                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder="Chọn ngày" />
+                            <Form.Item
+                                name="dateOfBirth"
+                                label="Ngày sinh"
+                                rules={[{ required: true, message: 'Vui lòng chọn ngày sinh.' }]}
+                            >
+                                {/* Format ngày phải là YYYY-MM-DD để gửi lên BE */}
+                                <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" placeholder="Chọn ngày" />
                             </Form.Item>
                         </Col>
                     </Row>
 
-                    {/* HÀNG 2: GIỚI TÍNH, VAI TRÒ */}
                     <Row gutter={16}>
                         <Col span={12}>
-                            <Form.Item name="gender" label="Giới tính" rules={[{ required: true }]}>
+                            <Form.Item
+                                name="gender"
+                                label="Giới tính"
+                                rules={[{ required: true, message: 'Vui lòng chọn giới tính.' }]}
+                            >
                                 <Select placeholder="Chọn giới tính">
-                                    <Option value="male">Nam</Option>
-                                    <Option value="female">Nữ</Option>
+                                    <Option value="M">Nam</Option>
+                                    <Option value="F">Nữ</Option>
                                 </Select>
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item name="family_role" label="Vai trò trong gia đình" rules={[{ required: true }]}>
+                            <Form.Item
+                                name="familyRole"
+                                label="Vai trò trong gia đình"
+                                rules={[{ required: true, message: 'Vui lòng chọn vai trò.' }]}
+                            >
                                 <Select placeholder="Chọn vai trò">
-                                    <Option value="owner">Chủ hộ</Option>
-                                    <Option value="spouse">Vợ/Chồng</Option>
-                                    <Option value="child">Con</Option>
-                                    <Option value="other">Thành viên khác</Option>
+                                    <Option value="Chủ hộ">Chủ hộ</Option> {/* Thêm Chủ hộ */}
+                                    <Option value="Chồng">Chồng</Option>
+                                    <Option value="Vợ">Vợ</Option>
+                                    <Option value="Con trai">Con trai</Option>
+                                    <Option value="Con gái">Con gái</Option>
+                                    <Option value="Khác">Khác</Option>
                                 </Select>
                             </Form.Item>
                         </Col>
@@ -262,12 +433,31 @@ export default function ResidentManagement() {
                     {/* HÀNG 3: SĐT, CÔNG VIỆC */}
                     <Row gutter={16}>
                         <Col span={12}>
-                            <Form.Item name="phone_number" label="Số điện thoại" rules={[{ required: true, /* ... */ }]}>
+                            <Form.Item
+                                name="phoneNumber"
+                                label="Số điện thoại"
+                                rules={[
+                                    { required: true, message: 'Vui lòng nhập số điện thoại.' },
+                                    {
+                                        pattern: /^[0-9]{10}$/,
+                                        message: "Số điện thoại phải gồm đúng 10 số."
+                                    }
+                                ]}
+                            >
                                 <Input placeholder="Nhập 10 chữ số" />
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item name="job" label="Công việc">
+                            <Form.Item
+                                name="job"
+                                label="Công việc"
+                                rules={[
+                                    {
+                                        pattern: /^[\p{L}\s'-]+$/u,
+                                        message: 'Công việc không được chứa số hay ký tự đặc biệt.'
+                                    }
+                                ]}
+                            >
                                 <Input placeholder="Nhập công việc" />
                             </Form.Item>
                         </Col>
@@ -277,29 +467,38 @@ export default function ResidentManagement() {
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item
-                                name="household_id"
+                                name="householdId"
                                 label="Mã hộ gia đình"
-                                rules={[{ required: true, message: 'Vui lòng nhập mã hộ gia đình!' }]}
+                                rules={[
+                                    { required: true, message: 'Vui lòng nhập mã hộ gia đình!' },
+                                    {
+                                        pattern: /^[0-9]+$/,
+                                        message: 'Mã hộ gia đình chỉ được chứa số.'
+                                    }
+                                ]}
                             >
-                                {/* 11. Bị vô hiệu hóa khi đang SỬA */}
                                 <Input
-                                    placeholder="Ví dụ: H001"
-                                    disabled={!!editingResident} // <-- true khi sửa
+                                    placeholder="Ví dụ: 12345"
                                 />
                             </Form.Item>
                         </Col>
+
                         <Col span={12}>
-                            {/* Thêm trường id_number từ ảnh của bạn */}
                             <Form.Item
-                                name="id_number"
+                                name="idNumber"
                                 label="Số CMND/CCCD"
-                                rules={[{ required: true, message: 'Vui lòng nhập số CMND/CCCD!' }]}
+                                rules={[
+                                    { required: true, message: 'Vui lòng nhập số CMND/CCCD!' },
+                                    {
+                                        pattern: /^[0-9]{9}$|^[0-9]{12}$/,
+                                        message: 'Số CMND phải là 9 số, hoặc CCCD phải là 12 số.'
+                                    }
+                                ]}
                             >
-                                {/* 12. Bị vô hiệu hóa khi đang SỬA (thường là vậy) */}
                                 <Input
-                                    placeholder="Nhập số CMND/CCCD"
-                                    disabled={!!editingResident} // <-- true khi sửa
-                                />
+                                    placeholder="Ví dụ: 001200000001 (12 số) hoặc 123456789 (9 số)"
+
+                                /> {/* Disable khi UPDATE */}
                             </Form.Item>
                         </Col>
                     </Row>
