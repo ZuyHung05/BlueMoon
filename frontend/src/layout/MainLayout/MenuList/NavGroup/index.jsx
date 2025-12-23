@@ -103,7 +103,7 @@ export default function NavGroup({ item, lastItem, remItems, lastItemId, setSele
                 display: 'block',
                 fontSize: '0.75rem', // Smaller text
                 fontWeight: 600, // Semi-bold
-                color: 'grey.400', // Lighter for dark theme
+                color: 'text.secondary', // Use theme-aware color
                 padding: '16px 12px 8px 12px', // Better padding
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em', // Added tracking

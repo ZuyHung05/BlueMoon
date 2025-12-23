@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, Typography, Box } from '@mui/material';
+import { Card, CardContent, Typography, Box, useTheme } from '@mui/material';
 import {
   LineChart,
   Line,
@@ -28,17 +28,21 @@ const data = [
 ];
 
 export default function RevenueOverTimeChart() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+
   return (
     <Card
       sx={{
         height: '100%',
         boxShadow: 2,
         borderRadius: 2,
-        backgroundColor: '#FAFAFA'
+        bgcolor: 'background.paper',
+        border: `1px solid ${theme.palette.divider}`
       }}
     >
       <CardContent>
-        <Typography variant="h6" gutterBottom>
+        <Typography variant="h5" gutterBottom color="text.primary" sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
           Tổng thu theo thời gian
         </Typography>
 
@@ -48,26 +52,41 @@ export default function RevenueOverTimeChart() {
               data={data}
               margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid 
+                strokeDasharray="3 3"
+                stroke={isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}
+              />
 
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <XAxis 
+                dataKey="name" 
+                tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
+              />
               <YAxis
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
                 tickFormatter={(value) => `${(value / 1_000_000).toFixed(0)}M`}
               />
 
               <Tooltip
                 formatter={(value) => [`${value.toLocaleString()} ₫`, 'Tổng thu']}
-                contentStyle={{ backgroundColor: '#fff', borderRadius: '8px' }}
+                contentStyle={{ 
+                  backgroundColor: isDark ? '#1e293b' : '#fff', 
+                  borderRadius: '8px',
+                  border: `1px solid ${theme.palette.divider}`,
+                  color: theme.palette.text.primary
+                }}
               />
 
-              <Legend verticalAlign="bottom" height={36} />
+              <Legend 
+                verticalAlign="bottom" 
+                height={36}
+                formatter={(value) => <span style={{ color: theme.palette.text.primary }}>{value}</span>}
+              />
 
               <Line
                 type="monotone"
                 dataKey="revenue"
                 name="Tổng thu (₫)"
-                stroke="#1976D2"
+                stroke="#3b82f6"
                 strokeWidth={3}
                 activeDot={{ r: 6 }}
               />
@@ -78,3 +97,4 @@ export default function RevenueOverTimeChart() {
     </Card>
   );
 }
+

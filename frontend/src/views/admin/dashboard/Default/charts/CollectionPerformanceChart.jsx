@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, Typography, Box } from '@mui/material';
+import { Card, CardContent, Typography, Box, useTheme } from '@mui/material';
 import {
   BarChart,
   Bar,
@@ -25,17 +25,21 @@ const COLORS = {
 };
 
 export default function CollectionPerformanceChart() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+
   return (
     <Card
       sx={{
         height: '100%',
         boxShadow: 2,
         borderRadius: 2,
-        backgroundColor: '#FAFAFA'
+        bgcolor: 'background.paper',
+        border: `1px solid ${theme.palette.divider}`
       }}
     >
       <CardContent>
-        <Typography variant="h6" gutterBottom>
+        <Typography variant="h5" gutterBottom color="text.primary" sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
           Hiệu suất đợt thu
         </Typography>
 
@@ -46,13 +50,19 @@ export default function CollectionPerformanceChart() {
               data={data}
               margin={{ top: 20, right: 30, left: 20, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke={isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} 
+              />
 
-              <XAxis type="number" />
+              <XAxis 
+                type="number"
+                tick={{ fill: theme.palette.text.secondary }}
+              />
               <YAxis
                 dataKey="cycle"
                 type="category"
-                tick={{ fontSize: 13 }}
+                tick={{ fontSize: 13, fill: theme.palette.text.secondary }}
                 width={90}
               />
 
@@ -62,10 +72,19 @@ export default function CollectionPerformanceChart() {
                     ? [`${value} ngày`, 'Thời gian thanh toán TB']
                     : [`${value}% hộ`, 'Tỷ lệ thanh toán']
                 }
-                contentStyle={{ backgroundColor: '#fff', borderRadius: '8px' }}
+                contentStyle={{ 
+                  backgroundColor: isDark ? '#1e293b' : '#fff', 
+                  borderRadius: '8px',
+                  border: `1px solid ${theme.palette.divider}`,
+                  color: theme.palette.text.primary
+                }}
               />
 
-              <Legend verticalAlign="bottom" height={36} />
+              <Legend 
+                verticalAlign="bottom" 
+                height={36}
+                formatter={(value) => <span style={{ color: theme.palette.text.primary }}>{value}</span>}
+              />
 
               <Bar
                 dataKey="paid"
@@ -88,3 +107,4 @@ export default function CollectionPerformanceChart() {
     </Card>
   );
 }
+

@@ -1,58 +1,68 @@
-import React, { useState } from 'react';
-import {
-    Table,
-    Button,
-    Modal,
-    Form,
-    Input,
-    DatePicker,
-    Select,
-    Popconfirm,
-    message,
-    Space,
-    Tag,
-    Row,
-    Col,
-    Tooltip,
-    Tabs,
-    Divider
-} from 'antd';
-import {
-    EditOutlined,
-    DeleteOutlined,
-    PlusOutlined,
-    SearchOutlined,
-    HomeOutlined,
-    TeamOutlined,
-    UserAddOutlined,
-    AuditOutlined
-} from '@ant-design/icons';
-import MainCard from 'ui-component/cards/MainCard';
-import dayjs from 'dayjs';
+// frontend/src/views/admin/household/HouseholdManagement.jsx
 
-const { Option } = Select;
+import React, { useState } from 'react';
+
+// material-ui
+import {
+    Box,
+    Button,
+    Chip,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    IconButton,
+    InputAdornment,
+    Menu,
+    MenuItem,
+    OutlinedInput,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TextField,
+    Tooltip,
+    Typography,
+    Stack,
+    Select,
+    FormControl,
+    InputLabel,
+    Tabs,
+    Tab,
+    Autocomplete,
+    Snackbar,
+    Alert
+} from '@mui/material';
+
+// project imports
+import MainCard from 'ui-component/cards/MainCard';
+
+// assets
+import { Edit, Trash2, Plus, Search, Filter, Home, Users, UserPlus } from 'lucide-react';
 
 const HouseholdManagement = () => {
     // --- 1. MOCK DATA ---
     const MOCK_APARTMENTS = [
         { id: 101, room_number: 'A101', area: 75, status: 1 },
         { id: 102, room_number: 'A102', area: 80, status: 1 },
-        { id: 205, room_number: 'B205', area: 65, status: 0 } // Trống
+        { id: 205, room_number: 'B205', area: 65, status: 0 }
     ];
 
     const MOCK_RESIDENTS = [
-        { id: 1, full_name: 'Nguyễn Văn A', id_number: '001090000001', gender: 'Nam' },
-        { id: 2, full_name: 'Trần Thị B', id_number: '001090000002', gender: 'Nữ' },
-        { id: 3, full_name: 'Lê Văn C', id_number: '001090000003', gender: 'Nam' },
-        { id: 4, full_name: 'Phạm Thị D', id_number: '001090000004', gender: 'Nữ' }
+        { id: 1, full_name: 'Nguyễn Văn A', id_number: '001090000001', phone: '0901000001', gender: 'Nam' },
+        { id: 2, full_name: 'Trần Thị B', id_number: '001090000002', phone: '0901000002', gender: 'Nữ' },
+        { id: 3, full_name: 'Lê Văn C', id_number: '001090000003', phone: '0901000003', gender: 'Nam' },
+        { id: 4, full_name: 'Phạm Thị D', id_number: '001090000004', phone: '0901000004', gender: 'Nữ' }
     ];
 
     const [households, setHouseholds] = useState([
         {
             household_id: 1,
             apartment_id: 101,
-            head_of_household: 1, // Nguyễn Văn A
-            status: 1, // 1: Đang ở
+            head_of_household: 1,
+            status: 1,
             start_day: '2020-01-15',
             members: [
                 { id: 1, full_name: 'Nguyễn Văn A', role: 'Chủ hộ', id_number: '001090000001' },
@@ -62,7 +72,7 @@ const HouseholdManagement = () => {
         {
             household_id: 2,
             apartment_id: 102,
-            head_of_household: 3, // Lê Văn C
+            head_of_household: 3,
             status: 1,
             start_day: '2021-05-20',
             members: [{ id: 3, full_name: 'Lê Văn C', role: 'Chủ hộ', id_number: '001090000003' }]
@@ -70,556 +80,760 @@ const HouseholdManagement = () => {
     ]);
 
     // --- 2. STATE ---
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [open, setOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
-    const [searchText, setSearchText] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
+    
+    // Filter Menu State
+    const [anchorEl, setAnchorEl] = useState(null);
+    const openFilter = Boolean(anchorEl);
 
-    // State cho tab thành viên
+    // Delete confirmation dialog state
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deletingRecord, setDeletingRecord] = useState(null);
+
+    // Form states
+    const [formData, setFormData] = useState({
+        apartment_id: '',
+        head_of_household: '',
+        status: 1,
+        start_day: ''
+    });
+
+    // Tab state
+    const [tabValue, setTabValue] = useState(0);
+
+    // Members state
     const [currentMembers, setCurrentMembers] = useState([]);
-    const [selectedMemberId, setSelectedMemberId] = useState(null); // ID thành viên đang chọn để thêm
-    const [tabValue, setTabValue] = useState('1');
+    const [selectedMemberId, setSelectedMemberId] = useState('');
 
-    // STATE CHO MODAL SỬA THÀNH VIÊN (MỚI)
-    const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
-    const [editingMember, setEditingMember] = useState(null);
-    const [memberForm] = Form.useForm(); // Form riêng cho việc sửa thành viên
+    // Snackbar state
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
+    const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
-    // State khai báo tạm trú
-    const [isAbsenceModalOpen, setIsAbsenceModalOpen] = useState(false);
-
-    const [form] = Form.useForm();
-    const [absenceForm] = Form.useForm();
-
-    // --- 3. HANDLERS ---
-
-    const showAddModal = () => {
-        setEditingRecord(null);
-        setCurrentMembers([]);
-        setSelectedMemberId(null);
-        setTabValue('1');
-        form.resetFields();
-        // Mặc định ngày hôm nay
-        form.setFieldsValue({ start_day: dayjs() });
-        setIsModalOpen(true);
-    };
-
-    const showEditModal = (record) => {
-        setEditingRecord(record);
-        setTabValue('1');
-        setSelectedMemberId(null);
-        // Load danh sách thành viên vào state tạm để thao tác
-        setCurrentMembers([...record.members]);
-
-        form.setFieldsValue({
-            ...record,
-            start_day: dayjs(record.start_day)
-        });
-        setIsModalOpen(true);
-    };
-
-    const handleOk = () => {
-        form.validateFields().then((values) => {
-            // Validate logic: Phải có ít nhất 1 thành viên là chủ hộ
-            if (currentMembers.length === 0) {
-                message.error('Hộ khẩu phải có ít nhất 1 thành viên!');
-                return;
-            }
-
-            const processedValues = {
-                ...values,
-                start_day: values.start_day.format('YYYY-MM-DD'),
-                members: currentMembers
-            };
-
-            if (editingRecord) {
-                const updatedList = households.map((item) =>
-                    item.household_id === editingRecord.household_id ? { ...item, ...processedValues } : item
-                );
-                setHouseholds(updatedList);
-                message.success('Cập nhật hộ khẩu thành công!');
-            } else {
-                const newId = households.length > 0 ? Math.max(...households.map((h) => h.household_id)) + 1 : 1;
-                // Tự động add chủ hộ vào members nếu chưa có
-                let finalMembers = [...currentMembers];
-                const headInfo = MOCK_RESIDENTS.find((r) => r.id === values.head_of_household);
-
-                if (headInfo && !finalMembers.some((m) => m.id === headInfo.id)) {
-                    finalMembers.push({ ...headInfo, role: 'Chủ hộ' });
-                }
-
-                setHouseholds([...households, { ...processedValues, household_id: newId, members: finalMembers }]);
-                message.success('Tạo hộ khẩu mới thành công!');
-            }
-            setIsModalOpen(false);
-        });
-    };
-
-    const handleDelete = (id) => {
-        setHouseholds(households.filter((h) => h.household_id !== id));
-        message.success('Đã xóa hộ khẩu');
-    };
-
-    // --- LOGIC MEMBERS (Trong Modal) ---
-
-    // Xử lý khi bấm nút "Thêm thành viên"
-    const handleConfirmAddMember = () => {
-        if (!selectedMemberId) return;
-
-        const resident = MOCK_RESIDENTS.find((r) => r.id === selectedMemberId);
-        if (!resident) return;
-
-        // Check trùng (phòng hờ, dù UI đã lọc)
-        if (currentMembers.some((m) => m.id === resident.id)) {
-            message.warning('Cư dân này đã có trong hộ!');
-            return;
-        }
-
-        const newMember = { ...resident, role: 'Thành viên' };
-        setCurrentMembers([...currentMembers, newMember]);
-        setSelectedMemberId(null); // Reset sau khi thêm
-        message.success('Đã thêm thành viên!');
-    };
-
-    const handleRemoveMember = (memberId) => {
-        // UC003: Không thể xóa chủ hộ (logic lấy từ form value hiện tại)
-        const currentHeadId = form.getFieldValue('head_of_household');
-        if (memberId === currentHeadId) {
-            message.error('Không thể xóa Chủ hộ! Hãy đổi chủ hộ trước.');
-            return;
-        }
-        setCurrentMembers(currentMembers.filter((m) => m.id !== memberId));
-    };
-
-    // --- LOGIC SỬA THÀNH VIÊN (MỚI) ---
-
-    // 1. Mở modal sửa thành viên khi bấm nút bút chì
-    const handleEditMemberClick = (member) => {
-        setEditingMember(member);
-        // Fill dữ liệu vào form
-        memberForm.setFieldsValue({
-            ...member,
-            date_of_birth: member.date_of_birth ? dayjs(member.date_of_birth, 'DD/MM/YYYY') : null
-        });
-        setIsMemberModalOpen(true);
-    };
-
-    // 2. Lưu thông tin thành viên sau khi sửa
-    const handleSaveMemberInfo = () => {
-        memberForm.validateFields().then((values) => {
-            const processedMember = {
-                ...editingMember, // Giữ lại ID cũ
-                ...values,
-                date_of_birth: values.date_of_birth ? values.date_of_birth.format('DD/MM/YYYY') : '',
-                // Nếu người này là chủ hộ, role buộc phải là chủ hộ (logic tùy chọn)
-                role: editingMember.id === form.getFieldValue('head_of_household') ? 'Chủ hộ' : values.role
-            };
-
-            // Cập nhật lại danh sách hiện tại (currentMembers)
-            const updatedMembers = currentMembers.map((m) => (m.id === processedMember.id ? processedMember : m));
-            setCurrentMembers(updatedMembers);
-
-            // Cập nhật lại MOCK_RESIDENTS (Giả lập update DB)
-            // Trong thực tế bạn sẽ gọi API update cư dân ở đây
-            const residentIndex = MOCK_RESIDENTS.findIndex((r) => r.id === processedMember.id);
-            if (residentIndex > -1) {
-                MOCK_RESIDENTS[residentIndex] = { ...MOCK_RESIDENTS[residentIndex], ...processedValues };
-            }
-
-            message.success('Cập nhật thông tin thành viên thành công!');
-            setIsMemberModalOpen(false);
-        });
-    };
-
-    // --- FILTER ---
+    // --- 3. FILTERING ---
     const filteredData = households.filter((item) => {
         const apartment = MOCK_APARTMENTS.find((a) => a.id === item.apartment_id);
         const head = MOCK_RESIDENTS.find((r) => r.id === item.head_of_household);
 
         const matchSearch =
-            (head && head.full_name.toLowerCase().includes(searchText.toLowerCase())) ||
-            (head && head.id_number.includes(searchText)) ||
-            (apartment && apartment.room_number.toLowerCase().includes(searchText.toLowerCase()));
+            (head && head.full_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (head && head.id_number.includes(searchTerm)) ||
+            (apartment && apartment.room_number.toLowerCase().includes(searchTerm.toLowerCase()));
 
         const matchStatus = statusFilter === 'ALL' || item.status === parseInt(statusFilter);
 
         return matchSearch && matchStatus;
     });
 
-    // Helper render
+    // --- 4. HANDLERS ---
+    const handleFilterClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleFilterClose = (status) => {
+        if (status !== null && status !== undefined) setStatusFilter(status);
+        setAnchorEl(null);
+    };
+
+    const handleOpen = (record = null) => {
+        if (record) {
+            setEditingRecord(record);
+            setFormData({
+                apartment_id: record.apartment_id,
+                head_of_household: record.head_of_household,
+                status: record.status,
+                start_day: record.start_day
+            });
+            setCurrentMembers([...record.members]);
+        } else {
+            setEditingRecord(null);
+            setFormData({
+                apartment_id: '',
+                head_of_household: '',
+                status: 1,
+                start_day: new Date().toISOString().split('T')[0]
+            });
+            setCurrentMembers([]);
+        }
+        setTabValue(0);
+        setSelectedMemberId('');
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+        setEditingRecord(null);
+    };
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSave = () => {
+        // Validate required fields
+        if (!formData.apartment_id) {
+            setSnackbar({ open: true, message: 'Vui lòng chọn căn hộ!', severity: 'warning' });
+            setTabValue(0); // Switch to general info tab
+            return;
+        }
+        if (!formData.head_of_household) {
+            setSnackbar({ open: true, message: 'Vui lòng chọn chủ hộ!', severity: 'warning' });
+            setTabValue(0);
+            return;
+        }
+        if (!formData.start_day) {
+            setSnackbar({ open: true, message: 'Vui lòng chọn ngày chuyển đến!', severity: 'warning' });
+            setTabValue(0);
+            return;
+        }
+
+        if (currentMembers.length === 0) {
+            setSnackbar({ open: true, message: 'Hộ khẩu phải có ít nhất 1 thành viên!', severity: 'error' });
+            setTabValue(1); // Switch to members tab
+            return;
+        }
+
+        if (editingRecord) {
+            const updatedData = households.map((item) =>
+                item.household_id === editingRecord.household_id 
+                    ? { ...item, ...formData, members: currentMembers } 
+                    : item
+            );
+            setHouseholds(updatedData);
+            setSnackbar({ open: true, message: 'Cập nhật hộ khẩu thành công!', severity: 'success' });
+        } else {
+            const newId = households.length > 0 ? Math.max(...households.map((d) => d.household_id)) + 1 : 1;
+            
+            let finalMembers = [...currentMembers];
+            const headInfo = MOCK_RESIDENTS.find((r) => r.id === formData.head_of_household);
+            if (headInfo && !finalMembers.some((m) => m.id === headInfo.id)) {
+                finalMembers.push({ ...headInfo, role: 'Chủ hộ' });
+            }
+
+            setHouseholds([
+                ...households,
+                { household_id: newId, ...formData, members: finalMembers }
+            ]);
+            setSnackbar({ open: true, message: 'Tạo hộ khẩu mới thành công!', severity: 'success' });
+        }
+        handleClose();
+    };
+
+    const handleDelete = (record) => {
+        setDeletingRecord(record);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (deletingRecord) {
+            setHouseholds(households.filter((item) => item.household_id !== deletingRecord.household_id));
+            setSnackbar({ open: true, message: 'Xóa hộ khẩu thành công!', severity: 'success' });
+        }
+        setDeleteDialogOpen(false);
+        setDeletingRecord(null);
+    };
+
+    const handleCancelDelete = () => {
+        setDeleteDialogOpen(false);
+        setDeletingRecord(null);
+    };
+
+    // Member handlers
+    const handleAddMember = () => {
+        if (!selectedMemberId) return;
+
+        const resident = MOCK_RESIDENTS.find((r) => r.id === parseInt(selectedMemberId));
+        if (!resident) return;
+
+        if (currentMembers.some((m) => m.id === resident.id)) {
+            return;
+        }
+
+        const newMember = { ...resident, role: 'Thành viên' };
+        setCurrentMembers([...currentMembers, newMember]);
+        setSelectedMemberId('');
+    };
+
+    const handleRemoveMember = (memberId) => {
+        if (memberId === formData.head_of_household) {
+            return;
+        }
+        setCurrentMembers(currentMembers.filter((m) => m.id !== memberId));
+    };
+
+    // --- HELPER ---
     const getApartmentName = (id) => MOCK_APARTMENTS.find((a) => a.id === id)?.room_number || '---';
     const getHeadName = (id) => MOCK_RESIDENTS.find((r) => r.id === id)?.full_name || '---';
 
-    // --- COLUMNS ---
-    const columns = [
-        {
-            title: 'Mã Hộ',
-            dataIndex: 'household_id',
-            width: 80,
-            align: 'center',
-            render: (val) => <Tag color="geekblue">H{val}</Tag>
-        },
-        {
-            title: 'Phòng',
-            dataIndex: 'apartment_id',
-            render: (val) => (
-                <Space>
-                    <HomeOutlined style={{ color: 'gray' }} /> <b>{getApartmentName(val)}</b>
-                </Space>
-            )
-        },
-        {
-            title: 'Chủ hộ',
-            dataIndex: 'head_of_household',
-            render: (val) => getHeadName(val)
-        },
-        {
-            title: 'Số thành viên',
-            dataIndex: 'members',
-            align: 'center',
-            render: (members) => <Tag color="purple">{members.length} người</Tag>
-        },
-        {
-            title: 'Ngày vào',
-            dataIndex: 'start_day',
-            render: (val) => dayjs(val).format('DD/MM/YYYY')
-        },
-        {
-            title: 'Trạng thái',
-            dataIndex: 'status',
-            align: 'center',
-            render: (val) => <Tag color={val === 1 ? 'success' : 'default'}>{val === 1 ? 'Đang ở' : 'Đã đi'}</Tag>
-        },
-        {
-            title: 'Hành động',
-            key: 'action',
-            align: 'center',
-            render: (_, record) => (
-                <Space size="small">
-                    <Tooltip title="Sửa & Quản lý thành viên">
-                        <Button icon={<EditOutlined />} onClick={() => showEditModal(record)} type="primary" ghost size="small" />
-                    </Tooltip>
-                    <Popconfirm title="Xóa hộ khẩu?" onConfirm={() => handleDelete(record.household_id)}>
-                        <Button icon={<DeleteOutlined />} danger size="small" />
-                    </Popconfirm>
-                </Space>
-            )
+    const getStatusChip = (status) => {
+        if (status === 1) {
+            return (
+                <Chip 
+                    label="Đang ở" 
+                    size="small" 
+                    sx={{ 
+                        bgcolor: 'rgba(34, 197, 94, 0.15)', 
+                        color: '#4ade80',
+                        fontWeight: 500,
+                        border: 'none',
+                        minWidth: 70,
+                        justifyContent: 'center'
+                    }} 
+                />
+            );
         }
-    ];
+        return (
+            <Chip 
+                label="Đã đi" 
+                size="small" 
+                sx={{ 
+                    bgcolor: 'rgba(100, 100, 100, 0.2)', 
+                    color: '#94a3b8',
+                    fontWeight: 500,
+                    border: 'none',
+                    minWidth: 70,
+                    justifyContent: 'center'
+                }} 
+            />
+        );
+    };
 
-    // Columns cho bảng thành viên trong Modal
-    const memberColumns = [
-        { title: 'Họ tên', dataIndex: 'full_name' },
-        { title: 'CCCD', dataIndex: 'id_number' },
-        {
-            title: 'Vai trò',
-            dataIndex: 'role',
-            render: (r, rec) => (rec.id === form.getFieldValue('head_of_household') ? <Tag color="gold">Chủ hộ</Tag> : r)
-        },
-        {
-            title: 'Hành động',
-            key: 'action',
-            width: 100,
-            align: 'center',
-            render: (_, rec) => (
-                <Space>
-                    {/* NÚT SỬA (MỚI) */}
-                    <Tooltip title="Cập nhật thông tin">
-                        <Button
-                            type="text"
-                            icon={<EditOutlined style={{ color: '#1890ff' }} />}
-                            onClick={() => handleEditMemberClick(rec)}
-                        />
-                    </Tooltip>
+    const getMemberCountChip = (count) => {
+        return (
+            <Chip 
+                label={`${count} người`} 
+                size="small" 
+                sx={{ 
+                    bgcolor: 'rgba(139, 92, 246, 0.15)', 
+                    color: '#a78bfa',
+                    fontWeight: 500,
+                    border: 'none',
+                    minWidth: 70,
+                    justifyContent: 'center'
+                }} 
+            />
+        );
+    };
 
-                    {/* NÚT XÓA (CŨ) */}
-                    <Tooltip title="Xóa khỏi hộ">
-                        <Button
-                            type="text"
-                            danger
-                            icon={<DeleteOutlined />}
-                            onClick={() => handleRemoveMember(rec.id)}
-                            disabled={rec.id === form.getFieldValue('head_of_household')} // Không xóa chủ hộ
-                        />
-                    </Tooltip>
-                </Space>
-            )
-        }
-    ];
+    const getHouseholdIdChip = (id) => {
+        return (
+            <Chip 
+                label={`H${id}`} 
+                size="small" 
+                sx={{ 
+                    bgcolor: 'rgba(59, 130, 246, 0.15)', 
+                    color: '#60a5fa',
+                    fontWeight: 500,
+                    border: 'none',
+                    minWidth: 50,
+                    justifyContent: 'center'
+                }} 
+            />
+        );
+    };
 
-    // --- MODAL CONTENT (TABS) ---
-    const modalContent = (
-        <Tabs
-            activeKey={tabValue}
-            onChange={setTabValue}
-            items={[
-                {
-                    key: '1',
-                    label: (
-                        <span>
-                            <HomeOutlined />
-                            Thông tin chung
-                        </span>
-                    ),
-                    children: (
-                        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
-                            <Row gutter={16}>
-                                <Col span={12}>
-                                    <Form.Item name="apartment_id" label="Chọn Căn hộ" rules={[{ required: true }]}>
-                                        <Select placeholder="Chọn căn hộ" showSearch optionFilterProp="children">
-                                            {MOCK_APARTMENTS.map((apt) => (
-                                                <Option key={apt.id} value={apt.id}>
-                                                    {apt.room_number} ({apt.area}m²) - {apt.status ? 'Đang ở' : 'Trống'}
-                                                </Option>
-                                            ))}
-                                        </Select>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item name="head_of_household" label="Chọn Chủ hộ" rules={[{ required: true }]}>
-                                        <Select placeholder="Chọn chủ hộ" showSearch optionFilterProp="children">
-                                            {MOCK_RESIDENTS.map((res) => (
-                                                <Option key={res.id} value={res.id}>
-                                                    {res.full_name} ({res.id_number})
-                                                </Option>
-                                            ))}
-                                        </Select>
-                                    </Form.Item>
-                                </Col>
-                            </Row>
-                            <Row gutter={16}>
-                                <Col span={12}>
-                                    <Form.Item name="start_day" label="Ngày chuyển đến" rules={[{ required: true }]}>
-                                        <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item name="status" label="Trạng thái" initialValue={1}>
-                                        <Select>
-                                            <Option value={1}>Đang sinh sống</Option>
-                                            <Option value={0}>Đã chuyển đi</Option>
-                                        </Select>
-                                    </Form.Item>
-                                </Col>
-                            </Row>
-                        </Form>
-                    )
-                },
-                {
-                    key: '2',
-                    label: (
-                        <span>
-                            <TeamOutlined />
-                            Thành viên ({currentMembers.length})
-                        </span>
-                    ),
-                    children: (
-                        <>
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    marginBottom: 16,
-                                    background: '#f5f5f5',
-                                    padding: 10,
-                                    borderRadius: 6
-                                }}
-                            >
-                                <Select
-                                    showSearch
-                                    placeholder="Nhập Tên hoặc CCCD để tìm..."
-                                    style={{ width: 350 }}
-                                    optionFilterProp="children"
-                                    onChange={(val) => setSelectedMemberId(val)}
-                                    value={selectedMemberId}
-                                    filterOption={(input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase())}
-                                    options={MOCK_RESIDENTS.filter((r) => !currentMembers.some((m) => m.id === r.id)) // Lọc bỏ người đã có
-                                        .map((r) => ({
-                                            value: r.id,
-                                            label: `${r.full_name} - ${r.id_number}`
-                                        }))}
-                                />
-
-                                <Button
-                                    type="primary"
-                                    icon={<PlusOutlined />}
-                                    onClick={handleConfirmAddMember}
-                                    disabled={!selectedMemberId}
-                                >
-                                    Thêm thành viên
-                                </Button>
-                            </div>
-
-                            <Table
-                                columns={memberColumns}
-                                dataSource={currentMembers}
-                                pagination={false}
-                                size="small"
-                                rowKey="id"
-                                bordered
-                            />
-                        </>
-                    )
+    // Header action buttons for the top right corner
+    const headerActions = (
+        <Stack direction="row" spacing={1.5} alignItems="center">
+            {/* SEARCH BAR */}
+            <OutlinedInput
+                placeholder="Tìm hộ khẩu theo Tên chủ hộ, CCCD, Số phòng"
+                startAdornment={
+                    <InputAdornment position="start">
+                        <Search size={18} />
+                    </InputAdornment>
                 }
-            ]}
-        />
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                sx={{ 
+                    minWidth: 340,
+                    borderRadius: '12px'
+                }}
+                size="small"
+            />
+
+            {/* FILTER BUTTON */}
+            <Tooltip title="Lọc theo trạng thái">
+                <IconButton 
+                    onClick={handleFilterClick}
+                    color={statusFilter !== 'ALL' ? 'primary' : 'inherit'}
+                    sx={{ 
+                        border: '1px solid',
+                        borderColor: statusFilter !== 'ALL' ? 'primary.main' : 'divider',
+                        borderRadius: '12px',
+                        padding: '10px'
+                    }}
+                >
+                    <Filter size={20} />
+                </IconButton>
+            </Tooltip>
+            
+            {/* FILTER MENU */}
+            <Menu
+                anchorEl={anchorEl}
+                open={openFilter}
+                onClose={() => handleFilterClose(null)}
+                PaperProps={{
+                    sx: {
+                        bgcolor: 'background.paper',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: '12px',
+                        marginTop: 1,
+                        minWidth: 160
+                    }
+                }}
+            >
+                <MenuItem onClick={() => handleFilterClose('ALL')} selected={statusFilter === 'ALL'}>
+                    Tất cả trạng thái
+                </MenuItem>
+                <MenuItem onClick={() => handleFilterClose('1')} selected={statusFilter === '1'}>
+                    Đang sinh sống
+                </MenuItem>
+                <MenuItem onClick={() => handleFilterClose('0')} selected={statusFilter === '0'}>
+                    Đã chuyển đi
+                </MenuItem>
+            </Menu>
+
+            {/* ADD BUTTON */}
+            <Tooltip title="Tạo hộ khẩu mới">
+                <Button
+                    variant="contained"
+                    onClick={() => handleOpen()}
+                    sx={{ 
+                        minWidth: 48, 
+                        width: 48, 
+                        height: 44,
+                        borderRadius: '12px',
+                        padding: 0
+                    }}
+                >
+                    <Plus size={22} />
+                </Button>
+            </Tooltip>
+        </Stack>
     );
 
     return (
-        <MainCard title="Quản lý Hộ khẩu (Household Management)">
-            {/* TOOLBAR */}
-            <Row gutter={16} style={{ marginBottom: 20 }}>
-                <Col span={8}>
-                    <Input
-                        placeholder="Tìm kiếm (Chủ hộ, CCCD, Phòng)..."
-                        prefix={<SearchOutlined />}
-                        onChange={(e) => setSearchText(e.target.value)}
-                        allowClear
-                    />
-                </Col>
-                <Col span={6}>
-                    <Select defaultValue="ALL" style={{ width: '100%' }} onChange={setStatusFilter}>
-                        <Option value="ALL">Tất cả trạng thái</Option>
-                        <Option value="1">Đang sinh sống</Option>
-                        <Option value="0">Đã chuyển đi</Option>
-                    </Select>
-                </Col>
-                <Col span={10} style={{ textAlign: 'right' }}>
-                    <Space>
-                        <Button icon={<AuditOutlined />} onClick={() => setIsAbsenceModalOpen(true)}>
-                            Khai báo Tạm trú/vắng
-                        </Button>
-                        <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
-                            Tạo Hộ khẩu
-                        </Button>
-                    </Space>
-                </Col>
-            </Row>
-
+        <MainCard title="Quản lý Hộ khẩu" secondary={headerActions} contentSX={{ pt: 0 }}>
             {/* TABLE */}
-            <Table columns={columns} dataSource={filteredData} pagination={{ pageSize: 5 }} rowKey="household_id" bordered />
+            <TableContainer>
+                <Table sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
+                    <TableHead sx={{ 
+                        bgcolor: 'action.hover',
+                        '& .MuiTableCell-root': { 
+                            color: 'text.primary', 
+                            fontWeight: 700,
+                            fontSize: '0.875rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                        }
+                    }}>
+                        <TableRow>
+                            <TableCell align="center" sx={{ width: 60 }}>STT</TableCell>
+                            <TableCell>Phòng</TableCell>
+                            <TableCell>Chủ hộ</TableCell>
+                            <TableCell align="center">Số thành viên</TableCell>
+                            <TableCell>Ngày vào</TableCell>
+                            <TableCell align="center">Trạng thái</TableCell>
+                            <TableCell align="center">Hành động</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {filteredData.map((row, index) => (
+                            <TableRow key={row.household_id} hover>
+                                <TableCell align="center">{index + 1}</TableCell>
+                                <TableCell>
+                                    <Stack direction="row" spacing={1} alignItems="center">
+                                        <Home size={16} style={{ color: '#64748b' }} />
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                                            {getApartmentName(row.apartment_id)}
+                                        </Typography>
+                                    </Stack>
+                                </TableCell>
+                                <TableCell>{getHeadName(row.head_of_household)}</TableCell>
+                                <TableCell align="center">{getMemberCountChip(row.members.length)}</TableCell>
+                                <TableCell>
+                                    {new Date(row.start_day).toLocaleDateString('vi-VN')}
+                                </TableCell>
+                                <TableCell align="center">{getStatusChip(row.status)}</TableCell>
+                                <TableCell align="center">
+                                    <Tooltip title="Sửa">
+                                        <IconButton 
+                                            color="primary" 
+                                            onClick={() => handleOpen(row)}
+                                            size="small"
+                                        >
+                                            <Edit size={18} />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Xóa">
+                                        <IconButton 
+                                            color="error" 
+                                            onClick={() => handleDelete(row)}
+                                            size="small"
+                                        >
+                                            <Trash2 size={18} />
+                                        </IconButton>
+                                    </Tooltip>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                        {filteredData.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={7} align="center">
+                                    <Typography variant="body2" sx={{ py: 3 }}>
+                                        Không tìm thấy dữ liệu
+                                    </Typography>
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
-            {/* MODAL MAIN */}
-            <Modal
-                title={editingRecord ? 'Cập nhật Hộ khẩu' : 'Tạo Hộ khẩu mới'}
-                open={isModalOpen}
-                onOk={handleOk}
-                onCancel={() => setIsModalOpen(false)}
-                okText="Lưu"
-                cancelText="Hủy"
-                width={800}
-                destroyOnClose={true}
+            {/* DIALOG (MODAL) */}
+            <Dialog open={open} onClose={handleClose} fullWidth maxWidth="lg">
+                <DialogTitle>
+                    {editingRecord ? 'Cập nhật Hộ khẩu' : 'Tạo Hộ khẩu mới'}
+                </DialogTitle>
+                <DialogContent>
+                    <Tabs 
+                        value={tabValue} 
+                        onChange={(e, newValue) => setTabValue(newValue)}
+                        sx={{ 
+                            borderBottom: 1, 
+                            borderColor: 'divider', 
+                            mb: 2,
+                            '& .MuiTab-root': {
+                                flex: 1,
+                                maxWidth: 'none'
+                            }
+                        }}
+                    >
+                        <Tab icon={<Home size={16} />} iconPosition="start" label="Thông tin chung" />
+                        <Tab icon={<Users size={16} />} iconPosition="start" label={`Thành viên (${currentMembers.length})`} />
+                    </Tabs>
+
+                    {tabValue === 0 && (
+                        <Stack spacing={2} sx={{ mt: 2 }}>
+                            <Stack direction="row" spacing={2}>
+                                <Autocomplete
+                                    fullWidth
+                                    options={MOCK_APARTMENTS}
+                                    getOptionLabel={(option) => `${option.room_number} (${option.area}m²)`}
+                                    filterOptions={(options, { inputValue }) => {
+                                        const searchTerm = inputValue.toLowerCase();
+                                        return options.filter((option) =>
+                                            option.room_number.toLowerCase().includes(searchTerm)
+                                        );
+                                    }}
+                                    value={MOCK_APARTMENTS.find((a) => a.id === formData.apartment_id) || null}
+                                    onChange={(event, newValue) => {
+                                        setFormData({ ...formData, apartment_id: newValue ? newValue.id : '' });
+                                    }}
+                                    renderOption={(props, option) => (
+                                        <Box component="li" {...props} key={option.id}>
+                                            <Stack direction="row" justifyContent="space-between" width="100%">
+                                                <Typography variant="body1" fontWeight={500}>
+                                                    {option.room_number}
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {option.area}m² - {option.status ? 'Đang ở' : 'Trống'}
+                                                </Typography>
+                                            </Stack>
+                                        </Box>
+                                    )}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Tìm căn hộ (Số phòng)"
+                                            placeholder="Nhập số phòng..."
+                                        />
+                                    )}
+                                    noOptionsText="Không tìm thấy căn hộ"
+                                />
+                                <Autocomplete
+                                    fullWidth
+                                    options={MOCK_RESIDENTS}
+                                    getOptionLabel={(option) => option.full_name}
+                                    filterOptions={(options, { inputValue }) => {
+                                        const searchTerm = inputValue.toLowerCase();
+                                        return options.filter((option) =>
+                                            option.full_name.toLowerCase().includes(searchTerm) ||
+                                            option.id_number.includes(searchTerm) ||
+                                            option.phone.includes(searchTerm)
+                                        );
+                                    }}
+                                    value={MOCK_RESIDENTS.find((r) => r.id === formData.head_of_household) || null}
+                                    onChange={(event, newValue) => {
+                                        setFormData({ ...formData, head_of_household: newValue ? newValue.id : '' });
+                                    }}
+                                    renderOption={(props, option) => (
+                                        <Box component="li" {...props} key={option.id}>
+                                            <Stack>
+                                                <Typography variant="body1" fontWeight={500}>
+                                                    {option.full_name}
+                                                </Typography>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    CCCD: {option.id_number} | SĐT: {option.phone}
+                                                </Typography>
+                                            </Stack>
+                                        </Box>
+                                    )}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Tìm chủ hộ (Tên, CCCD, SĐT)"
+                                            placeholder="Nhập để tìm..."
+                                        />
+                                    )}
+                                    noOptionsText="Không tìm thấy cư dân"
+                                />
+                            </Stack>
+                            <Stack direction="row" spacing={2}>
+                                <TextField
+                                    fullWidth
+                                    label="Ngày chuyển đến"
+                                    name="start_day"
+                                    type="date"
+                                    value={formData.start_day}
+                                    onChange={handleChange}
+                                    InputLabelProps={{ shrink: true }}
+                                />
+                                <FormControl fullWidth>
+                                    <InputLabel>Trạng thái</InputLabel>
+                                    <Select
+                                        name="status"
+                                        value={formData.status}
+                                        onChange={handleChange}
+                                        label="Trạng thái"
+                                    >
+                                        <MenuItem value={1}>Đang sinh sống</MenuItem>
+                                        <MenuItem value={0}>Đã chuyển đi</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Stack>
+                        </Stack>
+                    )}
+
+                    {tabValue === 1 && (
+                        <Box sx={{ mt: 2 }}>
+                            {/* Add member section */}
+                            <Stack 
+                                direction="row" 
+                                spacing={2} 
+                                sx={{ 
+                                    mb: 2, 
+                                    p: 2, 
+                                    bgcolor: 'action.hover', 
+                                    borderRadius: 2 
+                                }}
+                            >
+                                <Autocomplete
+                                    sx={{ flex: 1 }}
+                                    options={MOCK_RESIDENTS.filter((r) => !currentMembers.some((m) => m.id === r.id))}
+                                    getOptionLabel={(option) => `${option.full_name} - ${option.id_number}`}
+                                    filterOptions={(options, { inputValue }) => {
+                                        const searchTerm = inputValue.toLowerCase();
+                                        return options.filter((option) =>
+                                            option.full_name.toLowerCase().includes(searchTerm) ||
+                                            option.id_number.includes(searchTerm) ||
+                                            option.phone.includes(searchTerm)
+                                        );
+                                    }}
+                                    value={MOCK_RESIDENTS.find((r) => r.id === selectedMemberId) || null}
+                                    onChange={(event, newValue) => {
+                                        setSelectedMemberId(newValue ? newValue.id : '');
+                                    }}
+                                    renderOption={(props, option) => (
+                                        <Box component="li" {...props} key={option.id}>
+                                            <Stack>
+                                                <Typography variant="body1" fontWeight={500}>
+                                                    {option.full_name}
+                                                </Typography>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    CCCD: {option.id_number} | SĐT: {option.phone}
+                                                </Typography>
+                                            </Stack>
+                                        </Box>
+                                    )}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Tìm kiếm cư dân (Tên, CCCD, SĐT)"
+                                            placeholder="Nhập để tìm kiếm..."
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                startAdornment: (
+                                                    <>
+                                                        <InputAdornment position="start">
+                                                            <Search size={18} />
+                                                        </InputAdornment>
+                                                        {params.InputProps.startAdornment}
+                                                    </>
+                                                )
+                                            }}
+                                        />
+                                    )}
+                                    noOptionsText="Không tìm thấy cư dân"
+                                />
+                                <Button
+                                    variant="contained"
+                                    startIcon={<UserPlus size={18} />}
+                                    onClick={handleAddMember}
+                                    disabled={!selectedMemberId}
+                                >
+                                    Thêm
+                                </Button>
+                            </Stack>
+
+                            {/* Members table */}
+                            <TableContainer>
+                                <Table size="small" sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Họ tên</TableCell>
+                                            <TableCell>CCCD</TableCell>
+                                            <TableCell>Vai trò</TableCell>
+                                            <TableCell align="center">Hành động</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {currentMembers.map((member) => (
+                                            <TableRow key={member.id}>
+                                                <TableCell>{member.full_name}</TableCell>
+                                                <TableCell>{member.id_number}</TableCell>
+                                                <TableCell>
+                                                    {member.id === formData.head_of_household ? (
+                                                        <Chip 
+                                                            label="Chủ hộ" 
+                                                            size="small" 
+                                                            sx={{ 
+                                                                bgcolor: 'rgba(234, 179, 8, 0.15)', 
+                                                                color: '#fbbf24',
+                                                                fontWeight: 500,
+                                                                minWidth: 80,
+                                                                justifyContent: 'center'
+                                                            }} 
+                                                        />
+                                                    ) : (
+                                                        <Chip 
+                                                            label={member.role || 'Thành viên'} 
+                                                            size="small" 
+                                                            sx={{ 
+                                                                bgcolor: 'rgba(100, 116, 139, 0.15)', 
+                                                                color: '#94a3b8',
+                                                                fontWeight: 500,
+                                                                minWidth: 80,
+                                                                justifyContent: 'center'
+                                                            }} 
+                                                        />
+                                                    )}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    <Tooltip title={member.id === formData.head_of_household ? "Không thể xóa chủ hộ" : "Xóa khỏi hộ"}>
+                                                        <span>
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={() => handleRemoveMember(member.id)}
+                                                                disabled={member.id === formData.head_of_household}
+                                                                sx={{
+                                                                    color: member.id === formData.head_of_household ? 'text.disabled' : '#ef4444',
+                                                                    '&:hover': {
+                                                                        bgcolor: 'rgba(239, 68, 68, 0.1)',
+                                                                        color: '#dc2626'
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <Trash2 size={18} />
+                                                            </IconButton>
+                                                        </span>
+                                                    </Tooltip>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                        {currentMembers.length === 0 && (
+                                            <TableRow>
+                                                <TableCell colSpan={4} align="center">
+                                                    <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+                                                        Chưa có thành viên nào
+                                                    </Typography>
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ p: 2.5 }}>
+                    <Button onClick={handleClose} color="error">Hủy</Button>
+                    <Button onClick={handleSave} variant="contained" color="primary">
+                        {editingRecord ? 'Cập nhật' : 'Tạo mới'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* DELETE CONFIRMATION DIALOG */}
+            <Dialog 
+                open={deleteDialogOpen} 
+                onClose={handleCancelDelete}
+                maxWidth="xs"
+                fullWidth
             >
-                {modalContent}
-            </Modal>
+                <DialogTitle sx={{ pb: 1 }}>
+                    Xác nhận xóa hộ khẩu
+                </DialogTitle>
+                <DialogContent>
+                    <Typography variant="body1">
+                        Bạn có chắc chắn muốn xóa hộ khẩu{' '}
+                        <strong>H{deletingRecord?.household_id}</strong> (Phòng {getApartmentName(deletingRecord?.apartment_id)})?
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        Hành động này không thể hoàn tác.
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ p: 2.5, pt: 1.5 }}>
+                    <Button onClick={handleCancelDelete} variant="outlined">
+                        Hủy
+                    </Button>
+                    <Button 
+                        onClick={handleConfirmDelete} 
+                        variant="contained" 
+                        color="error"
+                    >
+                        Xóa hộ khẩu
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
-            {/* MODAL TẠM TRÚ/VẮNG */}
-            <Modal
-                title="Khai báo Tạm trú / Tạm vắng"
-                open={isAbsenceModalOpen}
-                onOk={() => {
-                    message.success('Đã lưu khai báo!');
-                    setIsAbsenceModalOpen(false);
-                }}
-                onCancel={() => setIsAbsenceModalOpen(false)}
-                okText="Xác nhận"
-                cancelText="Hủy"
-                destroyOnClose
+            {/* SNACKBAR */}
+            <Snackbar 
+                open={snackbar.open} 
+                autoHideDuration={4000} 
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
-                <Form form={absenceForm} layout="vertical">
-                    <Form.Item name="type" label="Loại khai báo" initialValue="tam_tru">
-                        <Select>
-                            <Option value="tam_tru">Tạm trú</Option>
-                            <Option value="tam_vang">Tạm vắng</Option>
-                        </Select>
-                    </Form.Item>
-                    <Form.Item name="person" label="Người khai báo (CCCD/Họ tên)" rules={[{ required: true }]}>
-                        <Input placeholder="Nhập thông tin người khai báo" />
-                    </Form.Item>
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            <Form.Item name="from" label="Từ ngày">
-                                <DatePicker style={{ width: '100%' }} />
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item name="to" label="Đến ngày">
-                                <DatePicker style={{ width: '100%' }} />
-                            </Form.Item>
-                        </Col>
-                    </Row>
-                    <Form.Item name="reason" label="Lý do">
-                        <Input.TextArea rows={3} />
-                    </Form.Item>
-                </Form>
-            </Modal>
-
-            {/* MODAL PHỤ: SỬA THÔNG TIN THÀNH VIÊN (MỚI) */}
-            <Modal
-                title="Cập nhật thông tin cư dân"
-                open={isMemberModalOpen}
-                onOk={handleSaveMemberInfo}
-                onCancel={() => setIsMemberModalOpen(false)}
-                okText="Lưu thay đổi"
-                cancelText="Hủy"
-                zIndex={1050} // Đảm bảo nổi lên trên Modal Hộ khẩu
-                destroyOnClose
-            >
-                <Form form={memberForm} layout="vertical">
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            <Form.Item name="full_name" label="Họ và tên" rules={[{ required: true }]}>
-                                <Input />
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item name="id_number" label="CCCD/CMND" rules={[{ required: true }]}>
-                                <Input />
-                            </Form.Item>
-                        </Col>
-                    </Row>
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            <Form.Item name="gender" label="Giới tính">
-                                <Select>
-                                    <Option value="Nam">Nam</Option>
-                                    <Option value="Nữ">Nữ</Option>
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item name="date_of_birth" label="Ngày sinh">
-                                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
-                            </Form.Item>
-                        </Col>
-                    </Row>
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            <Form.Item name="phone_number" label="Số điện thoại">
-                                <Input />
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item name="job" label="Công việc">
-                                <Input />
-                            </Form.Item>
-                        </Col>
-                    </Row>
-
-                    {/* Chỉ cho sửa vai trò nếu KHÔNG phải là chủ hộ */}
-                    <Form.Item name="role" label="Quan hệ với chủ hộ">
-                        <Select disabled={editingMember?.id === form.getFieldValue('head_of_household')}>
-                            <Option value="Chủ hộ">Chủ hộ</Option>
-                            <Option value="Vợ">Vợ</Option>
-                            <Option value="Chồng">Chồng</Option>
-                            <Option value="Con">Con</Option>
-                            <Option value="Bố mẹ">Bố mẹ</Option>
-                            <Option value="Thành viên khác">Thành viên khác</Option>
-                        </Select>
-                    </Form.Item>
-                </Form>
-            </Modal>
+                <Alert 
+                    onClose={handleCloseSnackbar} 
+                    severity={snackbar.severity} 
+                    variant="filled"
+                    sx={{ 
+                        width: '100%',
+                        alignItems: 'center',
+                        '& .MuiAlert-action': {
+                            pt: 0,
+                            alignItems: 'center'
+                        }
+                    }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </MainCard>
     );
 };

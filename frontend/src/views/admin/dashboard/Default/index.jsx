@@ -1,82 +1,159 @@
-import { useEffect, useState } from 'react';
 import React from 'react';
-import { useNavigate } from "react-router-dom";
+import { Box, Typography, Card, CardContent, Stack, Chip } from '@mui/material';
+import { TrendingUp, TrendingDown, Users, Wallet, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
-// material-ui
-import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
+// project imports
+import MainCard from 'ui-component/cards/MainCard';
 
-// project imports (new cards & charts for Ban Quản Lý)
-import CompletedPaymentsCard from './cards/CompletedPaymentCard';
-import OutstandingPaymentsCard from './cards/OutstandingPaymentsCard';
-import TotalHouseholdsCard from './cards/TotalHouseHoldsCard';
-import UnpaidHouseholdsCard from './cards/UnpaidHouseholdsCard';
-
+// Import chart components
 import FeeByCategoryChart from './charts/FeeByCategoryChart';
 import CollectionPerformanceChart from './charts/CollectionPerformanceChart';
 import PaymentStatusBarChart from './charts/PaymentStatusBarChart';
 import RevenueOverTimeChart from './charts/RevenueOverTimeChart';
 
-import { gridSpacing } from 'store/constant';
+// Stat Card Component (same as Report page)
+const StatCard = ({ title, value, subtitle, change, changeType, icon: Icon, color }) => (
+    <Card sx={{ 
+        bgcolor: 'background.paper', 
+        borderRadius: 3,
+        border: '1px solid',
+        borderColor: 'divider',
+        height: '100%'
+    }}>
+        <CardContent sx={{ p: 2.5 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                <Box>
+                    <Typography variant="body1" color="text.secondary" sx={{ mb: 0.5, fontWeight: 500 }}>
+                        {title}
+                    </Typography>
+                    <Typography variant="h3" fontWeight={700} sx={{ color, fontSize: '2rem' }}>
+                        {value}
+                    </Typography>
+                    {subtitle && (
+                        <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
+                            {subtitle}
+                        </Typography>
+                    )}
+                    {change && (
+                        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 1 }}>
+                            {changeType === 'up' ? (
+                                <TrendingUp size={16} color="#22c55e" />
+                            ) : (
+                                <TrendingDown size={16} color="#ef4444" />
+                            )}
+                            <Typography variant="body2" sx={{ color: changeType === 'up' ? '#22c55e' : '#ef4444', fontWeight: 500 }}>
+                                {change}
+                            </Typography>
+                        </Stack>
+                    )}
+                </Box>
+                <Box sx={{ 
+                    p: 2, 
+                    borderRadius: 2, 
+                    bgcolor: `${color}15`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <Icon size={28} color={color} />
+                </Box>
+            </Stack>
+        </CardContent>
+    </Card>
+);
+
+// Header actions
+const headerActions = (
+    <Chip 
+        label="Cập nhật: Tháng 12/2025"
+        size="small"
+        sx={{ bgcolor: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa' }}
+    />
+);
 
 // ==============================|| BAN QUẢN LÝ DASHBOARD PAGE ||============================== //
 
 export default function Dashboard() {
-  const [isLoading, setLoading] = useState(true);
+    return (
+        <MainCard 
+            title="Tổng quan"
+            darkTitle
+            secondary={headerActions}
+            contentSX={{ pt: 0 }}
+        >
+            {/* SUBTITLE */}
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, mt: 1 }}>
+                Tổng quan về hoạt động thu phí và quản lý chung cư
+            </Typography>
 
-  useEffect(() => {
-    setTimeout(() => setLoading(false), 1000); // simulate loading delay
-  }, []);
+            {/* STAT CARDS */}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ mb: 3 }} flexWrap="wrap" useFlexGap>
+                <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(25% - 18px)' } }}>
+                    <StatCard 
+                        title="Tổng số hộ gia đình"
+                        value="342"
+                        subtitle="Hộ đang sinh sống tại chung cư"
+                        change="+5 hộ mới"
+                        changeType="up"
+                        icon={Users}
+                        color="#3b82f6"
+                    />
+                </Box>
+                <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(25% - 18px)' } }}>
+                    <StatCard 
+                        title="Hộ đã thanh toán"
+                        value="224"
+                        subtitle="Hộ đã hoàn tất thanh toán trong kỳ này"
+                        change="+10 hôm nay"
+                        changeType="up"
+                        icon={CheckCircle2}
+                        color="#22c55e"
+                    />
+                </Box>
+                <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(25% - 18px)' } }}>
+                    <StatCard 
+                        title="Hộ còn nợ phí"
+                        value="12"
+                        subtitle="Hộ chưa thanh toán trong kỳ hiện tại"
+                        change="+2 hôm nay"
+                        changeType="down"
+                        icon={AlertTriangle}
+                        color="#ef4444"
+                    />
+                </Box>
+                <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(25% - 18px)' } }}>
+                    <StatCard 
+                        title="Hộ chưa thanh toán"
+                        value="32"
+                        subtitle="Hộ còn nợ phí kỳ hiện tại"
+                        change="+3 hôm nay"
+                        changeType="down"
+                        icon={Wallet}
+                        color="#f59e0b"
+                    />
+                </Box>
+            </Stack>
 
-  return (
-    <Grid container spacing={gridSpacing} direction="column">
-      {/* ======== TOP METRIC CARDS ======== */}
-      {/* <Grid container direction="row">
-        <Grid>
-          <Grid item xs={12}>
-            <Grid container spacing={2} justifyContent="space-evenly">
-              <Grid container direction="column">
-                  <Grid item xs={12} sm={6} md={3}>
-                    <TotalHouseholdsCard isLoading={isLoading} />
-                  </Grid>
+            {/* ROW 1 — CHARTS */}
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ mb: 3 }}>
+                <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
+                    <FeeByCategoryChart />
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
+                    <CollectionPerformanceChart />
+                </Box>
+            </Stack>
 
-                  // In Progress Reports
-                  <Grid item xs={12} sm={6} md={3}>
-                    <CompletedPaymentsCard isLoading={isLoading} />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
-                    <OutstandingPaymentsCard isLoading={isLoading} />
-                  </Grid>
-
-                  // Urgent Reports
-                  <Grid item xs={12} sm={6} md={3}>
-                    <UnpaidHouseholdsCard isLoading={isLoading} />
-                  </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-        <Grid size={3}>
-            <FeeByCategoryChart />
-          </Grid>
-        <Grid size="grow">
-          <CollectionPerformanceChart />
-        </Grid>
-      </Grid> */}
-      {/* ======== CHARTS & ANALYTICS ======== */}
-      {/* <Grid item xs={12}>
-        <Grid container spacing={3} justifyContent="space-evenly">
-
-          <Grid size={6}>
-            <PaymentStatusBarChart />
-          </Grid>
-
-          <Grid size="grow">
-            <RevenueOverTimeChart />
-          </Grid>
-
-        </Grid>
-      </Grid> */}
-    </Grid>
-  );
+            {/* ROW 2 — CHARTS */}
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+                <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
+                    <PaymentStatusBarChart />
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
+                    <RevenueOverTimeChart />
+                </Box>
+            </Stack>
+        </MainCard>
+    );
 }
+

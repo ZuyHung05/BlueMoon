@@ -1,184 +1,371 @@
-// frontend/src/views/admin/feeManager/FeeManagement.jsx
+// frontend/src/views/admin/feeManager/DefaultFeeManagement.jsx
 
 import React, { useState } from 'react';
-import { Table, Button, Modal, Form, Input, InputNumber, Popconfirm, message, Space } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+
+// material-ui
+import {
+    Box,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    IconButton,
+    InputAdornment,
+    OutlinedInput,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TextField,
+    Tooltip,
+    Typography,
+    Stack,
+    Snackbar,
+    Alert
+} from '@mui/material';
+
+// project imports
 import MainCard from 'ui-component/cards/MainCard';
 
+// assets
+import { Edit, Trash2, Plus, Search } from 'lucide-react';
+
 const DefaultFeeManagement = () => {
-    // --- 1. STATE QUẢN LÝ DỮ LIỆU ---
+    // --- 1. MOCK DATA ---
     const [data, setData] = useState([
         {
-            key: 1,
             id: 1,
             description: 'Phí quản lý chung cư (theo m2)',
             unit_price: 6000
         },
         {
-            key: 2,
             id: 2,
             description: 'Phí gửi xe máy (theo tháng)',
             unit_price: 80000
         },
         {
-            key: 3,
             id: 3,
             description: 'Phí gửi ô tô (theo tháng)',
             unit_price: 1200000
         }
     ]);
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    // --- 2. UI STATE ---
+    const [open, setOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
-    const [form] = Form.useForm();
+    const [searchTerm, setSearchTerm] = useState('');
 
-    // --- 2. XỬ LÝ FORM ---
-    const showAddModal = () => {
+    // Form state
+    const [formData, setFormData] = useState({
+        description: '',
+        unit_price: ''
+    });
+
+    // Delete dialog
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deletingRecord, setDeletingRecord] = useState(null);
+
+    // Snackbar
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+    const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
+
+    // --- 3. FILTERING ---
+    const filteredData = data.filter((item) =>
+        item.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // --- 4. HANDLERS ---
+    const handleOpen = (record = null) => {
+        if (record) {
+            setEditingRecord(record);
+            setFormData({
+                description: record.description,
+                unit_price: record.unit_price
+            });
+        } else {
+            setEditingRecord(null);
+            setFormData({
+                description: '',
+                unit_price: ''
+            });
+        }
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
         setEditingRecord(null);
-        form.resetFields();
-        setIsModalOpen(true);
     };
 
-    const showEditModal = (record) => {
-        setEditingRecord(record);
-        form.setFieldsValue({
-            description: record.description,
-            unit_price: record.unit_price
-        });
-        setIsModalOpen(true);
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleOk = () => {
-        form.validateFields().then((values) => {
-            const { description, unit_price } = values;
+    const handleSave = () => {
+        if (!formData.description) {
+            setSnackbar({ open: true, message: 'Vui lòng nhập tên loại phí!', severity: 'warning' });
+            return;
+        }
+        if (!formData.unit_price || formData.unit_price <= 0) {
+            setSnackbar({ open: true, message: 'Vui lòng nhập đơn giá hợp lệ!', severity: 'warning' });
+            return;
+        }
 
-            const newData = {
-                description,
-                unit_price
-            };
-
-            if (editingRecord) {
-                // UPDATE
-                const updatedData = data.map((item) =>
-                    item.id === editingRecord.id
-                        ? { ...item, unit_price: newData.unit_price } // Chỉ cập nhật unit_price, giữ nguyên description cũ để an toàn
-                        : item
-                );
-                setData(updatedData);
-                message.success('Cập nhật giá thành công!');
-            } else {
-                // CREATE
-                const newId = data.length > 0 ? Math.max(...data.map((d) => d.id)) + 1 : 1;
-                setData([
-                    ...data,
-                    {
-                        key: newId,
-                        id: newId,
-                        ...newData
-                    }
-                ]);
-                message.success('Thêm loại phí mới thành công!');
-            }
-
-            setIsModalOpen(false);
-        });
+        if (editingRecord) {
+            const updatedData = data.map((item) =>
+                item.id === editingRecord.id ? { ...item, unit_price: Number(formData.unit_price) } : item
+            );
+            setData(updatedData);
+            setSnackbar({ open: true, message: 'Cập nhật giá thành công!', severity: 'success' });
+        } else {
+            const newId = data.length > 0 ? Math.max(...data.map((d) => d.id)) + 1 : 1;
+            setData([...data, { id: newId, description: formData.description, unit_price: Number(formData.unit_price) }]);
+            setSnackbar({ open: true, message: 'Thêm loại phí mới thành công!', severity: 'success' });
+        }
+        handleClose();
     };
 
-    const handleDelete = (id) => {
-        const newData = data.filter((item) => item.id !== id);
-        setData(newData);
-        message.success('Đã xóa loại phí');
+    const handleDelete = (record) => {
+        setDeletingRecord(record);
+        setDeleteDialogOpen(true);
     };
 
+    const handleConfirmDelete = () => {
+        if (deletingRecord) {
+            setData(data.filter((item) => item.id !== deletingRecord.id));
+            setSnackbar({ open: true, message: 'Đã xóa loại phí!', severity: 'success' });
+        }
+        setDeleteDialogOpen(false);
+        setDeletingRecord(null);
+    };
+
+    const handleCancelDelete = () => {
+        setDeleteDialogOpen(false);
+        setDeletingRecord(null);
+    };
+
+    // --- 5. HELPER ---
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
     };
 
-    // --- 3. CẤU HÌNH CỘT BẢNG ---
-    const columns = [
-        {
-            title: 'ID',
-            dataIndex: 'id',
-            key: 'id',
-            width: 70,
-            align: 'center'
-        },
-        {
-            title: 'Mô tả / Tên loại phí',
-            dataIndex: 'description',
-            key: 'description',
-            render: (text) => <b>{text}</b>
-        },
-        {
-            title: 'Đơn giá (VNĐ)',
-            dataIndex: 'unit_price',
-            key: 'unit_price',
-            align: 'right',
-            render: (price) => <span style={{ color: '#1890ff', fontWeight: 'bold' }}>{formatCurrency(price)}</span>
-        },
-        {
-            title: 'Hành động',
-            key: 'action',
-            width: 150,
-            align: 'center',
-            render: (_, record) => (
-                <Space size="middle">
-                    <Button icon={<EditOutlined />} onClick={() => showEditModal(record)} type="primary" ghost size="small">
-                        Sửa
-                    </Button>
-                    <Popconfirm title="Xóa loại phí này?" onConfirm={() => handleDelete(record.id)} okText="Có" cancelText="Không">
-                        <Button icon={<DeleteOutlined />} danger size="small">
-                            Xóa
-                        </Button>
-                    </Popconfirm>
-                </Space>
-            )
-        }
-    ];
+    // --- HEADER ACTIONS ---
+    const headerActions = (
+        <Stack direction="row" spacing={1.5} alignItems="center">
+            <OutlinedInput
+                placeholder="Tìm theo tên loại phí..."
+                startAdornment={
+                    <InputAdornment position="start">
+                        <Search size={18} />
+                    </InputAdornment>
+                }
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                sx={{ minWidth: 280, borderRadius: '12px' }}
+                size="small"
+            />
+
+            <Tooltip title="Thêm loại phí mới">
+                <Button
+                    variant="contained"
+                    onClick={() => handleOpen()}
+                    sx={{ 
+                        minWidth: 48, 
+                        width: 48, 
+                        height: 44,
+                        borderRadius: '12px',
+                        padding: 0
+                    }}
+                >
+                    <Plus size={22} />
+                </Button>
+            </Tooltip>
+        </Stack>
+    );
 
     return (
-        <MainCard title="Quản lý Định mức Phí (Default Fee)">
-            <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal} style={{ marginBottom: 16 }}>
-                Thêm loại phí mới
-            </Button>
+        <MainCard title="Quản lý Định mức Phí" secondary={headerActions} contentSX={{ pt: 0 }}>
+            {/* TABLE */}
+            <TableContainer>
+                <Table sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
+                    <TableHead sx={{ 
+                        bgcolor: 'action.hover',
+                        '& .MuiTableCell-root': {
+                            color: 'text.primary',
+                            fontWeight: 700,
+                            fontSize: '0.875rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                        }
+                    }}>
+                        <TableRow>
+                            <TableCell width={80}>STT</TableCell>
+                            <TableCell>Mô tả / Tên loại phí</TableCell>
+                            <TableCell align="right">Đơn giá (VNĐ)</TableCell>
+                            <TableCell align="center" width={150}>Hành động</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {filteredData.map((row, index) => (
+                            <TableRow key={row.id} hover>
+                                <TableCell>{index + 1}</TableCell>
+                                <TableCell>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                        {row.description}
+                                    </Typography>
+                                </TableCell>
+                                <TableCell align="right">
+                                    <Typography sx={{ color: '#60a5fa', fontWeight: 700, fontSize: '1rem' }}>
+                                        {formatCurrency(row.unit_price)}
+                                    </Typography>
+                                </TableCell>
+                                <TableCell align="center">
+                                    <Stack direction="row" spacing={0.5} justifyContent="center">
+                                        <Tooltip title="Sửa đơn giá">
+                                            <IconButton 
+                                                color="primary" 
+                                                onClick={() => handleOpen(row)}
+                                                size="small"
+                                            >
+                                                <Edit size={18} />
+                                            </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Xóa loại phí">
+                                            <IconButton 
+                                                sx={{
+                                                    color: '#ef4444',
+                                                    '&:hover': {
+                                                        bgcolor: 'rgba(239, 68, 68, 0.1)',
+                                                        color: '#dc2626'
+                                                    }
+                                                }}
+                                                onClick={() => handleDelete(row)}
+                                                size="small"
+                                            >
+                                                <Trash2 size={18} />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </Stack>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                        {filteredData.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={4} align="center">
+                                    <Typography variant="body2" sx={{ py: 3, color: 'text.secondary' }}>
+                                        Không tìm thấy dữ liệu
+                                    </Typography>
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
-            <Table columns={columns} dataSource={data} pagination={{ pageSize: 5 }} rowKey="id" bordered />
+            {/* ADD/EDIT DIALOG */}
+            <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+                <DialogTitle>
+                    {editingRecord ? 'Sửa đơn giá phí' : 'Tạo loại phí mới'}
+                </DialogTitle>
+                <DialogContent>
+                    <Stack spacing={2.5} sx={{ mt: 1 }}>
+                        <Box>
+                            <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                Mô tả / Tên loại phí <span style={{ color: '#ef4444' }}>*</span>
+                            </Typography>
+                            <TextField
+                                fullWidth
+                                placeholder="Ví dụ: Phí gửi xe máy..."
+                                name="description"
+                                value={formData.description}
+                                onChange={handleChange}
+                                disabled={!!editingRecord}
+                                size="small"
+                            />
+                        </Box>
+                        <Box>
+                            <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                Đơn giá mặc định (VNĐ) <span style={{ color: '#ef4444' }}>*</span>
+                            </Typography>
+                            <TextField
+                                fullWidth
+                                type="number"
+                                placeholder="Nhập số tiền..."
+                                name="unit_price"
+                                value={formData.unit_price}
+                                onChange={handleChange}
+                                size="small"
+                                inputProps={{ min: 0 }}
+                            />
+                        </Box>
+                    </Stack>
+                </DialogContent>
+                <DialogActions sx={{ p: 2.5 }}>
+                    <Button onClick={handleClose} color="error">Hủy</Button>
+                    <Button onClick={handleSave} variant="contained" color="primary">
+                        {editingRecord ? 'Cập nhật' : 'Thêm mới'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
-            <Modal
-                title={editingRecord ? 'Sửa đơn giá phí' : 'Tạo loại phí mới'}
-                open={isModalOpen}
-                onOk={handleOk}
-                onCancel={() => setIsModalOpen(false)}
-                okText="Lưu"
-                cancelText="Hủy"
+            {/* DELETE CONFIRMATION */}
+            <Dialog 
+                open={deleteDialogOpen} 
+                onClose={handleCancelDelete}
+                maxWidth="xs"
+                fullWidth
             >
-                <Form form={form} layout="vertical">
-                    {/* Description */}
-                    <Form.Item
-                        name="description"
-                        label="Mô tả / Tên loại phí"
-                        rules={[{ required: true, message: 'Vui lòng nhập tên loại phí!' }]}
+                <DialogTitle sx={{ pb: 1 }}>
+                    Xác nhận xóa loại phí
+                </DialogTitle>
+                <DialogContent>
+                    <Typography variant="body1">
+                        Bạn có chắc chắn muốn xóa loại phí <strong>{deletingRecord?.description}</strong>?
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        Hành động này không thể hoàn tác.
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ p: 2.5, pt: 1.5 }}>
+                    <Button onClick={handleCancelDelete} variant="outlined">
+                        Hủy
+                    </Button>
+                    <Button 
+                        onClick={handleConfirmDelete} 
+                        variant="contained" 
+                        color="error"
                     >
-                        {/* CHANGE HERE: Thêm thuộc tính disabled */}
-                        <Input placeholder="Ví dụ: Phí gửi xe máy..." disabled={!!editingRecord} />
-                    </Form.Item>
+                        Xóa loại phí
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
-                    {/* Unit Price */}
-                    <Form.Item
-                        name="unit_price"
-                        label="Đơn giá mặc định (VNĐ)"
-                        rules={[{ required: true, message: 'Vui lòng nhập đơn giá!' }]}
-                    >
-                        <InputNumber
-                            min={0}
-                            style={{ width: '100%' }}
-                            placeholder="Nhập số tiền..."
-                            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={(value) => value.replace(/\$\s?|(,*)/g, '')}
-                        />
-                    </Form.Item>
-                </Form>
-            </Modal>
+            {/* SNACKBAR */}
+            <Snackbar 
+                open={snackbar.open} 
+                autoHideDuration={4000} 
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert 
+                    onClose={handleCloseSnackbar} 
+                    severity={snackbar.severity} 
+                    variant="filled"
+                    sx={{ 
+                        width: '100%',
+                        alignItems: 'center',
+                        '& .MuiAlert-action': {
+                            pt: 0,
+                            alignItems: 'center'
+                        }
+                    }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </MainCard>
     );
 };

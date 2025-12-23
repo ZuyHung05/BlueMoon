@@ -53,12 +53,12 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
     <Icon
       strokeWidth={1.5}
       size={drawerOpen ? 20 : 24}
-      color="#22d3ee" // Cyan 400
       style={{
-        filter: 'drop-shadow(0 0 8px rgba(34,211,238,0.8))', // Neon glow
+        color: 'var(--mui-palette-primary-main)', // Use theme primary color
+        filter: theme.palette.mode === 'dark' ? 'drop-shadow(0 0 8px rgba(34,211,238,0.8))' : 'none',
         ...(isParents && { fontSize: 20, strokeWidth: 1.5 })
       }}
-      className="animate-pulse" // Pulse animation
+      className={theme.palette.mode === 'dark' ? 'animate-pulse' : ''} // Pulse animation only in dark mode
     />
   ) : (
     <FiberManualRecordIcon sx={{ width: isSelected ? 8 : 6, height: isSelected ? 8 : 6 }} fontSize={level > 0 ? 'inherit' : 'medium'} />

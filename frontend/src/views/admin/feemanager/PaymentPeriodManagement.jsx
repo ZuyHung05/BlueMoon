@@ -1,45 +1,50 @@
+// frontend/src/views/admin/feemanager/PaymentPeriodManagement.jsx
+
 import React, { useState, useEffect } from 'react';
+
+// material-ui
 import {
-    Table,
+    Box,
     Button,
-    Modal,
-    Form,
-    Input,
-    DatePicker,
-    Checkbox,
-    Popconfirm,
-    message,
-    Space,
-    Tag,
-    Upload,
+    Chip,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    IconButton,
+    InputAdornment,
+    LinearProgress,
+    MenuItem,
+    OutlinedInput,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TextField,
     Tooltip,
+    Typography,
+    Stack,
+    Snackbar,
+    Alert,
     Tabs,
-    Progress,
-    Select,
-    InputNumber,
-    Descriptions,
-    Radio
-} from 'antd';
-import {
-    EditOutlined,
-    DeleteOutlined,
-    PlusOutlined,
-    UploadOutlined,
-    FilePdfOutlined,
-    UserOutlined,
-    PrinterOutlined,
-    ExportOutlined,
-    CheckCircleOutlined,
-    CloseCircleOutlined
-} from '@ant-design/icons';
+    Tab,
+    ToggleButton,
+    ToggleButtonGroup
+} from '@mui/material';
+
+// project imports
 import MainCard from 'ui-component/cards/MainCard';
+
+// assets
+import { Edit, Trash2, Plus, Search, Upload, Download, Printer, CheckCircle, XCircle, Users } from 'lucide-react';
 import dayjs from 'dayjs';
 
 const PaymentPeriodManagement = () => {
     // --- DATA ĐỢT THU (MOCK) ---
     const [data, setData] = useState([
         {
-            key: 1,
             payment_period_id: 1,
             description: 'Phí dịch vụ chung cư Tháng 10/2025',
             start_date: '2025-10-01',
@@ -49,7 +54,6 @@ const PaymentPeriodManagement = () => {
             total: 8
         },
         {
-            key: 2,
             payment_period_id: 2,
             description: 'Quyên góp quỹ từ thiện 2025',
             start_date: '2025-10-05',
@@ -74,119 +78,122 @@ const PaymentPeriodManagement = () => {
 
     // --- MOCK DATA ĐÃ ĐÓNG TIỀN ---
     const [paidResidents, setPaidResidents] = useState([
-        {
-            key: 'p1',
-            payment_period_id: 1,
-            household_id: 101,
-            household_name: 'Hộ 101 - Nguyễn Văn A',
-            room: '101',
-            amount: 500000,
-            date: '2025-10-05',
-            method: 'Chuyển khoản'
-        },
-        {
-            key: 'p2',
-            payment_period_id: 1,
-            household_id: 205,
-            household_name: 'Hộ 205 - Trần Thị B',
-            room: '205',
-            amount: 650000,
-            date: '2025-10-06',
-            method: 'Tiền mặt'
-        },
-        {
-            key: 'p3',
-            payment_period_id: 2,
-            household_id: 301,
-            household_name: 'Hộ 301 - Lê Văn C',
-            room: '301',
-            amount: 200000,
-            date: '2025-10-10',
-            method: 'Chuyển khoản'
-        } // Đóng góp 200k
+        { key: 'p1', payment_period_id: 1, household_id: 101, household_name: 'Hộ 101 - Nguyễn Văn A', room: '101', amount: 500000, date: '2025-10-05', method: 'Chuyển khoản' },
+        { key: 'p2', payment_period_id: 1, household_id: 205, household_name: 'Hộ 205 - Trần Thị B', room: '205', amount: 650000, date: '2025-10-06', method: 'Tiền mặt' },
+        { key: 'p3', payment_period_id: 2, household_id: 301, household_name: 'Hộ 301 - Lê Văn C', room: '301', amount: 200000, date: '2025-10-10', method: 'Chuyển khoản' }
     ]);
 
     // --- STATE ---
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [open, setOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
-    const [payModalVisible, setPayModalVisible] = useState(false);
-    const [viewPaymentDetail, setViewPaymentDetail] = useState(null);
-    const [targetHousehold, setTargetHousehold] = useState(null);
+    const [tabValue, setTabValue] = useState(0);
     const [filterStatus, setFilterStatus] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
 
-    // State cho chức năng thêm đóng góp (Tự nguyện)
-    const [addDonationVisible, setAddDonationVisible] = useState(false);
-    const [donationForm] = Form.useForm();
+    // Form state
+    const [formData, setFormData] = useState({
+        description: '',
+        start_date: '',
+        end_date: '',
+        is_mandatory: true
+    });
 
-    const [form] = Form.useForm();
-    const [payForm] = Form.useForm();
+    // Pay modal
+    const [payModalOpen, setPayModalOpen] = useState(false);
+    const [targetHousehold, setTargetHousehold] = useState(null);
+    const [paymentMethod, setPaymentMethod] = useState('Tiền mặt');
+
+    // Donation modal
+    const [donationModalOpen, setDonationModalOpen] = useState(false);
+    const [donationData, setDonationData] = useState({ household_id: '', amount: '', method: 'Tiền mặt' });
+
+    // Detail modal
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
+    const [viewPaymentDetail, setViewPaymentDetail] = useState(null);
+
+    // Delete dialog
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deletingRecord, setDeletingRecord] = useState(null);
+
+    // Snackbar
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+    const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
+
+    // --- FILTERING ---
+    const filteredData = data.filter((item) =>
+        item.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     // --- HANDLERS ---
-    const handleImportExcel = (info) => {
-        if (info.file.status === 'done') message.success(`${info.file.name} imported thành công!`);
+    const handleOpen = (record = null) => {
+        if (record) {
+            setEditingRecord(record);
+            setFormData({
+                description: record.description,
+                start_date: record.start_date,
+                end_date: record.end_date,
+                is_mandatory: record.is_mandatory
+            });
+            setTabValue(0);
+            setFilterStatus('all');
+        } else {
+            setEditingRecord(null);
+            setFormData({
+                description: '',
+                start_date: '',
+                end_date: '',
+                is_mandatory: true
+            });
+            setTabValue(0);
+        }
+        setOpen(true);
     };
 
-    const handleExportBill = (record) => {
-        message.loading(`Đang xuất danh sách đóng tiền đợt: ${record.description}...`);
-        setTimeout(() => message.success('File Excel/PDF đã được tải xuống!'), 1000);
-    };
-
-    const showAddModal = () => {
+    const handleClose = () => {
+        setOpen(false);
         setEditingRecord(null);
-        setIsModalOpen(true);
     };
 
-    const showEditModal = (record) => {
-        setEditingRecord(record);
-        setFilterStatus('all');
-        setIsModalOpen(true);
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleOpenPayModal = (householdRecord) => {
-        setTargetHousehold(householdRecord);
-        setPayModalVisible(true);
-        payForm.resetFields();
-    };
+    const handleSave = () => {
+        if (!formData.description) {
+            setSnackbar({ open: true, message: 'Vui lòng nhập tên đợt thu!', severity: 'warning' });
+            return;
+        }
+        if (!formData.start_date || !formData.end_date) {
+            setSnackbar({ open: true, message: 'Vui lòng chọn thời gian thu!', severity: 'warning' });
+            return;
+        }
 
-    const handleConfirmPayment = () => {
-        payForm.validateFields().then((values) => {
-            const newPayment = {
-                key: Date.now(),
-                payment_period_id: editingRecord.payment_period_id,
-                household_id: targetHousehold.id,
-                household_name: targetHousehold.name,
-                room: targetHousehold.room,
-                amount: targetHousehold.required_amount,
-                date: dayjs().format('YYYY-MM-DD'),
-                method: values.method
-            };
-            savePayment(newPayment);
-            message.success(
-                `Đã thu ${new Intl.NumberFormat('vi-VN').format(targetHousehold.required_amount)}đ của ${targetHousehold.name}`
+        if (editingRecord) {
+            const updatedData = data.map((item) =>
+                item.payment_period_id === editingRecord.payment_period_id ? { ...item, ...formData } : item
             );
-            setPayModalVisible(false);
-            setTargetHousehold(null);
-        });
+            setData(updatedData);
+            setSnackbar({ open: true, message: 'Cập nhật đợt thu thành công!', severity: 'success' });
+        } else {
+            const newId = data.length > 0 ? Math.max(...data.map((d) => d.payment_period_id)) + 1 : 1;
+            setData([...data, { payment_period_id: newId, count: 0, total: mockAllHouseholds.length, ...formData }]);
+            setSnackbar({ open: true, message: 'Tạo đợt thu mới thành công!', severity: 'success' });
+        }
+        handleClose();
     };
 
-    const handleAddDonation = () => {
-        donationForm.validateFields().then((values) => {
-            const selectedHousehold = mockAllHouseholds.find((h) => h.id === values.household_id);
-            const newPayment = {
-                key: Date.now(),
-                payment_period_id: editingRecord.payment_period_id,
-                household_id: selectedHousehold.id,
-                household_name: selectedHousehold.name,
-                room: selectedHousehold.room,
-                amount: values.amount,
-                date: dayjs().format('YYYY-MM-DD'),
-                method: values.method
-            };
-            savePayment(newPayment);
-            message.success('Thêm đóng góp thành công!');
-            setAddDonationVisible(false);
-            donationForm.resetFields();
-        });
+    const handleDelete = (record) => {
+        setDeletingRecord(record);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (deletingRecord) {
+            setData(data.filter((item) => item.payment_period_id !== deletingRecord.payment_period_id));
+            setSnackbar({ open: true, message: 'Đã xóa đợt thu!', severity: 'success' });
+        }
+        setDeleteDialogOpen(false);
+        setDeletingRecord(null);
     };
 
     const savePayment = (newPayment) => {
@@ -198,34 +205,58 @@ const PaymentPeriodManagement = () => {
         setEditingRecord((prev) => ({ ...prev, count: prev.count + 1 }));
     };
 
-    const handleOk = () => {
-        form.validateFields().then((values) => {
-            const { description, dateRange, is_mandatory } = values;
-            const newData = {
-                description,
-                start_date: dateRange ? dateRange[0].format('YYYY-MM-DD') : '',
-                end_date: dateRange ? dateRange[1].format('YYYY-MM-DD') : '',
-                is_mandatory: !!is_mandatory
-            };
-
-            if (editingRecord) {
-                const updatedData = data.map((item) =>
-                    item.payment_period_id === editingRecord.payment_period_id ? { ...item, ...newData } : item
-                );
-                setData(updatedData);
-                message.success('Cập nhật thành công!');
-            } else {
-                const newId = data.length + 1;
-                setData([...data, { key: newId, payment_period_id: newId, count: 0, total: mockAllHouseholds.length, ...newData }]);
-                message.success('Tạo mới thành công!');
-            }
-            setIsModalOpen(false);
-        });
+    const handleOpenPayModal = (household) => {
+        setTargetHousehold(household);
+        setPaymentMethod('Tiền mặt');
+        setPayModalOpen(true);
     };
 
-    const handleDelete = (id) => {
-        setData(data.filter((item) => item.payment_period_id !== id));
-        message.success('Đã xóa đợt thu');
+    const handleConfirmPayment = () => {
+        const newPayment = {
+            key: Date.now(),
+            payment_period_id: editingRecord.payment_period_id,
+            household_id: targetHousehold.id,
+            household_name: targetHousehold.name,
+            room: targetHousehold.room,
+            amount: targetHousehold.required_amount,
+            date: dayjs().format('YYYY-MM-DD'),
+            method: paymentMethod
+        };
+        savePayment(newPayment);
+        setSnackbar({ open: true, message: `Đã thu ${formatCurrency(targetHousehold.required_amount)} của ${targetHousehold.name}`, severity: 'success' });
+        setPayModalOpen(false);
+        setTargetHousehold(null);
+    };
+
+    const handleAddDonation = () => {
+        if (!donationData.household_id || !donationData.amount) {
+            setSnackbar({ open: true, message: 'Vui lòng điền đầy đủ thông tin!', severity: 'warning' });
+            return;
+        }
+        const selectedHousehold = mockAllHouseholds.find((h) => h.id === donationData.household_id);
+        const newPayment = {
+            key: Date.now(),
+            payment_period_id: editingRecord.payment_period_id,
+            household_id: selectedHousehold.id,
+            household_name: selectedHousehold.name,
+            room: selectedHousehold.room,
+            amount: Number(donationData.amount),
+            date: dayjs().format('YYYY-MM-DD'),
+            method: donationData.method
+        };
+        savePayment(newPayment);
+        setSnackbar({ open: true, message: 'Thêm đóng góp thành công!', severity: 'success' });
+        setDonationModalOpen(false);
+        setDonationData({ household_id: '', amount: '', method: 'Tiền mặt' });
+    };
+
+    const handleExportBill = (record) => {
+        setSnackbar({ open: true, message: `Đang xuất danh sách: ${record.description}...`, severity: 'info' });
+    };
+
+    // --- HELPERS ---
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
     };
 
     const getHouseholdStatusList = () => {
@@ -233,7 +264,6 @@ const PaymentPeriodManagement = () => {
 
         const paidInThisPeriod = paidResidents.filter((p) => p.payment_period_id === editingRecord.payment_period_id);
 
-        // TỰ NGUYỆN: Chỉ hiện danh sách đã đóng
         if (!editingRecord.is_mandatory) {
             return paidInThisPeriod.map((p) => ({
                 ...p,
@@ -245,7 +275,6 @@ const PaymentPeriodManagement = () => {
             }));
         }
 
-        // BẮT BUỘC: Hiện danh sách toàn bộ
         const fullList = mockAllHouseholds.map((hh) => {
             const paymentInfo = paidInThisPeriod.find((p) => p.household_id === hh.id);
             return {
@@ -261,356 +290,444 @@ const PaymentPeriodManagement = () => {
         return fullList;
     };
 
-    // --- ĐIỀN FORM THU TIỀN (BẮT BUỘC) ---
-    useEffect(() => {
-        if (payModalVisible && targetHousehold) {
-            payForm.setFieldsValue({
-                household_name: targetHousehold.name,
-                amount: targetHousehold.required_amount,
-                method: 'Tiền mặt'
-            });
-        }
-    }, [payModalVisible, targetHousehold, payForm]);
+    const getTypeChip = (isMandatory) => {
+        return isMandatory ? (
+            <Chip label="Bắt buộc" size="small" sx={{ bgcolor: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', fontWeight: 500, minWidth: 80, justifyContent: 'center' }} />
+        ) : (
+            <Chip label="Tự nguyện" size="small" sx={{ bgcolor: 'rgba(251, 146, 60, 0.15)', color: '#fb923c', fontWeight: 500, minWidth: 80, justifyContent: 'center' }} />
+        );
+    };
 
-    // --- COLUMNS CHO TAB 2 ---
-    const detailColumns = [
-        { title: 'Phòng', dataIndex: 'room', width: 80, render: (t) => <Tag color="purple">{t}</Tag> },
-        { title: 'Chủ hộ', dataIndex: 'name' },
-        {
-            title: editingRecord?.is_mandatory ? 'Số tiền quy định' : 'Số tiền đóng',
-            dataIndex: 'required_amount',
-            align: 'right',
-            render: (val) => <b style={{ color: '#1890ff' }}>{new Intl.NumberFormat('vi-VN').format(val)} đ</b>
-        },
-        {
-            title: 'Trạng thái',
-            align: 'center',
-            render: (_, record) => {
-                if (record.status === 'Paid') {
-                    return (
-                        <Tooltip title="Xem chi tiết">
-                            <Tag
-                                color="success"
-                                style={{ cursor: 'pointer', padding: '4px 10px' }}
-                                onClick={() => setViewPaymentDetail(record.paymentInfo)}
-                            >
-                                <CheckCircleOutlined /> Đã đóng
-                            </Tag>
-                        </Tooltip>
-                    );
+    // --- HEADER ACTIONS ---
+    const headerActions = (
+        <Stack direction="row" spacing={1.5} alignItems="center">
+            <OutlinedInput
+                placeholder="Tìm theo tên đợt thu..."
+                startAdornment={
+                    <InputAdornment position="start">
+                        <Search size={18} />
+                    </InputAdornment>
                 }
-                return (
-                    <Tooltip title="Nhấn để thu tiền">
-                        <Tag color="error" style={{ cursor: 'pointer', padding: '4px 10px' }} onClick={() => handleOpenPayModal(record)}>
-                            <CloseCircleOutlined /> Chưa đóng
-                        </Tag>
-                    </Tooltip>
-                );
-            }
-        },
-        {
-            title: 'In',
-            align: 'center',
-            render: (_, record) => (
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                sx={{ minWidth: 280, borderRadius: '12px' }}
+                size="small"
+            />
+
+            <Tooltip title="Tạo đợt thu mới">
                 <Button
-                    icon={<PrinterOutlined />}
-                    size="small"
-                    disabled={record.status !== 'Paid'}
-                    onClick={() => message.success(`Đang in phiếu cho ${record.name}`)}
-                />
-            )
-        }
-    ];
-
-    const initialFormValues = editingRecord
-        ? {
-              description: editingRecord.description,
-              dateRange: [dayjs(editingRecord.start_date), dayjs(editingRecord.end_date)],
-              is_mandatory: editingRecord.is_mandatory
-          }
-        : { is_mandatory: true };
-
-    // --- CẤU HÌNH CỘT BẢNG CHÍNH ---
-    const columns = [
-        { title: 'ID', dataIndex: 'payment_period_id', width: 50, align: 'center' },
-        { title: 'Tên đợt thu', dataIndex: 'description', render: (text) => <b>{text}</b> },
-        {
-            title: 'Thời gian',
-            render: (_, record) => (
-                <Space direction="vertical" size={0}>
-                    <Tag color="blue">Start: {record.start_date}</Tag>
-                    <Tag color="red">End: {record.end_date}</Tag>
-                </Space>
-            )
-        },
-        {
-            title: 'Loại phí',
-            dataIndex: 'is_mandatory',
-            align: 'center',
-            render: (val) => <Tag color={val ? 'geekblue' : 'orange'}>{val ? 'Bắt buộc' : 'Tự nguyện'}</Tag>
-        },
-        {
-            // --- SỬA: CỘT TIẾN ĐỘ / TỔNG THU ---
-            title: 'Tiến độ / Tổng thu',
-            width: 200,
-            align: 'center',
-            render: (_, record) => {
-                // Nếu là TỰ NGUYỆN: Hiển thị tổng tiền
-                if (!record.is_mandatory) {
-                    const totalDonation = paidResidents
-                        .filter((p) => p.payment_period_id === record.payment_period_id)
-                        .reduce((sum, item) => sum + item.amount, 0);
-
-                    return (
-                        <div style={{ textAlign: 'center' }}>
-                            <span style={{ color: '#389e0d', fontWeight: 'bold', fontSize: '14px' }}>
-                                {new Intl.NumberFormat('vi-VN').format(totalDonation)} VNĐ
-                            </span>
-                            <div style={{ fontSize: '12px', color: 'gray' }}>({record.count} lượt đóng)</div>
-                        </div>
-                    );
-                }
-
-                // Nếu là BẮT BUỘC: Hiển thị Progress Bar
-                return (
-                    <div style={{ textAlign: 'center' }}>
-                        <span style={{ fontWeight: 'bold', fontSize: '13px' }}>
-                            {record.count} / {record.total} hộ
-                        </span>
-                        <Progress
-                            percent={Math.round((record.count / record.total) * 100)}
-                            size="small"
-                            showInfo={false}
-                            strokeColor={record.count === record.total ? '#52c41a' : '#1890ff'}
-                        />
-                    </div>
-                );
-            }
-        },
-        {
-            title: 'Hành động',
-            align: 'center',
-            render: (_, record) => (
-                <Space size="small">
-                    <Tooltip title="Import Excel">
-                        <Upload showUploadList={false} onChange={handleImportExcel}>
-                            <Button icon={<UploadOutlined />} size="small" />
-                        </Upload>
-                    </Tooltip>
-                    <Tooltip title="Xuất danh sách">
-                        <Button
-                            icon={<ExportOutlined />}
-                            onClick={() => handleExportBill(record)}
-                            size="small"
-                            style={{ color: 'green', borderColor: 'green' }}
-                        />
-                    </Tooltip>
-                    <Tooltip title="Xem & Sửa">
-                        <Button icon={<EditOutlined />} onClick={() => showEditModal(record)} type="primary" ghost size="small" />
-                    </Tooltip>
-                    <Popconfirm title="Xóa?" onConfirm={() => handleDelete(record.payment_period_id)}>
-                        <Button icon={<DeleteOutlined />} danger size="small" />
-                    </Popconfirm>
-                </Space>
-            )
-        }
-    ];
-
-    // --- MODAL CONTENT ---
-    const modalContent = (
-        <Tabs
-            defaultActiveKey="1"
-            items={[
-                {
-                    key: '1',
-                    label: 'Thông tin chung',
-                    children: (
-                        <Form form={form} layout="vertical" style={{ marginTop: 10 }} initialValues={initialFormValues}>
-                            <Form.Item name="description" label="Tên đợt thu" rules={[{ required: true }]}>
-                                {' '}
-                                <Input />{' '}
-                            </Form.Item>
-                            <Form.Item name="dateRange" label="Thời gian thu" rules={[{ required: true }]}>
-                                {' '}
-                                <DatePicker.RangePicker style={{ width: '100%' }} format="YYYY-MM-DD" />{' '}
-                            </Form.Item>
-                            <Form.Item name="is_mandatory" valuePropName="checked">
-                                {' '}
-                                <Checkbox>Khoản thu bắt buộc</Checkbox>{' '}
-                            </Form.Item>
-                        </Form>
-                    )
-                },
-                ...(editingRecord
-                    ? [
-                          {
-                              key: '2',
-                              label: `Danh sách chi tiết (${editingRecord.count} hộ)`,
-                              icon: <UserOutlined />,
-                              children: (
-                                  <>
-                                      <div
-                                          style={{
-                                              marginBottom: 16,
-                                              display: 'flex',
-                                              justifyContent: 'space-between',
-                                              alignItems: 'center'
-                                          }}
-                                      >
-                                          {editingRecord.is_mandatory ? (
-                                              <Radio.Group
-                                                  value={filterStatus}
-                                                  onChange={(e) => setFilterStatus(e.target.value)}
-                                                  buttonStyle="solid"
-                                              >
-                                                  <Radio.Button value="all">Tất cả</Radio.Button>
-                                                  <Radio.Button value="paid">Đã đóng</Radio.Button>
-                                                  <Radio.Button value="unpaid">Chưa đóng</Radio.Button>
-                                              </Radio.Group>
-                                          ) : (
-                                              <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddDonationVisible(true)}>
-                                                  Thêm người đóng
-                                              </Button>
-                                          )}
-                                          <Button icon={<ExportOutlined />} onClick={() => handleExportBill(editingRecord)}>
-                                              Xuất Excel
-                                          </Button>
-                                      </div>
-                                      <Table
-                                          columns={detailColumns}
-                                          dataSource={getHouseholdStatusList()}
-                                          pagination={{ pageSize: 5 }}
-                                          size="small"
-                                          bordered
-                                      />
-                                  </>
-                              )
-                          }
-                      ]
-                    : [])
-            ]}
-        />
+                    variant="contained"
+                    onClick={() => handleOpen()}
+                    sx={{ minWidth: 48, width: 48, height: 44, borderRadius: '12px', padding: 0 }}
+                >
+                    <Plus size={22} />
+                </Button>
+            </Tooltip>
+        </Stack>
     );
 
     return (
-        <MainCard title="Quản lý Đợt thu phí">
-            <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal} style={{ marginBottom: 16 }}>
-                Tạo đợt thu mới
-            </Button>
-            <Table columns={columns} dataSource={data} pagination={{ pageSize: 5 }} rowKey="payment_period_id" />
+        <MainCard title="Quản lý Đợt thu phí" secondary={headerActions} contentSX={{ pt: 0 }}>
+            {/* MAIN TABLE */}
+            <TableContainer>
+                <Table sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
+                    <TableHead sx={{ 
+                        bgcolor: 'action.hover',
+                        '& .MuiTableCell-root': {
+                            color: 'text.primary',
+                            fontWeight: 700,
+                            fontSize: '0.875rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                        }
+                    }}>
+                        <TableRow>
+                            <TableCell width={60}>STT</TableCell>
+                            <TableCell>Tên đợt thu</TableCell>
+                            <TableCell>Thời gian</TableCell>
+                            <TableCell align="center">Loại phí</TableCell>
+                            <TableCell align="center" width={200}>Tiến độ / Tổng thu</TableCell>
+                            <TableCell align="center" width={180}>Hành động</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {filteredData.map((row, index) => (
+                            <TableRow key={row.payment_period_id} hover>
+                                <TableCell>{index + 1}</TableCell>
+                                <TableCell>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                        {row.description}
+                                    </Typography>
+                                </TableCell>
+                                <TableCell>
+                                    <Stack spacing={0.5}>
+                                        <Chip label={`Bắt đầu: ${row.start_date}`} size="small" sx={{ bgcolor: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa' }} />
+                                        <Chip label={`Kết thúc: ${row.end_date}`} size="small" sx={{ bgcolor: 'rgba(239, 68, 68, 0.15)', color: '#f87171' }} />
+                                    </Stack>
+                                </TableCell>
+                                <TableCell align="center">{getTypeChip(row.is_mandatory)}</TableCell>
+                                <TableCell align="center">
+                                    {row.is_mandatory ? (
+                                        <Box>
+                                            <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                                {row.count} / {row.total} hộ
+                                            </Typography>
+                                            <LinearProgress 
+                                                variant="determinate" 
+                                                value={(row.count / row.total) * 100} 
+                                                sx={{ 
+                                                    height: 6, 
+                                                    borderRadius: 3,
+                                                    bgcolor: 'rgba(255,255,255,0.1)',
+                                                    '& .MuiLinearProgress-bar': {
+                                                        bgcolor: row.count === row.total ? '#22c55e' : '#3b82f6'
+                                                    }
+                                                }}
+                                            />
+                                        </Box>
+                                    ) : (
+                                        <Box>
+                                            <Typography sx={{ color: '#22c55e', fontWeight: 700 }}>
+                                                {formatCurrency(paidResidents.filter(p => p.payment_period_id === row.payment_period_id).reduce((sum, item) => sum + item.amount, 0))}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                ({row.count} lượt đóng)
+                                            </Typography>
+                                        </Box>
+                                    )}
+                                </TableCell>
+                                <TableCell align="center">
+                                    <Stack direction="row" spacing={0.5} justifyContent="center">
+                                        <Tooltip title="Xuất danh sách">
+                                            <IconButton size="small" sx={{ color: '#22c55e' }} onClick={() => handleExportBill(row)}>
+                                                <Download size={18} />
+                                            </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Xem & Sửa">
+                                            <IconButton color="primary" onClick={() => handleOpen(row)} size="small">
+                                                <Edit size={18} />
+                                            </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Xóa">
+                                            <IconButton 
+                                                sx={{ color: '#ef4444', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.1)' } }}
+                                                onClick={() => handleDelete(row)}
+                                                size="small"
+                                            >
+                                                <Trash2 size={18} />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </Stack>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                        {filteredData.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={6} align="center">
+                                    <Typography variant="body2" sx={{ py: 3, color: 'text.secondary' }}>
+                                        Không tìm thấy dữ liệu
+                                    </Typography>
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
-            {/* MAIN MODAL */}
-            <Modal
-                title={editingRecord ? 'Chi tiết Đợt thu' : 'Tạo đợt thu mới'}
-                open={isModalOpen}
-                onOk={handleOk}
-                onCancel={() => setIsModalOpen(false)}
-                okText="Lưu"
-                cancelText="Hủy"
-                width={950}
-                destroyOnClose={true}
-            >
-                {modalContent}
-            </Modal>
+            {/* MAIN DIALOG */}
+            <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
+                <DialogTitle>
+                    {editingRecord ? 'Chi tiết Đợt thu' : 'Tạo đợt thu mới'}
+                </DialogTitle>
+                <DialogContent>
+                    <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}>
+                        <Tab label="Thông tin chung" />
+                        {editingRecord && <Tab label={`Danh sách chi tiết (${editingRecord.count} hộ)`} icon={<Users size={16} />} iconPosition="start" />}
+                    </Tabs>
 
-            {/* MODAL 2: XÁC NHẬN THU TIỀN (BẮT BUỘC) */}
-            <Modal
-                title="Xác nhận thu tiền"
-                open={payModalVisible}
-                onOk={handleConfirmPayment}
-                onCancel={() => setPayModalVisible(false)}
-                okText="Xác nhận Đã Thu"
-                cancelText="Hủy"
-                destroyOnClose={true}
-                zIndex={1050}
-            >
-                <Form form={payForm} layout="vertical">
-                    <Form.Item name="household_name" label="Tên chủ hộ">
-                        {' '}
-                        <Input disabled style={{ color: 'black' }} />{' '}
-                    </Form.Item>
-                    <Form.Item name="amount" label="Số tiền cần thu (Cố định)">
-                        <InputNumber
-                            style={{ width: '100%', fontWeight: 'bold', color: 'black' }}
-                            formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={(v) => v.replace(/\$\s?|(,*)/g, '')}
-                            disabled
-                            addonAfter="VNĐ"
-                        />
-                    </Form.Item>
-                    <Form.Item name="method" label="Hình thức" initialValue="Tiền mặt">
-                        <Select>
-                            <Select.Option value="Tiền mặt">Tiền mặt</Select.Option>
-                            <Select.Option value="Chuyển khoản">Chuyển khoản</Select.Option>
-                        </Select>
-                    </Form.Item>
-                </Form>
-            </Modal>
+                    {tabValue === 0 && (
+                        <Stack spacing={2.5}>
+                            <Box>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Tên đợt thu <span style={{ color: '#ef4444' }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    placeholder="Nhập tên đợt thu"
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    size="small"
+                                />
+                            </Box>
+                            <Stack direction="row" spacing={2}>
+                                <Box sx={{ flex: 1 }}>
+                                    <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                        Ngày bắt đầu <span style={{ color: '#ef4444' }}>*</span>
+                                    </Typography>
+                                    <TextField
+                                        fullWidth
+                                        type="date"
+                                        name="start_date"
+                                        value={formData.start_date}
+                                        onChange={handleChange}
+                                        size="small"
+                                    />
+                                </Box>
+                                <Box sx={{ flex: 1 }}>
+                                    <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                        Ngày kết thúc <span style={{ color: '#ef4444' }}>*</span>
+                                    </Typography>
+                                    <TextField
+                                        fullWidth
+                                        type="date"
+                                        name="end_date"
+                                        value={formData.end_date}
+                                        onChange={handleChange}
+                                        size="small"
+                                    />
+                                </Box>
+                            </Stack>
+                            <Box>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Loại khoản thu
+                                </Typography>
+                                <TextField
+                                    select
+                                    fullWidth
+                                    name="is_mandatory"
+                                    value={formData.is_mandatory}
+                                    onChange={(e) => setFormData({ ...formData, is_mandatory: e.target.value === 'true' })}
+                                    size="small"
+                                >
+                                    <MenuItem value="true">Bắt buộc</MenuItem>
+                                    <MenuItem value="false">Tự nguyện</MenuItem>
+                                </TextField>
+                            </Box>
+                        </Stack>
+                    )}
 
-            {/* MODAL 3: THÊM ĐÓNG GÓP (TỰ NGUYỆN) */}
-            <Modal
-                title="Thêm đóng góp mới"
-                open={addDonationVisible}
-                onOk={handleAddDonation}
-                onCancel={() => setAddDonationVisible(false)}
-                okText="Thêm"
-                cancelText="Hủy"
-                destroyOnClose={true}
-                zIndex={1050}
-            >
-                <Form form={donationForm} layout="vertical">
-                    <Form.Item name="household_id" label="Chọn hộ đóng góp" rules={[{ required: true }]}>
-                        <Select placeholder="Chọn hộ" showSearch optionFilterProp="children">
-                            {mockAllHouseholds
-                                .filter(
-                                    (h) =>
-                                        !paidResidents.some(
-                                            (p) => p.household_id === h.id && p.payment_period_id === editingRecord?.payment_period_id
-                                        )
-                                )
-                                .map((h) => (
-                                    <Select.Option key={h.id} value={h.id}>
-                                        {h.name} - {h.room}
-                                    </Select.Option>
-                                ))}
-                        </Select>
-                    </Form.Item>
-                    <Form.Item name="amount" label="Số tiền đóng góp" rules={[{ required: true }]}>
-                        <InputNumber
-                            style={{ width: '100%' }}
-                            formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={(v) => v.replace(/\$\s?|(,*)/g, '')}
-                            addonAfter="VNĐ"
-                        />
-                    </Form.Item>
-                    <Form.Item name="method" label="Hình thức" initialValue="Tiền mặt">
-                        <Select>
-                            <Select.Option value="Tiền mặt">Tiền mặt</Select.Option>
-                            <Select.Option value="Chuyển khoản">Chuyển khoản</Select.Option>
-                        </Select>
-                    </Form.Item>
-                </Form>
-            </Modal>
+                    {tabValue === 1 && editingRecord && (
+                        <Box>
+                            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                                {editingRecord.is_mandatory ? (
+                                    <ToggleButtonGroup
+                                        value={filterStatus}
+                                        exclusive
+                                        onChange={(e, v) => v && setFilterStatus(v)}
+                                        size="small"
+                                    >
+                                        <ToggleButton value="all">Tất cả</ToggleButton>
+                                        <ToggleButton value="paid">Đã đóng</ToggleButton>
+                                        <ToggleButton value="unpaid">Chưa đóng</ToggleButton>
+                                    </ToggleButtonGroup>
+                                ) : (
+                                    <Button variant="contained" startIcon={<Plus size={16} />} onClick={() => setDonationModalOpen(true)}>
+                                        Thêm người đóng
+                                    </Button>
+                                )}
+                                <Button variant="outlined" startIcon={<Download size={16} />} onClick={() => handleExportBill(editingRecord)}>
+                                    Xuất Excel
+                                </Button>
+                            </Stack>
 
-            {/* MODAL 4: CHI TIẾT */}
-            <Modal
-                title="Chi tiết giao dịch"
-                open={!!viewPaymentDetail}
-                onCancel={() => setViewPaymentDetail(null)}
-                footer={null}
-                zIndex={1050}
-            >
-                {viewPaymentDetail && (
-                    <Descriptions column={1} bordered>
-                        <Descriptions.Item label="Chủ hộ">{viewPaymentDetail.household_name}</Descriptions.Item>
-                        <Descriptions.Item label="Số tiền">
-                            <b style={{ color: 'green' }}>{new Intl.NumberFormat('vi-VN').format(viewPaymentDetail.amount)} VNĐ</b>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Ngày">{viewPaymentDetail.date}</Descriptions.Item>
-                        <Descriptions.Item label="Hình thức">{viewPaymentDetail.method}</Descriptions.Item>
-                    </Descriptions>
-                )}
-            </Modal>
+                            <TableContainer>
+                                <Table size="small">
+                                    <TableHead sx={{ bgcolor: 'action.hover' }}>
+                                        <TableRow>
+                                            <TableCell>Phòng</TableCell>
+                                            <TableCell>Chủ hộ</TableCell>
+                                            <TableCell align="right">{editingRecord.is_mandatory ? 'Số tiền quy định' : 'Số tiền đóng'}</TableCell>
+                                            <TableCell align="center">Trạng thái</TableCell>
+                                            <TableCell align="center">In</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {getHouseholdStatusList().map((row) => (
+                                            <TableRow key={row.id} hover>
+                                                <TableCell>
+                                                    <Chip label={row.room} size="small" sx={{ bgcolor: 'rgba(168, 85, 247, 0.15)', color: '#a855f7' }} />
+                                                </TableCell>
+                                                <TableCell>{row.name}</TableCell>
+                                                <TableCell align="right">
+                                                    <Typography sx={{ color: '#60a5fa', fontWeight: 600 }}>
+                                                        {formatCurrency(row.required_amount)}
+                                                    </Typography>
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    {row.status === 'Paid' ? (
+                                                        <Tooltip title="Xem chi tiết">
+                                                            <Chip 
+                                                                icon={<CheckCircle size={14} />}
+                                                                label="Đã đóng" 
+                                                                size="small" 
+                                                                sx={{ bgcolor: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', cursor: 'pointer' }}
+                                                                onClick={() => { setViewPaymentDetail(row.paymentInfo); setDetailModalOpen(true); }}
+                                                            />
+                                                        </Tooltip>
+                                                    ) : (
+                                                        <Tooltip title="Nhấn để thu tiền">
+                                                            <Chip 
+                                                                icon={<XCircle size={14} />}
+                                                                label="Chưa đóng" 
+                                                                size="small" 
+                                                                sx={{ bgcolor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', cursor: 'pointer' }}
+                                                                onClick={() => handleOpenPayModal(row)}
+                                                            />
+                                                        </Tooltip>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                    <IconButton size="small" disabled={row.status !== 'Paid'} onClick={() => setSnackbar({ open: true, message: `Đang in phiếu cho ${row.name}`, severity: 'info' })}>
+                                                        <Printer size={16} />
+                                                    </IconButton>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ p: 2.5 }}>
+                    <Button onClick={handleClose} color="error">Hủy</Button>
+                    <Button onClick={handleSave} variant="contained" color="primary">
+                        {editingRecord ? 'Cập nhật' : 'Tạo mới'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* PAY MODAL */}
+            <Dialog open={payModalOpen} onClose={() => setPayModalOpen(false)} maxWidth="xs" fullWidth>
+                <DialogTitle>Xác nhận thu tiền</DialogTitle>
+                <DialogContent>
+                    <Stack spacing={2} sx={{ mt: 1 }}>
+                        <Box>
+                            <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>Tên chủ hộ</Typography>
+                            <TextField fullWidth value={targetHousehold?.name || ''} disabled size="small" />
+                        </Box>
+                        <Box>
+                            <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>Số tiền cần thu</Typography>
+                            <TextField fullWidth value={targetHousehold ? formatCurrency(targetHousehold.required_amount) : ''} disabled size="small" />
+                        </Box>
+                        <Box>
+                            <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>Hình thức</Typography>
+                            <TextField select fullWidth value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} size="small">
+                                <MenuItem value="Tiền mặt">Tiền mặt</MenuItem>
+                                <MenuItem value="Chuyển khoản">Chuyển khoản</MenuItem>
+                            </TextField>
+                        </Box>
+                    </Stack>
+                </DialogContent>
+                <DialogActions sx={{ p: 2.5 }}>
+                    <Button onClick={() => setPayModalOpen(false)} color="error">Hủy</Button>
+                    <Button onClick={handleConfirmPayment} variant="contained">Xác nhận Đã Thu</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* DONATION MODAL */}
+            <Dialog open={donationModalOpen} onClose={() => setDonationModalOpen(false)} maxWidth="xs" fullWidth>
+                <DialogTitle>Thêm đóng góp mới</DialogTitle>
+                <DialogContent>
+                    <Stack spacing={2} sx={{ mt: 1 }}>
+                        <Box>
+                            <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>Chọn hộ đóng góp <span style={{ color: '#ef4444' }}>*</span></Typography>
+                            <TextField
+                                select
+                                fullWidth
+                                value={donationData.household_id}
+                                onChange={(e) => setDonationData({ ...donationData, household_id: e.target.value })}
+                                size="small"
+                            >
+                                {mockAllHouseholds
+                                    .filter(h => !paidResidents.some(p => p.household_id === h.id && p.payment_period_id === editingRecord?.payment_period_id))
+                                    .map((h) => (
+                                        <MenuItem key={h.id} value={h.id}>{h.name} - {h.room}</MenuItem>
+                                    ))}
+                            </TextField>
+                        </Box>
+                        <Box>
+                            <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>Số tiền đóng góp <span style={{ color: '#ef4444' }}>*</span></Typography>
+                            <TextField
+                                fullWidth
+                                type="number"
+                                placeholder="Nhập số tiền"
+                                value={donationData.amount}
+                                onChange={(e) => setDonationData({ ...donationData, amount: e.target.value })}
+                                size="small"
+                            />
+                        </Box>
+                        <Box>
+                            <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>Hình thức</Typography>
+                            <TextField
+                                select
+                                fullWidth
+                                value={donationData.method}
+                                onChange={(e) => setDonationData({ ...donationData, method: e.target.value })}
+                                size="small"
+                            >
+                                <MenuItem value="Tiền mặt">Tiền mặt</MenuItem>
+                                <MenuItem value="Chuyển khoản">Chuyển khoản</MenuItem>
+                            </TextField>
+                        </Box>
+                    </Stack>
+                </DialogContent>
+                <DialogActions sx={{ p: 2.5 }}>
+                    <Button onClick={() => setDonationModalOpen(false)} color="error">Hủy</Button>
+                    <Button onClick={handleAddDonation} variant="contained">Thêm</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* DETAIL MODAL */}
+            <Dialog open={detailModalOpen} onClose={() => setDetailModalOpen(false)} maxWidth="xs" fullWidth>
+                <DialogTitle>Chi tiết giao dịch</DialogTitle>
+                <DialogContent>
+                    {viewPaymentDetail && (
+                        <Stack spacing={2} sx={{ mt: 1 }}>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">Chủ hộ</Typography>
+                                <Typography fontWeight={600}>{viewPaymentDetail.household_name}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">Số tiền</Typography>
+                                <Typography sx={{ color: '#22c55e', fontWeight: 700, fontSize: '1.1rem' }}>{formatCurrency(viewPaymentDetail.amount)}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">Ngày đóng</Typography>
+                                <Typography>{viewPaymentDetail.date}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">Hình thức</Typography>
+                                <Typography>{viewPaymentDetail.method}</Typography>
+                            </Box>
+                        </Stack>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ p: 2.5 }}>
+                    <Button onClick={() => setDetailModalOpen(false)} variant="outlined">Đóng</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* DELETE CONFIRMATION */}
+            <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} maxWidth="xs" fullWidth>
+                <DialogTitle>Xác nhận xóa đợt thu</DialogTitle>
+                <DialogContent>
+                    <Typography>Bạn có chắc chắn muốn xóa đợt thu <strong>{deletingRecord?.description}</strong>?</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Hành động này không thể hoàn tác.</Typography>
+                </DialogContent>
+                <DialogActions sx={{ p: 2.5 }}>
+                    <Button onClick={() => setDeleteDialogOpen(false)} variant="outlined">Hủy</Button>
+                    <Button onClick={handleConfirmDelete} variant="contained" color="error">Xóa</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* SNACKBAR */}
+            <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+                <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant="filled" sx={{ width: '100%', alignItems: 'center', '& .MuiAlert-action': { pt: 0, alignItems: 'center' } }}>
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </MainCard>
     );
 };

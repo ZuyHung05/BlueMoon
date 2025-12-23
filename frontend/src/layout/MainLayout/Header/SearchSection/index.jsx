@@ -62,24 +62,19 @@ function MobileSearch({ value, setValue, popupState }) {
       }
       endAdornment={
         <InputAdornment position="end">
-          <HeaderAvatar>
-            <IconAdjustmentsHorizontal stroke={1.5} size="20px" />
-          </HeaderAvatar>
-          <Box sx={{ ml: 2 }}>
-            <Avatar
-              variant="rounded"
-              sx={{
-                ...theme.typography.commonAvatar,
-                ...theme.typography.mediumAvatar,
-                bgcolor: 'orange.light',
-                color: 'orange.dark',
-                '&:hover': { bgcolor: 'orange.dark', color: 'orange.light' }
-              }}
-              {...bindToggle(popupState)}
-            >
-              <IconX stroke={1.5} size="20px" />
-            </Avatar>
-          </Box>
+          <Avatar
+            variant="rounded"
+            sx={{
+              ...theme.typography.commonAvatar,
+              ...theme.typography.mediumAvatar,
+              bgcolor: 'orange.light',
+              color: 'orange.dark',
+              '&:hover': { bgcolor: 'orange.dark', color: 'orange.light' }
+            }}
+            {...bindToggle(popupState)}
+          >
+            <IconX stroke={1.5} size="20px" />
+          </Avatar>
         </InputAdornment>
       }
       aria-describedby="search-helper-text"
@@ -141,13 +136,7 @@ export default function SearchSection() {
               <IconSearch stroke={1.5} size="16px" />
             </InputAdornment>
           }
-          endAdornment={
-            <InputAdornment position="end">
-              <HeaderAvatar>
-                <IconAdjustmentsHorizontal stroke={1.5} size="20px" />
-              </HeaderAvatar>
-            </InputAdornment>
-          }
+
           aria-describedby="search-helper-text"
           slotProps={{ input: { 'aria-label': 'weight', sx: { bgcolor: 'transparent', pl: 0.5 } } }}
           sx={{ width: { md: 250, lg: 434 }, ml: 2, px: 2 }}

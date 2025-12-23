@@ -1,13 +1,13 @@
 import { memo, useMemo } from 'react';
 
 import useMediaQuery from '@mui/material/useMediaQuery';
-// import Chip from '@mui/material/Chip'; // Removed as it is no longer used
 import Drawer from '@mui/material/Drawer';
-// import Stack from '@mui/material/Stack'; // Removed as it is no longer used
 import Box from '@mui/material/Box';
-import MiniDrawerStyled from '../MiniDrawerStyled';
+import IconButton from '@mui/material/IconButton';
+import Stack from '@mui/material/Stack';
+import { Menu } from 'lucide-react';
+
 // project imports
-// import MenuCard from './MenuCard'; // <--- 1. REMOVED IMPORT
 import MenuList from '../MenuList';
 import LogoSection from '../LogoSection';
 
@@ -17,7 +17,7 @@ import SimpleBar from 'ui-component/third-party/SimpleBar';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
-// ==============================|| SIDEBAR DRAWER ||============================== //
+// ==============================|| SIDEBAR DRAWER - YOUTUBE STYLE ||============================== //
 
 function Sidebar() {
   const downMD = useMediaQuery((theme) => theme.breakpoints.down('md'));
@@ -29,72 +29,66 @@ function Sidebar() {
     state: { miniDrawer }
   } = useConfig();
 
-  const logo = useMemo(
+  const header = useMemo(
     () => (
-      <Box sx={{ display: 'flex', p: 2 }}>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ p: 2 }}>
+        <IconButton 
+          onClick={() => handlerDrawerOpen(false)}
+          sx={{ 
+            color: 'text.primary',
+            '&:hover': { bgcolor: 'action.hover' }
+          }}
+        >
+          <Menu size={22} />
+        </IconButton>
         <LogoSection />
-      </Box>
+      </Stack>
     ),
     []
   );
 
   const drawer = useMemo(() => {
-    // <--- 2. REMOVED drawerContent DEFINITION (It contained MenuCard and Chip)
-
-    let drawerSX = { paddingLeft: '0px', paddingRight: '0px', marginTop: '20px' };
-    if (drawerOpen) drawerSX = { paddingLeft: '16px', paddingRight: '16px', marginTop: '0px' };
+    let drawerSX = { paddingLeft: '16px', paddingRight: '16px', marginTop: '0px' };
 
     return (
-      <>
-        {downMD ? (
-          <Box sx={drawerSX}>
-            <MenuList />
-            {/* Removed drawerContent rendering */}
-          </Box>
-        ) : (
-          <SimpleBar sx={{ height: 'calc(100vh - 90px)', ...drawerSX }}>
-            <MenuList />
-            {/* Removed drawerContent rendering */}
-          </SimpleBar>
-        )}
-      </>
+      <SimpleBar sx={{ height: 'calc(100vh - 90px)', ...drawerSX }}>
+        <MenuList />
+      </SimpleBar>
     );
-  }, [downMD, drawerOpen]);
+  }, []);
 
   return (
-    <Box component="nav" sx={{ flexShrink: { md: 0 }, width: { xs: 'auto', md: drawerWidth } }} aria-label="mailbox folders">
-      {downMD || (miniDrawer && drawerOpen) ? (
-        <Drawer
-          variant={downMD ? 'temporary' : 'persistent'}
-          anchor="left"
-          open={drawerOpen}
-          onClose={() => handlerDrawerOpen(!drawerOpen)}
-          slotProps={{
-            paper: {
-              sx: {
-                mt: downMD ? 0 : 11,
-                zIndex: 1099,
-                width: drawerWidth,
-                bgcolor: 'background.default',
-                color: 'text.primary',
-                borderRight: '1px solid rgba(255, 255, 255, 0.05)', // Subtle border
-                boxShadow: 'none'
-              }
-            }
-          }}
-          ModalProps={{ keepMounted: true }}
-          color="inherit"
-        >
-          {downMD && logo}
-          {drawer}
-        </Drawer>
-      ) : (
-        <MiniDrawerStyled variant="permanent" open={drawerOpen}>
-          {logo}
-          {drawer}
-        </MiniDrawerStyled>
-      )}
-    </Box>
+    <Drawer
+      variant="temporary"
+      anchor="left"
+      open={drawerOpen}
+      onClose={() => handlerDrawerOpen(false)}
+      slotProps={{
+        paper: {
+          sx: {
+            mt: 0,
+            zIndex: 1200,
+            width: drawerWidth,
+            bgcolor: 'background.default',
+            color: 'text.primary',
+            borderRight: (theme) => `1px solid ${theme.palette.divider}`,
+            boxShadow: (theme) => theme.palette.mode === 'dark' ? '4px 0 20px rgba(0, 0, 0, 0.3)' : '4px 0 20px rgba(0, 0, 0, 0.1)'
+          }
+        }
+      }}
+      ModalProps={{ 
+        keepMounted: true,
+        BackdropProps: {
+          sx: {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        }
+      }}
+      color="inherit"
+    >
+      {header}
+      {drawer}
+    </Drawer>
   );
 }
 

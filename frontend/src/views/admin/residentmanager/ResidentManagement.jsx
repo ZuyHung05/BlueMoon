@@ -1,43 +1,50 @@
-// frontend/src/views/admin/usermanager/ResidentManagement.jsx
+// frontend/src/views/admin/residentmanager/ResidentManagement.jsx
 
 import React, { useState } from 'react';
-import {
-    Table,
-    Button,
-    Modal,
-    Form,
-    Input,
-    DatePicker,
-    Select,
-    Popconfirm,
-    message,
-    Space,
-    Tag,
-    Row,
-    Col,
-    Tooltip
-} from 'antd';
-import {
-    EditOutlined,
-    DeleteOutlined,
-    UserAddOutlined,
-    FilterOutlined,
-    SearchOutlined
-} from '@ant-design/icons';
-import MainCard from 'ui-component/cards/MainCard';
-import dayjs from 'dayjs';
 
-const { Option } = Select;
+// material-ui
+import {
+    Box,
+    Button,
+    Chip,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    IconButton,
+    InputAdornment,
+    Menu,
+    MenuItem,
+    OutlinedInput,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TextField,
+    Tooltip,
+    Typography,
+    Stack,
+    Snackbar,
+    Alert,
+    Divider
+} from '@mui/material';
+
+// project imports
+import MainCard from 'ui-component/cards/MainCard';
+
+// assets
+import { Edit, Trash2, Plus, Search, Filter } from 'lucide-react';
 
 const ResidentManagement = () => {
     // --- 1. MOCK DATA ---
     const [data, setData] = useState([
         {
-            key: 1,
             id: 1,
             full_name: 'Nguyễn Văn A',
             gender: 'male',
-            date_of_birth: '15/05/1990',
+            date_of_birth: '1990-05-15',
             phone_number: '0987654321',
             id_number: '001090000001',
             family_role: 'Chủ hộ',
@@ -45,11 +52,10 @@ const ResidentManagement = () => {
             household_id: 'H001'
         },
         {
-            key: 2,
             id: 2,
             full_name: 'Trần Thị B',
             gender: 'female',
-            date_of_birth: '20/08/1992',
+            date_of_birth: '1992-08-20',
             phone_number: '0901234567',
             id_number: '001092000002',
             family_role: 'Vợ',
@@ -57,49 +63,69 @@ const ResidentManagement = () => {
             household_id: 'H001'
         },
         {
-            key: 3,
             id: 3,
-            full_name: 'Lê Văn C (Chưa có hộ)',
+            full_name: 'Lê Văn C',
             gender: 'male',
-            date_of_birth: '10/10/2000',
+            date_of_birth: '2000-10-10',
             phone_number: '0912345678',
             id_number: '001200000003',
             family_role: 'Khác',
             job: 'Sinh viên',
-            household_id: '' // Chưa có hộ
+            household_id: ''
         }
     ]);
 
-    // --- 2. STATE QUẢN LÝ UI & FILTER ---
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    // --- 2. STATE QUẢN LÝ UI ---
+    const [open, setOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
     
-    // States cho bộ lọc (UC004)
-    const [searchText, setSearchText] = useState('');
+    // Filter states
     const [genderFilter, setGenderFilter] = useState('ALL');
-    const [householdFilter, setHouseholdFilter] = useState('ALL'); // ALL, HAS_HOUSEHOLD, NO_HOUSEHOLD
-    const [roleFilter, setRoleFilter] = useState('ALL'); // ALL, OWNER (Chủ hộ)
+    const [householdFilter, setHouseholdFilter] = useState('ALL');
+    const [roleFilter, setRoleFilter] = useState('ALL');
 
-    const [form] = Form.useForm();
+    // Filter menu anchor
+    const [anchorEl, setAnchorEl] = useState(null);
+    const openFilter = Boolean(anchorEl);
 
-    // --- 3. XỬ LÝ TÌM KIẾM & LỌC (LOGIC QUAN TRỌNG) ---
+    // Form states
+    const [formData, setFormData] = useState({
+        full_name: '',
+        gender: 'male',
+        date_of_birth: '',
+        phone_number: '',
+        id_number: '',
+        family_role: 'Thành viên khác',
+        job: '',
+        household_id: ''
+    });
+
+    // Delete dialog
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deletingRecord, setDeletingRecord] = useState(null);
+
+    // Snackbar
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+    const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
+
+    // Check if any filter is active
+    const isFilterActive = genderFilter !== 'ALL' || householdFilter !== 'ALL' || roleFilter !== 'ALL';
+
+    // --- 3. FILTERING ---
     const filteredData = data.filter((item) => {
-        // 1. Tìm kiếm text (Tên, SĐT, CCCD, Mã hộ)
         const matchText =
-            item.full_name.toLowerCase().includes(searchText.toLowerCase()) ||
-            item.phone_number.includes(searchText) ||
-            item.id_number.includes(searchText) ||
-            (item.household_id && item.household_id.toLowerCase().includes(searchText.toLowerCase()));
+            item.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.phone_number.includes(searchTerm) ||
+            item.id_number.includes(searchTerm) ||
+            (item.household_id && item.household_id.toLowerCase().includes(searchTerm.toLowerCase()));
 
-        // 2. Lọc Giới tính
         const matchGender = genderFilter === 'ALL' || item.gender === genderFilter;
 
-        // 3. Lọc Trạng thái hộ (Đã thuộc hộ nào chưa)
         let matchHousehold = true;
         if (householdFilter === 'HAS_HOUSEHOLD') matchHousehold = !!item.household_id;
         if (householdFilter === 'NO_HOUSEHOLD') matchHousehold = !item.household_id;
 
-        // 4. Lọc Vai trò (Có là chủ hộ không)
         const matchRole = roleFilter === 'ALL' || 
                           (roleFilter === 'OWNER' && item.family_role === 'Chủ hộ');
 
@@ -107,291 +133,553 @@ const ResidentManagement = () => {
     });
 
     // --- 4. HANDLERS ---
-    const showAddModal = () => {
+    const handleFilterClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleFilterClose = () => {
+        setAnchorEl(null);
+    };
+
+    const handleResetFilters = () => {
+        setGenderFilter('ALL');
+        setHouseholdFilter('ALL');
+        setRoleFilter('ALL');
+        setAnchorEl(null);
+    };
+
+    const handleOpen = (record = null) => {
+        if (record) {
+            setEditingRecord(record);
+            setFormData({
+                full_name: record.full_name,
+                gender: record.gender,
+                date_of_birth: record.date_of_birth,
+                phone_number: record.phone_number,
+                id_number: record.id_number,
+                family_role: record.family_role,
+                job: record.job,
+                household_id: record.household_id || ''
+            });
+        } else {
+            setEditingRecord(null);
+            setFormData({
+                full_name: '',
+                gender: 'male',
+                date_of_birth: '',
+                phone_number: '',
+                id_number: '',
+                family_role: 'Thành viên khác',
+                job: '',
+                household_id: ''
+            });
+        }
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
         setEditingRecord(null);
-        form.resetFields();
-        setIsModalOpen(true);
     };
 
-    const showEditModal = (record) => {
-        setEditingRecord(record);
-        form.setFieldsValue({
-            ...record,
-            date_of_birth: record.date_of_birth ? dayjs(record.date_of_birth, 'DD/MM/YYYY') : null
-        });
-        setIsModalOpen(true);
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleOk = () => {
-        form.validateFields().then((values) => {
-            const processedValues = {
-                ...values,
-                date_of_birth: values.date_of_birth ? values.date_of_birth.format('DD/MM/YYYY') : ''
-            };
-
-            if (editingRecord) {
-                // UPDATE
-                const updatedData = data.map((item) =>
-                    item.id === editingRecord.id ? { ...item, ...processedValues } : item
-                );
-                setData(updatedData);
-                message.success('Cập nhật cư dân thành công!');
-            } else {
-                // CREATE
-                const newId = data.length > 0 ? Math.max(...data.map((d) => d.id)) + 1 : 1;
-                setData([...data, { key: newId, id: newId, ...processedValues }]);
-                message.success('Thêm cư dân mới thành công!');
-            }
-            setIsModalOpen(false);
-        });
-    };
-
-    // Xử lý xóa (Có kiểm tra điều kiện UC004)
-    const handleDelete = (record) => {
-        // UC004 Constraint: Không thể xóa nếu là chủ hộ
-        if (record.family_role === 'Chủ hộ') {
-            message.error('Không thể xóa cư dân đang là Chủ hộ! Hãy đổi chủ hộ trước.');
+    const handleSave = () => {
+        // Validate required fields
+        if (!formData.full_name) {
+            setSnackbar({ open: true, message: 'Vui lòng nhập họ tên!', severity: 'warning' });
+            return;
+        }
+        if (!formData.date_of_birth) {
+            setSnackbar({ open: true, message: 'Vui lòng chọn ngày sinh!', severity: 'warning' });
+            return;
+        }
+        if (!formData.id_number) {
+            setSnackbar({ open: true, message: 'Vui lòng nhập số CCCD!', severity: 'warning' });
+            return;
+        }
+        if (!formData.phone_number) {
+            setSnackbar({ open: true, message: 'Vui lòng nhập số điện thoại!', severity: 'warning' });
             return;
         }
 
-        const newData = data.filter((item) => item.id !== record.id);
-        setData(newData);
-        message.success('Đã xóa cư dân');
+        if (editingRecord) {
+            const updatedData = data.map((item) =>
+                item.id === editingRecord.id ? { ...item, ...formData } : item
+            );
+            setData(updatedData);
+            setSnackbar({ open: true, message: 'Cập nhật cư dân thành công!', severity: 'success' });
+        } else {
+            const newId = data.length > 0 ? Math.max(...data.map((d) => d.id)) + 1 : 1;
+            setData([...data, { id: newId, ...formData }]);
+            setSnackbar({ open: true, message: 'Thêm cư dân mới thành công!', severity: 'success' });
+        }
+        handleClose();
     };
 
-    // --- 5. CẤU HÌNH CỘT BẢNG ---
-    const columns = [
-        {
-            title: 'Họ và tên',
-            dataIndex: 'full_name',
-            key: 'full_name',
-            render: (text) => <b>{text}</b>
-        },
-        {
-            title: 'Giới tính',
-            dataIndex: 'gender',
-            key: 'gender',
-            align: 'center',
-            render: (gender) => (
-                <Tag color={gender === 'male' ? 'blue' : 'magenta'}>
-                    {gender === 'male' ? 'Nam' : 'Nữ'}
-                </Tag>
-            )
-        },
-        { title: 'Ngày sinh', dataIndex: 'date_of_birth', key: 'date_of_birth' },
-        { title: 'SĐT', dataIndex: 'phone_number', key: 'phone_number' },
-        { title: 'CCCD', dataIndex: 'id_number', key: 'id_number' },
-        {
-            title: 'Mã hộ',
-            dataIndex: 'household_id',
-            key: 'household_id',
-            render: (text) => text ? <Tag color="geekblue">{text}</Tag> : <Tag color="default">Chưa có</Tag>
-        },
-        {
-            title: 'Quan hệ',
-            dataIndex: 'family_role',
-            key: 'family_role',
-            render: (role) => role === 'Chủ hộ' ? <Tag color="gold">CHỦ HỘ</Tag> : role
-        },
-        { title: 'Công việc', dataIndex: 'job', key: 'job' },
-        {
-            title: 'Hành động',
-            key: 'action',
-            align: 'center',
-            render: (_, record) => (
-                <Space size="small">
-                    <Tooltip title="Sửa thông tin">
-                        <Button icon={<EditOutlined />} onClick={() => showEditModal(record)} type="primary" ghost size="small" />
-                    </Tooltip>
-                    <Popconfirm
-                        title="Bạn có chắc chắn muốn xóa?"
-                        onConfirm={() => handleDelete(record)} // Truyền cả record để check chủ hộ
-                        okText="Xóa"
-                        cancelText="Hủy"
-                    >
-                        <Button icon={<DeleteOutlined />} danger size="small" />
-                    </Popconfirm>
-                </Space>
-            )
+    const handleDelete = (record) => {
+        setDeletingRecord(record);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (deletingRecord) {
+            if (deletingRecord.family_role === 'Chủ hộ') {
+                setSnackbar({ open: true, message: 'Không thể xóa cư dân đang là Chủ hộ! Hãy đổi chủ hộ trước.', severity: 'error' });
+                setDeleteDialogOpen(false);
+                setDeletingRecord(null);
+                return;
+            }
+            setData(data.filter((item) => item.id !== deletingRecord.id));
+            setSnackbar({ open: true, message: 'Đã xóa cư dân!', severity: 'success' });
         }
-    ];
+        setDeleteDialogOpen(false);
+        setDeletingRecord(null);
+    };
 
-    return (
-        <MainCard title="Quản lý Cư dân (Resident Management)">
-            {/* --- TOOLBAR: BỘ LỌC & TÌM KIẾM (UC004) --- */}
-            <div style={{ marginBottom: 20 }}>
-                <Row gutter={[16, 16]}>
-                    <Col span={6}>
-                        <Input
-                            placeholder="Tìm tên, SĐT, CCCD..."
-                            prefix={<SearchOutlined />}
-                            onChange={(e) => setSearchText(e.target.value)}
-                            allowClear
-                        />
-                    </Col>
-                    <Col span={4}>
-                        <Select 
-                            defaultValue="ALL" 
-                            style={{ width: '100%' }} 
-                            onChange={(value) => setGenderFilter(value)}
-                        >
-                            <Option value="ALL">Giới tính: Tất cả</Option>
-                            <Option value="male">Nam</Option>
-                            <Option value="female">Nữ</Option>
-                        </Select>
-                    </Col>
-                    <Col span={4}>
-                        <Select 
-                            defaultValue="ALL" 
-                            style={{ width: '100%' }} 
-                            onChange={(value) => setHouseholdFilter(value)}
-                        >
-                            <Option value="ALL">Hộ khẩu: Tất cả</Option>
-                            <Option value="HAS_HOUSEHOLD">Đã có hộ</Option>
-                            <Option value="NO_HOUSEHOLD">Chưa có hộ</Option>
-                        </Select>
-                    </Col>
-                    <Col span={4}>
-                        <Select 
-                            defaultValue="ALL" 
-                            style={{ width: '100%' }} 
-                            onChange={(value) => setRoleFilter(value)}
-                        >
-                            <Option value="ALL">Vai trò: Tất cả</Option>
-                            <Option value="OWNER">Chỉ xem Chủ hộ</Option>
-                        </Select>
-                    </Col>
-                    <Col span={6} style={{ textAlign: 'right' }}>
-                        <Button type="primary" icon={<UserAddOutlined />} onClick={showAddModal}>
-                            Thêm cư dân
-                        </Button>
-                    </Col>
-                </Row>
-            </div>
+    const handleCancelDelete = () => {
+        setDeleteDialogOpen(false);
+        setDeletingRecord(null);
+    };
 
-            {/* --- BẢNG DỮ LIỆU --- */}
-            <Table
-                columns={columns}
-                dataSource={filteredData}
-                pagination={{ pageSize: 5 }}
-                rowKey="id"
-                bordered
+    // --- 5. HELPER FUNCTIONS ---
+    const getGenderChip = (gender) => {
+        return gender === 'male' ? (
+            <Chip label="Nam" size="small" sx={{ bgcolor: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', fontWeight: 500, minWidth: 60, justifyContent: 'center' }} />
+        ) : (
+            <Chip label="Nữ" size="small" sx={{ bgcolor: 'rgba(236, 72, 153, 0.15)', color: '#f472b6', fontWeight: 500, minWidth: 60, justifyContent: 'center' }} />
+        );
+    };
+
+    const getHouseholdChip = (householdId) => {
+        return householdId ? (
+            <Chip label={householdId} size="small" sx={{ bgcolor: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', fontWeight: 500, minWidth: 70, justifyContent: 'center' }} />
+        ) : (
+            <Chip label="Chưa có" size="small" sx={{ bgcolor: 'rgba(100, 116, 139, 0.15)', color: '#94a3b8', fontWeight: 500, minWidth: 70, justifyContent: 'center' }} />
+        );
+    };
+
+    const getRoleChip = (role) => {
+        if (role === 'Chủ hộ') {
+            return <Chip label="Chủ hộ" size="small" sx={{ bgcolor: 'rgba(234, 179, 8, 0.15)', color: '#fbbf24', fontWeight: 600, minWidth: 80, justifyContent: 'center' }} />;
+        }
+        return <Chip label={role} size="small" sx={{ bgcolor: 'rgba(100, 116, 139, 0.15)', color: '#94a3b8', fontWeight: 500, minWidth: 80, justifyContent: 'center' }} />;
+    };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('vi-VN');
+    };
+
+    // --- HEADER ACTIONS (Top Right) ---
+    const headerActions = (
+        <Stack direction="row" spacing={1.5} alignItems="center">
+            {/* SEARCH BAR */}
+            <OutlinedInput
+                placeholder="Tìm tên, SĐT, CCCD..."
+                startAdornment={
+                    <InputAdornment position="start">
+                        <Search size={18} />
+                    </InputAdornment>
+                }
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                sx={{ 
+                    minWidth: 280,
+                    borderRadius: '12px'
+                }}
+                size="small"
             />
 
-            {/* --- MODAL FORM --- */}
-            <Modal
-                title={editingRecord ? 'Cập nhật thông tin cư dân' : 'Thêm cư dân mới'}
-                open={isModalOpen}
-                onOk={handleOk}
-                onCancel={() => setIsModalOpen(false)}
-                okText={editingRecord ? 'Cập nhật' : 'Thêm mới'}
-                cancelText="Hủy"
-                width={800}
-                destroyOnClose={true}
+            {/* FILTER BUTTON */}
+            <Tooltip title="Lọc theo điều kiện">
+                <IconButton 
+                    onClick={handleFilterClick}
+                    color={isFilterActive ? 'primary' : 'inherit'}
+                    sx={{ 
+                        border: '1px solid',
+                        borderColor: isFilterActive ? 'primary.main' : 'divider',
+                        borderRadius: '12px',
+                        padding: '10px'
+                    }}
+                >
+                    <Filter size={20} />
+                </IconButton>
+            </Tooltip>
+            
+            {/* FILTER MENU */}
+            <Menu
+                anchorEl={anchorEl}
+                open={openFilter}
+                onClose={handleFilterClose}
+                PaperProps={{
+                    sx: {
+                        bgcolor: 'background.paper',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: '12px',
+                        marginTop: 1,
+                        minWidth: 200
+                    }
+                }}
             >
-                <Form form={form} layout="vertical">
-                    {/* HÀNG 1: HỌ TÊN & NGÀY SINH */}
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            <Form.Item
-                                name="full_name"
-                                label="Họ và tên"
-                                rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}
-                            >
-                                <Input placeholder="Nhập họ và tên" />
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item
-                                name="date_of_birth"
-                                label="Ngày sinh"
-                                rules={[{ required: true, message: 'Vui lòng chọn ngày sinh!' }]}
-                            >
-                                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder="Chọn ngày" />
-                            </Form.Item>
-                        </Col>
-                    </Row>
+                <Typography variant="caption" sx={{ px: 2, py: 1, color: 'text.secondary', display: 'block' }}>
+                    Giới tính
+                </Typography>
+                <MenuItem onClick={() => setGenderFilter('ALL')} selected={genderFilter === 'ALL'}>
+                    Tất cả
+                </MenuItem>
+                <MenuItem onClick={() => setGenderFilter('male')} selected={genderFilter === 'male'}>
+                    Nam
+                </MenuItem>
+                <MenuItem onClick={() => setGenderFilter('female')} selected={genderFilter === 'female'}>
+                    Nữ
+                </MenuItem>
+                <Divider />
+                <Typography variant="caption" sx={{ px: 2, py: 1, color: 'text.secondary', display: 'block' }}>
+                    Hộ khẩu
+                </Typography>
+                <MenuItem onClick={() => setHouseholdFilter('ALL')} selected={householdFilter === 'ALL'}>
+                    Tất cả
+                </MenuItem>
+                <MenuItem onClick={() => setHouseholdFilter('HAS_HOUSEHOLD')} selected={householdFilter === 'HAS_HOUSEHOLD'}>
+                    Đã có hộ
+                </MenuItem>
+                <MenuItem onClick={() => setHouseholdFilter('NO_HOUSEHOLD')} selected={householdFilter === 'NO_HOUSEHOLD'}>
+                    Chưa có hộ
+                </MenuItem>
+                <Divider />
+                <Typography variant="caption" sx={{ px: 2, py: 1, color: 'text.secondary', display: 'block' }}>
+                    Vai trò
+                </Typography>
+                <MenuItem onClick={() => setRoleFilter('ALL')} selected={roleFilter === 'ALL'}>
+                    Tất cả
+                </MenuItem>
+                <MenuItem onClick={() => setRoleFilter('OWNER')} selected={roleFilter === 'OWNER'}>
+                    Chỉ Chủ hộ
+                </MenuItem>
+                {isFilterActive && (
+                    <>
+                        <Divider />
+                        <MenuItem onClick={handleResetFilters} sx={{ color: 'error.main' }}>
+                            Xóa bộ lọc
+                        </MenuItem>
+                    </>
+                )}
+            </Menu>
 
-                    {/* HÀNG 2: GIỚI TÍNH & SĐT */}
-                    <Row gutter={16}>
-                        <Col span={8}>
-                            <Form.Item
-                                name="gender"
-                                label="Giới tính"
-                                rules={[{ required: true, message: 'Chọn giới tính!' }]}
-                            >
-                                <Select placeholder="Chọn giới tính">
-                                    <Option value="male">Nam</Option>
-                                    <Option value="female">Nữ</Option>
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                        <Col span={16}>
-                            <Form.Item
-                                name="phone_number"
-                                label="Số điện thoại"
-                                rules={[{ required: true, message: 'Nhập số điện thoại!' }]}
-                            >
-                                <Input placeholder="Nhập SĐT liên hệ" />
-                            </Form.Item>
-                        </Col>
-                    </Row>
+            {/* ADD BUTTON */}
+            <Tooltip title="Thêm cư dân mới">
+                <Button
+                    variant="contained"
+                    onClick={() => handleOpen()}
+                    sx={{ 
+                        minWidth: 48, 
+                        width: 48, 
+                        height: 44,
+                        borderRadius: '12px',
+                        padding: 0
+                    }}
+                >
+                    <Plus size={22} />
+                </Button>
+            </Tooltip>
+        </Stack>
+    );
 
-                    {/* HÀNG 3: MÃ HỘ & CMND */}
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            {/* YÊU CẦU: Mã hộ không bắt buộc */}
-                            <Form.Item
-                                name="household_id"
-                                label="Mã hộ gia đình (Tùy chọn)"
-                                rules={[{ required: false }]} 
-                            >
-                                <Input placeholder="Ví dụ: H001 (Bỏ trống nếu chưa có)" />
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item
-                                name="id_number"
-                                label="Số CMND/CCCD"
-                                rules={[{ required: true, message: 'Nhập số CMND/CCCD!' }]}
-                            >
-                                <Input placeholder="Nhập số giấy tờ tùy thân" />
-                            </Form.Item>
-                        </Col>
-                    </Row>
+    return (
+        <MainCard title="Quản lý Cư dân" secondary={headerActions} contentSX={{ pt: 0 }}>
+            {/* TABLE */}
+            <TableContainer>
+                <Table sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
+                    <TableHead sx={{ 
+                        bgcolor: 'action.hover',
+                        '& .MuiTableCell-root': {
+                            color: 'text.primary',
+                            fontWeight: 700,
+                            fontSize: '0.875rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                        }
+                    }}>
+                        <TableRow>
+                            <TableCell>STT</TableCell>
+                            <TableCell>Họ và tên</TableCell>
+                            <TableCell align="center">Giới tính</TableCell>
+                            <TableCell>Ngày sinh</TableCell>
+                            <TableCell>SĐT</TableCell>
+                            <TableCell>CCCD</TableCell>
+                            <TableCell align="center">Mã hộ</TableCell>
+                            <TableCell>Quan hệ</TableCell>
+                            <TableCell>Công việc</TableCell>
+                            <TableCell align="center">Hành động</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {filteredData.map((row, index) => (
+                            <TableRow key={row.id} hover>
+                                <TableCell>{index + 1}</TableCell>
+                                <TableCell>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                        {row.full_name}
+                                    </Typography>
+                                </TableCell>
+                                <TableCell align="center">{getGenderChip(row.gender)}</TableCell>
+                                <TableCell>{formatDate(row.date_of_birth)}</TableCell>
+                                <TableCell>{row.phone_number}</TableCell>
+                                <TableCell>{row.id_number}</TableCell>
+                                <TableCell align="center">{getHouseholdChip(row.household_id)}</TableCell>
+                                <TableCell>{getRoleChip(row.family_role)}</TableCell>
+                                <TableCell>{row.job}</TableCell>
+                                <TableCell align="center">
+                                    <Stack direction="row" spacing={0.5} justifyContent="center">
+                                        <Tooltip title="Sửa thông tin">
+                                            <IconButton 
+                                                color="primary" 
+                                                onClick={() => handleOpen(row)}
+                                                size="small"
+                                            >
+                                                <Edit size={18} />
+                                            </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Xóa cư dân">
+                                            <IconButton 
+                                                sx={{
+                                                    color: '#ef4444',
+                                                    '&:hover': {
+                                                        bgcolor: 'rgba(239, 68, 68, 0.1)',
+                                                        color: '#dc2626'
+                                                    }
+                                                }}
+                                                onClick={() => handleDelete(row)}
+                                                size="small"
+                                            >
+                                                <Trash2 size={18} />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </Stack>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                        {filteredData.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={10} align="center">
+                                    <Typography variant="body2" sx={{ py: 3, color: 'text.secondary' }}>
+                                        Không tìm thấy dữ liệu
+                                    </Typography>
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
-                    {/* HÀNG 4: VAI TRÒ & CÔNG VIỆC */}
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            <Form.Item
-                                name="family_role"
-                                label="Quan hệ với chủ hộ"
-                                rules={[{ required: true, message: 'Chọn quan hệ!' }]}
-                            >
-                                <Select placeholder="Chọn vai trò">
-                                    <Option value="Chủ hộ">Chủ hộ</Option>
-                                    <Option value="Vợ">Vợ</Option>
-                                    <Option value="Chồng">Chồng</Option>
-                                    <Option value="Con">Con</Option>
-                                    <Option value="Bố mẹ">Bố mẹ</Option>
-                                    <Option value="Thành viên khác">Thành viên khác</Option>
-                                    <Option value="Khác">Khác (Ở ghép/Tạm trú)</Option>
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            {/* YÊU CẦU: Công việc bắt buộc */}
-                            <Form.Item 
-                                name="job" 
-                                label="Công việc"
-                                rules={[{ required: true, message: 'Vui lòng nhập công việc!' }]}
-                            >
-                                <Input placeholder="Nhập công việc hiện tại" />
-                            </Form.Item>
-                        </Col>
-                    </Row>
-                </Form>
-            </Modal>
+            {/* ADD/EDIT DIALOG */}
+            <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
+                <DialogTitle>
+                    {editingRecord ? 'Cập nhật thông tin cư dân' : 'Thêm cư dân mới'}
+                </DialogTitle>
+                <DialogContent>
+                    <Stack spacing={2.5} sx={{ mt: 1 }}>
+                        {/* Row 1: Họ tên & Ngày sinh */}
+                        <Stack direction="row" spacing={2}>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Họ và tên <span style={{ color: '#ef4444' }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    placeholder="Nhập họ và tên"
+                                    name="full_name"
+                                    value={formData.full_name}
+                                    onChange={handleChange}
+                                    size="small"
+                                />
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Ngày sinh <span style={{ color: '#ef4444' }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    type="date"
+                                    name="date_of_birth"
+                                    value={formData.date_of_birth}
+                                    onChange={handleChange}
+                                    size="small"
+                                    InputLabelProps={{ shrink: true }}
+                                />
+                            </Box>
+                        </Stack>
+
+                        {/* Row 2: Giới tính & SĐT */}
+                        <Stack direction="row" spacing={2}>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Giới tính <span style={{ color: '#ef4444' }}>*</span>
+                                </Typography>
+                                <TextField
+                                    select
+                                    fullWidth
+                                    name="gender"
+                                    value={formData.gender}
+                                    onChange={handleChange}
+                                    size="small"
+                                >
+                                    <MenuItem value="male">Nam</MenuItem>
+                                    <MenuItem value="female">Nữ</MenuItem>
+                                </TextField>
+                            </Box>
+                            <Box sx={{ flex: 2 }}>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Số điện thoại <span style={{ color: '#ef4444' }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    placeholder="Nhập số điện thoại"
+                                    name="phone_number"
+                                    value={formData.phone_number}
+                                    onChange={handleChange}
+                                    size="small"
+                                />
+                            </Box>
+                        </Stack>
+
+                        {/* Row 3: CCCD & Mã hộ */}
+                        <Stack direction="row" spacing={2}>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Số CCCD <span style={{ color: '#ef4444' }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    placeholder="Nhập số CCCD"
+                                    name="id_number"
+                                    value={formData.id_number}
+                                    onChange={handleChange}
+                                    size="small"
+                                />
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Mã hộ gia đình (Tùy chọn)
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    placeholder="VD: H001 (Bỏ trống nếu chưa có)"
+                                    name="household_id"
+                                    value={formData.household_id}
+                                    onChange={handleChange}
+                                    size="small"
+                                />
+                            </Box>
+                        </Stack>
+
+                        {/* Row 4: Quan hệ & Công việc */}
+                        <Stack direction="row" spacing={2}>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Quan hệ với chủ hộ <span style={{ color: '#ef4444' }}>*</span>
+                                </Typography>
+                                <TextField
+                                    select
+                                    fullWidth
+                                    name="family_role"
+                                    value={formData.family_role}
+                                    onChange={handleChange}
+                                    size="small"
+                                >
+                                    <MenuItem value="Chủ hộ">Chủ hộ</MenuItem>
+                                    <MenuItem value="Vợ">Vợ</MenuItem>
+                                    <MenuItem value="Chồng">Chồng</MenuItem>
+                                    <MenuItem value="Con">Con</MenuItem>
+                                    <MenuItem value="Bố mẹ">Bố mẹ</MenuItem>
+                                    <MenuItem value="Thành viên khác">Thành viên khác</MenuItem>
+                                    <MenuItem value="Khác">Khác (Ở ghép/Tạm trú)</MenuItem>
+                                </TextField>
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Công việc <span style={{ color: '#ef4444' }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    placeholder="Nhập công việc hiện tại"
+                                    name="job"
+                                    value={formData.job}
+                                    onChange={handleChange}
+                                    size="small"
+                                />
+                            </Box>
+                        </Stack>
+                    </Stack>
+                </DialogContent>
+                <DialogActions sx={{ p: 2.5 }}>
+                    <Button onClick={handleClose} color="error">Hủy</Button>
+                    <Button onClick={handleSave} variant="contained" color="primary">
+                        {editingRecord ? 'Cập nhật' : 'Thêm mới'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* DELETE CONFIRMATION DIALOG */}
+            <Dialog 
+                open={deleteDialogOpen} 
+                onClose={handleCancelDelete}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle sx={{ pb: 1 }}>
+                    Xác nhận xóa cư dân
+                </DialogTitle>
+                <DialogContent>
+                    <Typography variant="body1">
+                        Bạn có chắc chắn muốn xóa cư dân <strong>{deletingRecord?.full_name}</strong>?
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        Hành động này không thể hoàn tác.
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ p: 2.5, pt: 1.5 }}>
+                    <Button onClick={handleCancelDelete} variant="outlined">
+                        Hủy
+                    </Button>
+                    <Button 
+                        onClick={handleConfirmDelete} 
+                        variant="contained" 
+                        color="error"
+                    >
+                        Xóa cư dân
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* SNACKBAR */}
+            <Snackbar 
+                open={snackbar.open} 
+                autoHideDuration={4000} 
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert 
+                    onClose={handleCloseSnackbar} 
+                    severity={snackbar.severity} 
+                    variant="filled"
+                    sx={{ 
+                        width: '100%',
+                        alignItems: 'center',
+                        '& .MuiAlert-action': {
+                            pt: 0,
+                            alignItems: 'center'
+                        }
+                    }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </MainCard>
     );
 };

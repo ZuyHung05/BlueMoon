@@ -9,6 +9,7 @@ import LogoSection from '../LogoSection';
 import SearchSection from './SearchSection';
 import ProfileSection from './ProfileSection';
 import NotificationSection from './NotificationSection';
+import ThemeModeSection from './ThemeModeSection';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
@@ -36,11 +37,12 @@ export default function Header() {
             overflow: 'hidden',
             transition: 'all .2s ease-in-out',
             color: theme.vars.palette.primary.main,
-            background: 'rgba(255, 255, 255, 0.05)', // Dark translucent
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            background: `${theme.vars.palette.primary.main}20`,
+            border: `1px solid`,
+            borderColor: 'divider',
             '&:hover': {
               color: theme.vars.palette.primary.light,
-              background: 'rgba(255, 255, 255, 0.1)',
+              background: `${theme.vars.palette.primary.main}35`,
               boxShadow: `0 0 8px ${theme.vars.palette.primary.main}40`
             }
           }}
@@ -58,6 +60,11 @@ export default function Header() {
       <Box sx={{ flexGrow: 1 }} />
       <Box sx={{ flexGrow: 1 }} />
 
+      {/* theme mode toggle */}
+      <Box sx={{ mr: 1 }}>
+        <ThemeModeSection />
+      </Box>
+
       {/* notification */}
       <NotificationSection />
 
@@ -66,3 +73,4 @@ export default function Header() {
     </>
   );
 }
+
