@@ -5,13 +5,15 @@ import BlueMoon.example.BlueMoon.dto.request.ResidentAddRequest;
 import BlueMoon.example.BlueMoon.dto.request.ResidentSelectRequest;
 import BlueMoon.example.BlueMoon.dto.response.ResidentResponse;
 
+import BlueMoon.example.BlueMoon.dto.response.PageResponse;
+
 import java.util.List;
 
 public interface ResidentService {
 
     public List<?> getAllJobs();
 
-    public List<ResidentResponse> searchResidents(ResidentSelectRequest request);
+    public PageResponse<ResidentResponse> searchResidents(ResidentSelectRequest request);
 
     ResidentResponse addResident(ResidentAddRequest request);
 

@@ -1,6 +1,6 @@
 // frontend/src/views/admin/residentmanager/ResidentManagement.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // material-ui
 import {
@@ -28,7 +28,8 @@ import {
     Stack,
     Snackbar,
     Alert,
-    Divider
+    Divider,
+    TablePagination
 } from '@mui/material';
 
 // project imports
@@ -38,48 +39,24 @@ import MainCard from 'ui-component/cards/MainCard';
 import { Edit, Trash2, Plus, Search, Filter } from 'lucide-react';
 
 const ResidentManagement = () => {
-    // --- 1. MOCK DATA ---
-    const [data, setData] = useState([
-        {
-            id: 1,
-            full_name: 'Nguyễn Văn A',
-            gender: 'male',
-            date_of_birth: '1990-05-15',
-            phone_number: '0987654321',
-            id_number: '001090000001',
-            family_role: 'Chủ hộ',
-            job: 'Kỹ sư',
-            household_id: 'H001'
-        },
-        {
-            id: 2,
-            full_name: 'Trần Thị B',
-            gender: 'female',
-            date_of_birth: '1992-08-20',
-            phone_number: '0901234567',
-            id_number: '001092000002',
-            family_role: 'Vợ',
-            job: 'Giáo viên',
-            household_id: 'H001'
-        },
-        {
-            id: 3,
-            full_name: 'Lê Văn C',
-            gender: 'male',
-            date_of_birth: '2000-10-10',
-            phone_number: '0912345678',
-            id_number: '001200000003',
-            family_role: 'Khác',
-            job: 'Sinh viên',
-            household_id: ''
-        }
-    ]);
+    // --- 1. DATA STATE ---
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    // Pagination State
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+
+
+
+
 
     // --- 2. STATE QUẢN LÝ UI ---
     const [open, setOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    
+
     // Filter states
     const [genderFilter, setGenderFilter] = useState('ALL');
     const [householdFilter, setHouseholdFilter] = useState('ALL');
@@ -109,28 +86,106 @@ const ResidentManagement = () => {
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
+    // Confirm Dialog State for Role Change
+    const [confirmRoleDialog, setConfirmRoleDialog] = useState(false);
+    const [pendingRoleValue, setPendingRoleValue] = useState(null);
+    const [conflictingHeadName, setConflictingHeadName] = useState('');
+
     // Check if any filter is active
     const isFilterActive = genderFilter !== 'ALL' || householdFilter !== 'ALL' || roleFilter !== 'ALL';
 
-    // --- 3. FILTERING ---
-    const filteredData = data.filter((item) => {
-        const matchText =
-            item.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.phone_number.includes(searchTerm) ||
-            item.id_number.includes(searchTerm) ||
-            (item.household_id && item.household_id.toLowerCase().includes(searchTerm.toLowerCase()));
+    // Pagination Handlers
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
 
-        const matchGender = genderFilter === 'ALL' || item.gender === genderFilter;
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
 
-        let matchHousehold = true;
-        if (householdFilter === 'HAS_HOUSEHOLD') matchHousehold = !!item.household_id;
-        if (householdFilter === 'NO_HOUSEHOLD') matchHousehold = !item.household_id;
 
-        const matchRole = roleFilter === 'ALL' || 
-                          (roleFilter === 'OWNER' && item.family_role === 'Chủ hộ');
 
-        return matchText && matchGender && matchHousehold && matchRole;
-    });
+
+
+    // --- 3. FETCH DATA FROM BACKEND ---
+    const fetchResidents = async () => {
+        setLoading(true);
+        try {
+            // Map frontend filter values to backend format
+            const requestBody = {
+                searchKeyword: searchTerm || null,
+                gender: genderFilter === 'ALL' ? null : (genderFilter === 'male' ? 'M' : 'F'),
+                hasHousehold: householdFilter === 'ALL' ? null : (householdFilter === 'HAS_HOUSEHOLD' ? true : false),
+                familyRole: roleFilter === 'ALL' ? null : (roleFilter === 'OWNER' ? 'Head of Household' : null),
+                page: page + 1,
+                pageSize: rowsPerPage
+            };
+
+            const response = await fetch('http://localhost:8080/resident/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch residents');
+            }
+
+            const result = await response.json();
+            const pageResponse = result.result;
+
+            // Map backend response to frontend format
+            const roleMapping = {
+                'Head of Household': 'Chủ hộ',
+                'Wife': 'Vợ',
+                'Husband': 'Chồng',
+                'Child': 'Con',
+                'Son': 'Con',
+                'Daughter': 'Con',
+                'Parent': 'Bố mẹ',
+                'Father': 'Bố mẹ',
+                'Mother': 'Bố mẹ',
+                'Member': 'Thành viên khác',
+                'Other': 'Khác'
+            };
+
+            const mappedData = pageResponse.data.map((item) => ({
+                id: item.residentId,
+                full_name: item.fullName,
+                gender: item.gender === 'M' ? 'male' : 'female',
+                date_of_birth: item.dateOfBirth,
+                phone_number: item.phoneNumber,
+                id_number: item.idNumber,
+                family_role: roleMapping[item.familyRole] || item.familyRole,
+                job: item.job,
+                household_id: item.householdId || ''
+            }));
+
+            setData(mappedData);
+            setTotalCount(pageResponse.totalElements);
+        } catch (error) {
+            console.error('Error fetching residents:', error);
+            setSnackbar({ open: true, message: 'Lỗi khi tải dữ liệu cư dân!', severity: 'error' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch data when component mounts or filters/pagination change
+    useEffect(() => {
+        fetchResidents();
+    }, [searchTerm, genderFilter, householdFilter, roleFilter, page, rowsPerPage]);
+
+    // Reset page to 0 when filters change, to avoid empty results on non-existent pages
+    useEffect(() => {
+        setPage(0);
+    }, [searchTerm, genderFilter, householdFilter, roleFilter]);
+
+    // Use data directly (no client-side filtering needed)
+    const filteredData = data;
 
     // --- 4. HANDLERS ---
     const handleFilterClick = (event) => {
@@ -183,10 +238,45 @@ const ResidentManagement = () => {
     };
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+
+        // Logic check trùng chủ hộ khi chọn "Chủ hộ"
+        if (name === 'family_role' && value === 'Chủ hộ') {
+            // Chỉ check nếu đã nhập household_id
+            if (formData.household_id) {
+                const currentHead = data.find(item =>
+                    // So sánh household_id (chú ý type string/number)
+                    String(item.household_id) === String(formData.household_id) &&
+                    item.family_role === 'Chủ hộ' &&
+                    item.id !== editingRecord?.id // Không check chính mình
+                );
+
+                if (currentHead) {
+                    setConflictingHeadName(currentHead.full_name);
+                    setPendingRoleValue(value);
+                    setConfirmRoleDialog(true);
+                    return; // Chưa update state vội
+                }
+            }
+        }
+
+        setFormData({ ...formData, [name]: value });
     };
 
-    const handleSave = () => {
+    const handleConfirmRoleChange = () => {
+        setFormData({ ...formData, family_role: pendingRoleValue });
+        setConfirmRoleDialog(false);
+        setConflictingHeadName('');
+        setPendingRoleValue(null);
+    };
+
+    const handleCancelRoleChange = () => {
+        setConfirmRoleDialog(false);
+        setPendingRoleValue(null);
+        setConflictingHeadName('');
+    };
+
+    const handleSave = async () => {
         // Validate required fields
         if (!formData.full_name) {
             setSnackbar({ open: true, message: 'Vui lòng nhập họ tên!', severity: 'warning' });
@@ -205,18 +295,49 @@ const ResidentManagement = () => {
             return;
         }
 
-        if (editingRecord) {
-            const updatedData = data.map((item) =>
-                item.id === editingRecord.id ? { ...item, ...formData } : item
-            );
-            setData(updatedData);
-            setSnackbar({ open: true, message: 'Cập nhật cư dân thành công!', severity: 'success' });
-        } else {
-            const newId = data.length > 0 ? Math.max(...data.map((d) => d.id)) + 1 : 1;
-            setData([...data, { id: newId, ...formData }]);
-            setSnackbar({ open: true, message: 'Thêm cư dân mới thành công!', severity: 'success' });
+        try {
+            const apiData = {
+                fullName: formData.full_name,
+                gender: formData.gender === 'male' ? 'M' : 'F',
+                dateOfBirth: formData.date_of_birth,
+                phoneNumber: formData.phone_number,
+                idNumber: formData.id_number,
+                familyRole: formData.family_role,
+                job: formData.job,
+                householdId: (formData.household_id && String(formData.household_id).trim() !== "")
+                    ? formData.household_id
+                    : null
+            };
+
+            let response;
+            if (editingRecord) {
+                response = await fetch(`http://localhost:8080/resident/update/${editingRecord.id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(apiData)
+                });
+            } else {
+                response = await fetch(`http://localhost:8080/resident/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(apiData)
+                });
+            }
+
+            // Xử lý response lỗi từ server
+            if (!response.ok) {
+                const errorData = await response.json();
+                // Ưu tiên hiển thị message từ backend trả về
+                throw new Error(errorData.message || (errorData.error ? errorData.error : 'Lỗi khi lưu dữ liệu'));
+            }
+
+            setSnackbar({ open: true, message: editingRecord ? 'Cập nhật cư dân thành công!' : 'Thêm cư dân mới thành công!', severity: 'success' });
+            handleClose();
+            fetchResidents(); // Reload list
+        } catch (error) {
+            console.error("Save error:", error);
+            setSnackbar({ open: true, message: error.message, severity: 'error' });
         }
-        handleClose();
     };
 
     const handleDelete = (record) => {
@@ -224,7 +345,7 @@ const ResidentManagement = () => {
         setDeleteDialogOpen(true);
     };
 
-    const handleConfirmDelete = () => {
+    const handleConfirmDelete = async () => {
         if (deletingRecord) {
             if (deletingRecord.family_role === 'Chủ hộ') {
                 setSnackbar({ open: true, message: 'Không thể xóa cư dân đang là Chủ hộ! Hãy đổi chủ hộ trước.', severity: 'error' });
@@ -232,8 +353,30 @@ const ResidentManagement = () => {
                 setDeletingRecord(null);
                 return;
             }
-            setData(data.filter((item) => item.id !== deletingRecord.id));
-            setSnackbar({ open: true, message: 'Đã xóa cư dân!', severity: 'success' });
+
+            try {
+                // Call API to delete
+                const response = await fetch('http://localhost:8080/resident/delete1', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ residentId: deletingRecord.id }),
+                });
+
+                if (response.ok) {
+                    setData(data.filter((item) => item.id !== deletingRecord.id));
+                    setSnackbar({ open: true, message: 'Đã xóa cư dân thành công!', severity: 'success' });
+                    // Refresh data from server
+                    await fetchResidents();
+                } else {
+                    const errorData = await response.json();
+                    setSnackbar({ open: true, message: errorData.message || 'Lỗi khi xóa cư dân!', severity: 'error' });
+                }
+            } catch (error) {
+                console.error("Error deleting resident:", error);
+                setSnackbar({ open: true, message: 'Lỗi kết nối server!', severity: 'error' });
+            }
         }
         setDeleteDialogOpen(false);
         setDeletingRecord(null);
@@ -287,7 +430,7 @@ const ResidentManagement = () => {
                 }
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{ 
+                sx={{
                     minWidth: 280,
                     borderRadius: '12px'
                 }}
@@ -296,10 +439,10 @@ const ResidentManagement = () => {
 
             {/* FILTER BUTTON */}
             <Tooltip title="Lọc theo điều kiện">
-                <IconButton 
+                <IconButton
                     onClick={handleFilterClick}
                     color={isFilterActive ? 'primary' : 'inherit'}
-                    sx={{ 
+                    sx={{
                         border: '1px solid',
                         borderColor: isFilterActive ? 'primary.main' : 'divider',
                         borderRadius: '12px',
@@ -309,7 +452,7 @@ const ResidentManagement = () => {
                     <Filter size={20} />
                 </IconButton>
             </Tooltip>
-            
+
             {/* FILTER MENU */}
             <Menu
                 anchorEl={anchorEl}
@@ -376,9 +519,9 @@ const ResidentManagement = () => {
                 <Button
                     variant="contained"
                     onClick={() => handleOpen()}
-                    sx={{ 
-                        minWidth: 48, 
-                        width: 48, 
+                    sx={{
+                        minWidth: 48,
+                        width: 48,
                         height: 44,
                         borderRadius: '12px',
                         padding: 0
@@ -395,7 +538,7 @@ const ResidentManagement = () => {
             {/* TABLE */}
             <TableContainer>
                 <Table sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
-                    <TableHead sx={{ 
+                    <TableHead sx={{
                         bgcolor: 'action.hover',
                         '& .MuiTableCell-root': {
                             color: 'text.primary',
@@ -421,7 +564,7 @@ const ResidentManagement = () => {
                     <TableBody>
                         {filteredData.map((row, index) => (
                             <TableRow key={row.id} hover>
-                                <TableCell>{index + 1}</TableCell>
+                                <TableCell>{(page * rowsPerPage) + index + 1}</TableCell>
                                 <TableCell>
                                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                                         {row.full_name}
@@ -437,8 +580,8 @@ const ResidentManagement = () => {
                                 <TableCell align="center">
                                     <Stack direction="row" spacing={0.5} justifyContent="center">
                                         <Tooltip title="Sửa thông tin">
-                                            <IconButton 
-                                                color="primary" 
+                                            <IconButton
+                                                color="primary"
                                                 onClick={() => handleOpen(row)}
                                                 size="small"
                                             >
@@ -446,7 +589,7 @@ const ResidentManagement = () => {
                                             </IconButton>
                                         </Tooltip>
                                         <Tooltip title="Xóa cư dân">
-                                            <IconButton 
+                                            <IconButton
                                                 sx={{
                                                     color: '#ef4444',
                                                     '&:hover': {
@@ -475,6 +618,44 @@ const ResidentManagement = () => {
                         )}
                     </TableBody>
                 </Table>
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25, 50]}
+                    component="div"
+                    count={totalCount}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    labelRowsPerPage="Số hàng:"
+                    labelDisplayedRows={({ from, to, count }) => `${from}–${to} / ${count}`}
+                    sx={{
+                        borderTop: '1px solid',
+                        borderColor: 'divider',
+                        backgroundColor: 'background.paper',
+                        px: 2,
+                        py: 1,
+                        boxShadow: '0 -1px 6px rgba(0,0,0,0.04)',
+
+                        '& .MuiTablePagination-selectLabel': {
+                            fontWeight: 500,
+                            color: 'text.secondary',
+                            fontSize: 14
+                        },
+
+                        '& .MuiTablePagination-displayedRows': {
+                            fontWeight: 600,
+                            color: 'text.primary'
+                        },
+
+                        '& .MuiIconButton-root': {
+                            borderRadius: 8,
+                            '&:hover': {
+                                backgroundColor: 'action.hover'
+                            }
+                        }
+                    }}
+
+                />
             </TableContainer>
 
             {/* ADD/EDIT DIALOG */}
@@ -574,6 +755,7 @@ const ResidentManagement = () => {
                                     value={formData.household_id}
                                     onChange={handleChange}
                                     size="small"
+                                // Đảm bảo KHÔNG CÓ dòng: required
                                 />
                             </Box>
                         </Stack>
@@ -626,8 +808,8 @@ const ResidentManagement = () => {
             </Dialog>
 
             {/* DELETE CONFIRMATION DIALOG */}
-            <Dialog 
-                open={deleteDialogOpen} 
+            <Dialog
+                open={deleteDialogOpen}
                 onClose={handleCancelDelete}
                 maxWidth="xs"
                 fullWidth
@@ -647,9 +829,9 @@ const ResidentManagement = () => {
                     <Button onClick={handleCancelDelete} variant="outlined">
                         Hủy
                     </Button>
-                    <Button 
-                        onClick={handleConfirmDelete} 
-                        variant="contained" 
+                    <Button
+                        onClick={handleConfirmDelete}
+                        variant="contained"
                         color="error"
                     >
                         Xóa cư dân
@@ -657,18 +839,51 @@ const ResidentManagement = () => {
                 </DialogActions>
             </Dialog>
 
+            {/* CONFIRM SWITCH ROLE DIALOG */}
+            <Dialog
+                open={confirmRoleDialog}
+                onClose={handleCancelRoleChange}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle sx={{ pb: 1, color: 'warning.main' }}>
+                    ⚠️ Xác nhận thay đổi Chủ hộ
+                </DialogTitle>
+                <DialogContent>
+                    <Typography variant="body1">
+                        Hộ gia đình này hiện đã có chủ hộ là ông/bà <strong>{conflictingHeadName}</strong>.
+                    </Typography>
+                    <Typography variant="body1" sx={{ mt: 1 }}>
+                        Bạn có chắc chắn muốn chuyển quyền chủ hộ sang cho người này không?
+                        <strong>{conflictingHeadName}</strong> sẽ được chuyển thành thành viên.
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ p: 2.5, pt: 1.5 }}>
+                    <Button onClick={handleCancelRoleChange} variant="outlined">
+                        Hủy
+                    </Button>
+                    <Button
+                        onClick={handleConfirmRoleChange}
+                        variant="contained"
+                        color="warning"
+                    >
+                        Đồng ý chuyển đổi
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
             {/* SNACKBAR */}
-            <Snackbar 
-                open={snackbar.open} 
-                autoHideDuration={4000} 
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
                 onClose={handleCloseSnackbar}
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
-                <Alert 
-                    onClose={handleCloseSnackbar} 
-                    severity={snackbar.severity} 
+                <Alert
+                    onClose={handleCloseSnackbar}
+                    severity={snackbar.severity}
                     variant="filled"
-                    sx={{ 
+                    sx={{
                         width: '100%',
                         alignItems: 'center',
                         '& .MuiAlert-action': {
@@ -680,7 +895,7 @@ const ResidentManagement = () => {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
-        </MainCard>
+        </MainCard >
     );
 };
 

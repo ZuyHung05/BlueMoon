@@ -12,11 +12,13 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Builder
 public class ResidentResponse {
+    private Long residentId;
     private String fullName;
     private String gender;
     private LocalDate dateOfBirth;
     private String phoneNumber;
+    private String idNumber;
     private String familyRole;
     private String job;
-    private Long residentId;
+    private Long householdId;
 }
