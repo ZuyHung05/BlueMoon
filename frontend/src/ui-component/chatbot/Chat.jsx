@@ -112,6 +112,10 @@ export default function Bot() {
       bottom: "40px",
       right: "40px",
       borderRadius: "50%",
+    },
+
+    tooltip: {
+      mode: "NEVER"
     }
   };
 

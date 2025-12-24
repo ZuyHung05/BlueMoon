@@ -1,5 +1,3 @@
-// frontend/src/views/admin/vehicle/VehicleManagement.jsx
-
 import React, { useState } from 'react';
 
 // material-ui
@@ -33,9 +31,10 @@ import {
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
+import ParkingMap from './ParkingMapDialog';
 
 // assets
-import { Edit, Trash2, Plus, Search, Filter, Car, Bike } from 'lucide-react';
+import { Edit, Trash2, Plus, Search, Filter, Car, Bike, Map } from 'lucide-react';
 
 const VehicleManagement = () => {
     // --- MOCK DATA ---
@@ -75,6 +74,7 @@ const VehicleManagement = () => {
     // --- UI STATE ---
     const [open, setOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
+    const [viewMode, setViewMode] = useState('list'); // 'list' | 'map'
     const [searchTerm, setSearchTerm] = useState('');
     const [typeFilter, setTypeFilter] = useState('ALL');
 
@@ -94,6 +94,9 @@ const VehicleManagement = () => {
     // Delete dialog
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [deletingRecord, setDeletingRecord] = useState(null);
+
+    // Parking map dialog
+
 
     // Snackbar
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -230,6 +233,20 @@ const VehicleManagement = () => {
     // --- HEADER ACTIONS ---
     const headerActions = (
         <Stack direction="row" spacing={1.5} alignItems="center">
+            <Tooltip title="Sơ đồ bãi đỗ">
+                <IconButton 
+                    onClick={() => setViewMode('map')}
+                    sx={{ 
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: '12px',
+                        padding: '10px'
+                    }}
+                >
+                    <Map size={20} />
+                </IconButton>
+            </Tooltip>
+
             <OutlinedInput
                 placeholder="Tìm theo biển số, tên chủ hộ..."
                 startAdornment={
@@ -301,6 +318,10 @@ const VehicleManagement = () => {
             </Tooltip>
         </Stack>
     );
+
+    if (viewMode === 'map') {
+        return <ParkingMap onBack={() => setViewMode('list')} />;
+    }
 
     return (
         <MainCard title="Quản lý Phương tiện" secondary={headerActions} contentSX={{ pt: 0 }}>

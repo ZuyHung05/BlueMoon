@@ -26,13 +26,13 @@ export default function ThemeModeSection() {
           overflow: 'hidden',
           transition: 'all .2s ease-in-out',
           color: theme.vars.palette.primary.main,
-          background: 'action.hover',
+          background: `${theme.vars.palette.primary.main}20`,
           border: `1px solid`,
           borderColor: 'divider',
           cursor: 'pointer',
           '&:hover': {
             color: theme.vars.palette.primary.light,
-            background: 'action.selected',
+            background: `${theme.vars.palette.primary.main}35`,
             boxShadow: `0 0 8px ${theme.vars.palette.primary.main}40`
           }
         }}
