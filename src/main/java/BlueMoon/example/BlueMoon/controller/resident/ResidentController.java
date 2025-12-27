@@ -6,7 +6,7 @@ import BlueMoon.example.BlueMoon.dto.request.ResidentAddRequest;
 import BlueMoon.example.BlueMoon.dto.request.ResidentSelectRequest;
 import BlueMoon.example.BlueMoon.dto.response.PageResponse;
 import BlueMoon.example.BlueMoon.dto.response.ResidentResponse;
-import BlueMoon.example.BlueMoon.service.resident.ResidentService;
+import BlueMoon.example.BlueMoon.service.ResidentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +26,6 @@ public class ResidentController {
         List<?> jobs = residentService.getAllJobs();
         return new ResponseEntity<>(BaseResponse.success("Lấy danh sách công việc thành công", jobs), HttpStatus.OK);
     }
-
-// ...
 
     @PostMapping("/search")
     ApiResponse<PageResponse<ResidentResponse>> searchResidents(@RequestBody ResidentSelectRequest request) {

@@ -49,7 +49,7 @@
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
     "prettier": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
-    "dev": "npm-run-all --parallel dev:react dev:api",
+    "dev": "vite",
     "dev:react": "vite",
     "dev:api": "cd .. && uvicorn bot_engine.api:app --host 0.0.0.0 --port 8000"
   },

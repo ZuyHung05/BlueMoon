@@ -1,4 +1,4 @@
-package BlueMoon.example.BlueMoon.service.resident.Impl;
+package BlueMoon.example.BlueMoon.service.impl;
 
 import BlueMoon.example.BlueMoon.dto.request.ResidentAddRequest;
 import BlueMoon.example.BlueMoon.dto.request.ResidentSelectRequest;
@@ -11,8 +11,7 @@ import BlueMoon.example.BlueMoon.mapper.ResidentMapper;
 import BlueMoon.example.BlueMoon.repository.resident.ChangeHistoryRepository;
 import BlueMoon.example.BlueMoon.repository.resident.HouseHoldRepository;
 import BlueMoon.example.BlueMoon.repository.resident.ResidentRepository;
-import BlueMoon.example.BlueMoon.service.resident.ResidentService;
-import jakarta.persistence.criteria.Join;
+import BlueMoon.example.BlueMoon.service.ResidentService;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,7 +86,6 @@ public class ResidentServiceImpl implements ResidentService {
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
         
-        // Handle pagination
         int page = Math.max(request.getPage() - 1, 0); 
         int pageSize = request.getPageSize() > 0 ? request.getPageSize() : 10;
         
@@ -107,17 +105,14 @@ public class ResidentServiceImpl implements ResidentService {
 
     public ResidentResponse addResident(ResidentAddRequest request) {
     Long householdId = request.getHouseholdId();
-    HouseholdEntity household = null; // Mặc định là null
+    HouseholdEntity household = null; 
 
-    // Kiểm tra: Chỉ tìm kiếm nếu householdId khác null và lớn hơn 0
     if (householdId != null && householdId > 0) {
-        // Tìm trong DB. Nếu có thì lấy, không có thì trả về null (không ném lỗi 404 nữa)
         household = householdRepository.findById(householdId).orElse(null);
     }
 
     ResidentsEntity entity = residentMapper.toResidentEntity(request);
     
-    // Set household (có thể là object tìm được hoặc null)
     entity.setHousehold(household);
     
     ResidentsEntity savedEntity = residentRepository.save(entity);
@@ -144,7 +139,6 @@ public class ResidentServiceImpl implements ResidentService {
     @Override
     @Transactional
     public ResidentResponse updateResident(Long residentId, ResidentAddRequest request) {
-        // 1. Validate unique fields (Phone Number & ID Number)
         if (residentRepository.existsByPhoneNumberAndResidentIdNot(request.getPhoneNumber(), residentId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Số điện thoại " + request.getPhoneNumber() + " đã được sử dụng bởi cư dân khác.");
         }
@@ -155,21 +149,17 @@ public class ResidentServiceImpl implements ResidentService {
         ResidentsEntity entity = residentRepository.findById(residentId)
                 .orElseThrow(() -> new NoSuchElementException("Cư dân với id " + residentId + " không tồn tại."));
 
-        // Check if Head of Household is trying to change Household ID
         if (("Head of Household".equalsIgnoreCase(entity.getFamilyRole()) || "Chủ hộ".equalsIgnoreCase(entity.getFamilyRole())) 
                 && entity.getHousehold() != null) {
             Long currentHouseholdId = entity.getHousehold().getHouseholdId();
             Long newHouseholdId = request.getHouseholdId();
             
-            // If newHouseholdId is different (including null if they try to leave), block it
             if (newHouseholdId == null || !newHouseholdId.equals(currentHouseholdId)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chủ hộ không được phép chuyển hộ khẩu. Vui lòng đổi vai trò thành viên trước.");
             }
         }
 
-        // 2. Logic đảo chuyển chủ hộ (Head of Household Swap)
         String newRole = request.getFamilyRole();
-        // Basic mapping for Vietnamese input if necessary
         if ("Chủ hộ".equalsIgnoreCase(newRole)) newRole = "Head of Household";
         else if ("Vợ".equalsIgnoreCase(newRole)) newRole = "Wife";
         else if ("Chồng".equalsIgnoreCase(newRole)) newRole = "Husband";
@@ -178,20 +168,7 @@ public class ResidentServiceImpl implements ResidentService {
         else if ("Thành viên khác".equalsIgnoreCase(newRole)) newRole = "Member";
         else if ("Khác".equalsIgnoreCase(newRole)) newRole = "Other";
 
-        // Nếu role mới là Chủ hộ, tìm chủ hộ cũ và chuyển thành Member
-        if ("Head of Household".equalsIgnoreCase(newRole) && entity.getHousehold() != null) {
-             Long currentHouseholdId = entity.getHousehold().getHouseholdId();
-             residentRepository.findByHousehold_HouseholdIdAndFamilyRole(currentHouseholdId, "Head of Household")
-                 .ifPresent(currentHead -> {
-                     if (!currentHead.getResidentId().equals(residentId)) {
-                         // Chuyển chủ hộ cũ thành thành viên
-                         currentHead.setFamilyRole("Member"); 
-                         residentRepository.save(currentHead);
-                     }
-                 });
-        }
-        
-        // 3. Update Household info
+        // Handle household change first
         Long newHouseholdId = request.getHouseholdId();
         HouseholdEntity newHousehold = null;
         
@@ -204,7 +181,25 @@ public class ResidentServiceImpl implements ResidentService {
         }
         entity.setHousehold(newHousehold);
         
-        // Update request with mapped role to ensure consistency
+        // Now handle head of household change AFTER setting the household
+        if ("Head of Household".equalsIgnoreCase(newRole) && entity.getHousehold() != null) {
+             Long currentHouseholdId = entity.getHousehold().getHouseholdId();
+             
+             // Change old head to Member
+             residentRepository.findByHousehold_HouseholdIdAndFamilyRole(currentHouseholdId, "Head of Household")
+                 .ifPresent(currentHead -> {
+                     if (!currentHead.getResidentId().equals(residentId)) {
+                         currentHead.setFamilyRole("Member"); 
+                         residentRepository.save(currentHead);
+                     }
+                 });
+             
+             // Update household.head_of_household to point to the new head
+             HouseholdEntity household = entity.getHousehold();
+             household.setHeadOfHousehold(residentId);
+             householdRepository.save(household);
+        }
+        
         request.setFamilyRole(newRole);
 
         residentMapper.updateResidentFromRequest(request, entity);

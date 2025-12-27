@@ -1,4 +1,4 @@
-package BlueMoon.example.BlueMoon.service.resident;
+package BlueMoon.example.BlueMoon.service;
 
 
 import BlueMoon.example.BlueMoon.dto.request.ResidentAddRequest;

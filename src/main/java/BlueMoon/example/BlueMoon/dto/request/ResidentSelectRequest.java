@@ -10,11 +10,12 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ResidentSelectRequest {
-    private String searchKeyword;
-    private String gender;
-    private Boolean hasHousehold;
-    private String familyRole;
+    private String searchKeyword; 
+    private String gender; 
+    private Boolean hasHousehold; 
+    private String familyRole; 
+    
 
-    private int page = 1;
-    private int pageSize = 10;
+    private int page = 1;      
+    private int pageSize = 10; 
 }

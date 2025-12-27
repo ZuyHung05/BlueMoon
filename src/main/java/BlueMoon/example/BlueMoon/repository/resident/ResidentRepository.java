@@ -17,6 +17,5 @@ public interface ResidentRepository extends JpaRepository<ResidentsEntity, Long>
     boolean existsByPhoneNumberAndResidentIdNot(String phoneNumber, Long residentId);
     boolean existsByIdNumberAndResidentIdNot(String idNumber, Long residentId);
     
-    // Tìm chủ hộ của một hộ gia đình
     Optional<ResidentsEntity> findByHousehold_HouseholdIdAndFamilyRole(Long householdId, String familyRole);
 }
