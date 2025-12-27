@@ -172,7 +172,7 @@ export default function MyReportsPage() {
           ))}
 
           {/* PAGINATION */}
-          <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>
+          <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
             <Pagination count={5} variant="outlined" shape="rounded" />
           </Box>
         </Card>

@@ -11,7 +11,6 @@ import {
   Legend
 } from 'recharts';
 
-// Mock data — replace with API later
 const data = [
   { cycle: 'Tháng 1', paid: 85, avgDays: 3.2 },
   { cycle: 'Tháng 2', paid: 78, avgDays: 4.1 },
@@ -26,7 +25,15 @@ const COLORS = {
 
 export default function CollectionPerformanceChart() {
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
+
+  const axisTextStyle = {
+    fontSize: 12,
+    fill: theme.palette.text.secondary
+  };
+
+  const axisLineStyle = {
+    stroke: theme.palette.divider
+  };
 
   return (
     <Card
@@ -39,12 +46,12 @@ export default function CollectionPerformanceChart() {
       }}
     >
       <CardContent>
-        <Typography variant="h5" gutterBottom color="text.primary" sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
+        <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
           Hiệu suất đợt thu
         </Typography>
 
         <Box sx={{ width: '100%', height: 350 }}>
-          <ResponsiveContainer>
+          <ResponsiveContainer key={theme.palette.mode}>
             <BarChart
               layout="vertical"
               data={data}
@@ -52,38 +59,46 @@ export default function CollectionPerformanceChart() {
             >
               <CartesianGrid 
                 strokeDasharray="3 3" 
-                stroke={isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} 
+                stroke={theme.palette.text.secondary} 
+                strokeOpacity={0.7}
+                vertical={true}
+                horizontal={false}
               />
 
               <XAxis 
                 type="number"
-                tick={{ fill: theme.palette.text.secondary }}
+                tick={axisTextStyle} 
+                axisLine={axisTextStyle}
+                tickLine={axisTextStyle}
               />
+
               <YAxis
                 dataKey="cycle"
                 type="category"
-                tick={{ fontSize: 13, fill: theme.palette.text.secondary }}
+                tick={axisTextStyle} 
+                axisLine={axisTextStyle}
+                tickLine={axisTextStyle}
                 width={90}
               />
 
               <Tooltip
-                formatter={(value, name) =>
-                  name === 'avgDays'
-                    ? [`${value} ngày`, 'Thời gian thanh toán TB']
-                    : [`${value}% hộ`, 'Tỷ lệ thanh toán']
-                }
                 contentStyle={{ 
-                  backgroundColor: isDark ? '#1e293b' : '#fff', 
+                  backgroundColor: theme.palette.background.paper, 
                   borderRadius: '8px',
                   border: `1px solid ${theme.palette.divider}`,
-                  color: theme.palette.text.primary
+                  color: theme.palette.text.secondary
                 }}
+                itemStyle={{ color: theme.palette.text.secondary }}
+                cursor={{ fill: theme.palette.action.hover }}
               />
 
               <Legend 
                 verticalAlign="bottom" 
                 height={36}
-                formatter={(value) => <span style={{ color: theme.palette.text.primary }}>{value}</span>}
+                wrapperStyle={{
+                  paddingTop: '10px',
+                  color: theme.palette.text.secondary 
+                }}
               />
 
               <Bar
@@ -91,14 +106,14 @@ export default function CollectionPerformanceChart() {
                 name="Tỷ lệ thanh toán (%)"
                 fill={COLORS.paid}
                 barSize={15}
-                radius={[5, 5, 0, 0]}
+                radius={[0, 5, 5, 0]}
               />
               <Bar
                 dataKey="avgDays"
                 name="Số ngày thanh toán TB"
                 fill={COLORS.avgDays}
                 barSize={15}
-                radius={[5, 5, 0, 0]}
+                radius={[0, 5, 5, 0]}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -107,4 +122,3 @@ export default function CollectionPerformanceChart() {
     </Card>
   );
 }
-

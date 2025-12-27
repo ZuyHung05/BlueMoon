@@ -10,7 +10,7 @@ import Box from '@mui/material/Box';
 import AuthWrapper1 from './AuthWrapper1';
 import AuthCardWrapper from './AuthCardWrapper';
 import Logo from 'ui-component/Logo';
-import AuthFooter from 'ui-component/cards/AuthFooter';
+
 import AuthLogin from '../auth-forms/AuthLogin';
 
 export default function Login() {
@@ -23,35 +23,36 @@ export default function Login() {
                 <Grid container justifyContent="center" alignItems="center">
                     <Grid item>
                         <AuthCardWrapper>
-                            <Stack sx={{ alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                                <Box sx={{ mb: 1 }}>
+                            <Stack sx={{ alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                                <Typography
+                                    variant={downMD ? 'h3' : 'h2'}
+                                    sx={{
+                                        color: theme.palette.primary.main,
+                                        fontWeight: 800,
+                                        letterSpacing: '0.5px',
+                                        textAlign: 'center'
+                                    }}
+                                >
+                                    Hệ thống quản lý chung cư
+                                </Typography>
+
+                                <Box sx={{ mb: 0.5 }}>
                                     <Link to="#" aria-label="logo">
                                         <Logo />
                                     </Link>
                                 </Box>
 
-                                <Stack sx={{ alignItems: 'center', justifyContent: 'center', gap: 1, textAlign: 'center' }}>
-                                    <Typography
-                                        variant={downMD ? 'h3' : 'h2'}
-                                        sx={{
-                                            color: '#1565C0', // Màu Xanh Đậm
-                                            fontWeight: 800,
-                                            letterSpacing: '0.5px'
-                                        }}
-                                    >
-                                        Hệ thống quản lý chung cư BlueMoon
-                                    </Typography>
-                                    <Typography
-                                        variant="body1"
-                                        sx={{
-                                            color: 'text.secondary',
-                                            fontSize: '16px',
-                                            fontWeight: 500
-                                        }}
-                                    >
-                                        Nhập thông tin đăng nhập của bạn để tiếp tục
-                                    </Typography>
-                                </Stack>
+                                <Typography
+                                    variant="body1"
+                                    sx={{
+                                        color: '#333333',
+                                        fontSize: '15px', // Slightly smaller text
+                                        fontWeight: 500,
+                                        textAlign: 'center'
+                                    }}
+                                >
+                                    Nhập thông tin đăng nhập của bạn để tiếp tục
+                                </Typography>
 
                                 <Box sx={{ width: '100%' }}>
                                     <AuthLogin />
@@ -61,9 +62,7 @@ export default function Login() {
                     </Grid>
                 </Grid>
 
-                <Box sx={{ mt: 4, textAlign: 'center' }}>
-                    <AuthFooter sx={{ color: 'white' }} />
-                </Box>
+
             </Box>
         </AuthWrapper1>
     );

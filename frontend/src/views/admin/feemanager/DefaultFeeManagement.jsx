@@ -19,6 +19,7 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    TablePagination,
     TextField,
     Tooltip,
     Typography,
@@ -57,6 +58,10 @@ const DefaultFeeManagement = () => {
     const [open, setOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Pagination states
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -98,6 +103,15 @@ const DefaultFeeManagement = () => {
     const handleClose = () => {
         setOpen(false);
         setEditingRecord(null);
+    };
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
     };
 
     const handleChange = (e) => {
@@ -152,42 +166,49 @@ const DefaultFeeManagement = () => {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
     };
 
-    // --- HEADER ACTIONS ---
-    const headerActions = (
-        <Stack direction="row" spacing={1.5} alignItems="center">
-            <OutlinedInput
-                placeholder="Tìm theo tên loại phí..."
-                startAdornment={
-                    <InputAdornment position="start">
-                        <Search size={18} />
-                    </InputAdornment>
-                }
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{ minWidth: 280, borderRadius: '12px' }}
-                size="small"
-            />
-
-            <Tooltip title="Thêm loại phí mới">
-                <Button
-                    variant="contained"
-                    onClick={() => handleOpen()}
-                    sx={{ 
-                        minWidth: 48, 
-                        width: 48, 
-                        height: 44,
-                        borderRadius: '12px',
-                        padding: 0
-                    }}
-                >
-                    <Plus size={22} />
-                </Button>
-            </Tooltip>
-        </Stack>
-    );
-
     return (
-        <MainCard title="Quản lý Định mức Phí" secondary={headerActions} contentSX={{ pt: 0 }}>
+        <MainCard contentSX={{ pt: 2 }}>
+            <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mr: 1 }}>
+                    Quản lý Định mức Phí
+                </Typography>
+
+                <Tooltip title="Thêm loại phí mới">
+                    <Button
+                        variant="contained"
+                        startIcon={<Plus size={20} />}
+                        onClick={() => handleOpen()}
+                        sx={{
+                            borderRadius: '12px',
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+                            minWidth: 'auto',
+                            px: 2,
+                            height: 40
+                        }}
+                    >
+                        Thêm
+                    </Button>
+                </Tooltip>
+
+                <OutlinedInput
+                    placeholder="Tìm theo tên loại phí..."
+                    startAdornment={
+                        <InputAdornment position="start">
+                            <Search size={18} />
+                        </InputAdornment>
+                    }
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    sx={{ 
+                        minWidth: 280,
+                        borderRadius: '12px',
+                        height: 40
+                    }}
+                    size="small"
+                />
+            </Box>
             {/* TABLE */}
             <TableContainer>
                 <Table sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
@@ -209,9 +230,9 @@ const DefaultFeeManagement = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredData.map((row, index) => (
+                        {filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => (
                             <TableRow key={row.id} hover>
-                                <TableCell>{index + 1}</TableCell>
+                                <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                                 <TableCell>
                                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                                         {row.description}
@@ -264,6 +285,77 @@ const DefaultFeeManagement = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
+            <TablePagination
+                rowsPerPageOptions={[10, 20, 50]}
+                component="div"
+                count={filteredData.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                labelRowsPerPage="Số hàng mỗi trang:"
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} trong ${count}`}
+                sx={{
+                    borderTop: '1px solid',
+                    borderColor: 'divider',
+                    '.MuiTablePagination-toolbar': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        pl: 1,
+                        '&::after': {
+                            content: '""',
+                            flex: 1,
+                            order: 10
+                        }
+                    },
+                    '.MuiTablePagination-spacer': {
+                        display: 'block',
+                        flex: 1,
+                        order: 2
+                    },
+                    '.MuiTablePagination-selectLabel': {
+                        margin: 0,
+                        lineHeight: 'inherit',
+                        order: 0
+                    },
+                    '.MuiTablePagination-select': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingTop: '2px',
+                        order: 1
+                    },
+                    '.MuiTablePagination-displayedRows': {
+                        margin: '0 16px',
+                        lineHeight: 'inherit',
+                        fontWeight: 600,
+                        color: 'primary.main',
+                        order: 4
+                    },
+                    '.MuiTablePagination-actions': {
+                        display: 'contents',
+                        '& .MuiIconButton-root': {
+                            borderRadius: '8px',
+                            margin: '0 2px',
+                            bgcolor: 'action.hover',
+                            '&:hover': {
+                                bgcolor: 'primary.main',
+                                color: 'white'
+                            },
+                            '&.Mui-disabled': {
+                                opacity: 0.3
+                            }
+                        },
+                        '& .MuiIconButton-root:nth-of-type(1)': {
+                            order: 3
+                        },
+                        '& .MuiIconButton-root:nth-of-type(2)': {
+                            order: 5
+                        }
+                    }
+                }}
+            />
 
             {/* ADD/EDIT DIALOG */}
             <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">

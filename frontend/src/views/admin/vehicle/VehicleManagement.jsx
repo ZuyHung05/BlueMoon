@@ -20,6 +20,7 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    TablePagination,
     TextField,
     Tooltip,
     Typography,
@@ -78,6 +79,10 @@ const VehicleManagement = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [typeFilter, setTypeFilter] = useState('ALL');
 
+    // Pagination states
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+
     // Filter menu
     const [anchorEl, setAnchorEl] = useState(null);
     const openFilter = Boolean(anchorEl);
@@ -123,8 +128,21 @@ const VehicleManagement = () => {
         setAnchorEl(event.currentTarget);
     };
 
-    const handleFilterClose = () => {
+    const handleFilterClose = (type) => {
+        if (type) {
+            setTypeFilter(type);
+            setPage(0);
+        }
         setAnchorEl(null);
+    };
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
     };
 
     const handleOpen = (record = null) => {
@@ -230,51 +248,87 @@ const VehicleManagement = () => {
         );
     };
 
-    // --- HEADER ACTIONS ---
-    const headerActions = (
-        <Stack direction="row" spacing={1.5} alignItems="center">
-            <Tooltip title="Sơ đồ bãi đỗ">
-                <IconButton 
-                    onClick={() => setViewMode('map')}
-                    sx={{ 
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        borderRadius: '12px',
-                        padding: '10px'
-                    }}
-                >
-                    <Map size={20} />
-                </IconButton>
-            </Tooltip>
+    if (viewMode === 'map') {
+        return <ParkingMap onBack={() => setViewMode('list')} />;
+    }
 
-            <OutlinedInput
-                placeholder="Tìm theo biển số, tên chủ hộ..."
-                startAdornment={
-                    <InputAdornment position="start">
-                        <Search size={18} />
-                    </InputAdornment>
-                }
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{ minWidth: 300, borderRadius: '12px' }}
-                size="small"
-            />
+    return (
+        <MainCard contentSX={{ pt: 2 }}>
+            <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mr: 1 }}>
+                    Quản lý Phương tiện
+                </Typography>
 
-            <Tooltip title="Lọc theo loại xe">
-                <IconButton 
-                    onClick={handleFilterClick}
-                    color={isFilterActive ? 'primary' : 'inherit'}
+                <Tooltip title="Thêm phương tiện mới">
+                    <Button
+                        variant="contained"
+                        startIcon={<Plus size={20} />}
+                        onClick={() => handleOpen()}
+                        sx={{
+                            borderRadius: '12px',
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+                            minWidth: 'auto',
+                            px: 2,
+                            height: 40
+                        }}
+                    >
+                        Thêm
+                    </Button>
+                </Tooltip>
+
+                <Tooltip title="Lọc theo loại xe">
+                    <IconButton 
+                        onClick={handleFilterClick}
+                        color={isFilterActive ? 'primary' : 'inherit'}
+                        sx={{ 
+                            border: '1px solid',
+                            borderColor: isFilterActive ? 'primary.main' : 'divider',
+                            borderRadius: '12px',
+                            padding: '8px',
+                            height: 40,
+                            width: 40
+                        }}
+                    >
+                        <Filter size={20} />
+                    </IconButton>
+                </Tooltip>
+
+                <Tooltip title="Sơ đồ bãi đỗ">
+                    <IconButton 
+                        onClick={() => setViewMode('map')}
+                        sx={{ 
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            borderRadius: '12px',
+                            padding: '8px',
+                            height: 40,
+                            width: 40
+                        }}
+                    >
+                        <Map size={20} />
+                    </IconButton>
+                </Tooltip>
+
+                <OutlinedInput
+                    placeholder="Tìm theo biển số, tên chủ hộ..."
+                    startAdornment={
+                        <InputAdornment position="start">
+                            <Search size={18} />
+                        </InputAdornment>
+                    }
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     sx={{ 
-                        border: '1px solid',
-                        borderColor: isFilterActive ? 'primary.main' : 'divider',
+                        minWidth: 300,
                         borderRadius: '12px',
-                        padding: '10px'
+                        height: 40
                     }}
-                >
-                    <Filter size={20} />
-                </IconButton>
-            </Tooltip>
-            
+                    size="small"
+                />
+            </Box>
+
             <Menu
                 anchorEl={anchorEl}
                 open={openFilter}
@@ -290,41 +344,16 @@ const VehicleManagement = () => {
                     }
                 }}
             >
-                <MenuItem onClick={() => { setTypeFilter('ALL'); handleFilterClose(); }} selected={typeFilter === 'ALL'}>
+                <MenuItem onClick={() => handleFilterClose('ALL')} selected={typeFilter === 'ALL'}>
                     Tất cả loại xe
                 </MenuItem>
-                <MenuItem onClick={() => { setTypeFilter('car'); handleFilterClose(); }} selected={typeFilter === 'car'}>
+                <MenuItem onClick={() => handleFilterClose('car')} selected={typeFilter === 'car'}>
                     Ô tô
                 </MenuItem>
-                <MenuItem onClick={() => { setTypeFilter('bike'); handleFilterClose(); }} selected={typeFilter === 'bike'}>
+                <MenuItem onClick={() => handleFilterClose('bike')} selected={typeFilter === 'bike'}>
                     Xe máy
                 </MenuItem>
             </Menu>
-
-            <Tooltip title="Thêm phương tiện mới">
-                <Button
-                    variant="contained"
-                    onClick={() => handleOpen()}
-                    sx={{ 
-                        minWidth: 48, 
-                        width: 48, 
-                        height: 44,
-                        borderRadius: '12px',
-                        padding: 0
-                    }}
-                >
-                    <Plus size={22} />
-                </Button>
-            </Tooltip>
-        </Stack>
-    );
-
-    if (viewMode === 'map') {
-        return <ParkingMap onBack={() => setViewMode('list')} />;
-    }
-
-    return (
-        <MainCard title="Quản lý Phương tiện" secondary={headerActions} contentSX={{ pt: 0 }}>
             {/* TABLE */}
             <TableContainer>
                 <Table sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
@@ -348,9 +377,9 @@ const VehicleManagement = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredData.map((row, index) => (
+                        {filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => (
                             <TableRow key={row.vehicle_id} hover>
-                                <TableCell>{index + 1}</TableCell>
+                                <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                                 <TableCell>
                                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                                         {getHouseholdName(row.household_id)}
@@ -411,6 +440,77 @@ const VehicleManagement = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
+            <TablePagination
+                rowsPerPageOptions={[10, 20, 50]}
+                component="div"
+                count={filteredData.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                labelRowsPerPage="Số hàng mỗi trang:"
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} trong ${count}`}
+                sx={{
+                    borderTop: '1px solid',
+                    borderColor: 'divider',
+                    '.MuiTablePagination-toolbar': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        pl: 1,
+                        '&::after': {
+                            content: '""',
+                            flex: 1,
+                            order: 10
+                        }
+                    },
+                    '.MuiTablePagination-spacer': {
+                        display: 'block',
+                        flex: 1,
+                        order: 2
+                    },
+                    '.MuiTablePagination-selectLabel': {
+                        margin: 0,
+                        lineHeight: 'inherit',
+                        order: 0
+                    },
+                    '.MuiTablePagination-select': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingTop: '2px',
+                        order: 1
+                    },
+                    '.MuiTablePagination-displayedRows': {
+                        margin: '0 16px',
+                        lineHeight: 'inherit',
+                        fontWeight: 600,
+                        color: 'primary.main',
+                        order: 4
+                    },
+                    '.MuiTablePagination-actions': {
+                        display: 'contents',
+                        '& .MuiIconButton-root': {
+                            borderRadius: '8px',
+                            margin: '0 2px',
+                            bgcolor: 'action.hover',
+                            '&:hover': {
+                                bgcolor: 'primary.main',
+                                color: 'white'
+                            },
+                            '&.Mui-disabled': {
+                                opacity: 0.3
+                            }
+                        },
+                        '& .MuiIconButton-root:nth-of-type(1)': {
+                            order: 3
+                        },
+                        '& .MuiIconButton-root:nth-of-type(2)': {
+                            order: 5
+                        }
+                    }
+                }}
+            />
 
             {/* ADD/EDIT DIALOG */}
             <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">

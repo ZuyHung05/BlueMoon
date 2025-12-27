@@ -22,7 +22,6 @@ const COLORS = ['#42A5F5', '#66BB6A', '#FFA726', '#EF5350'];
 
 export default function FeeByCategoryChart() {
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
 
   return (
     <Card
@@ -35,35 +34,35 @@ export default function FeeByCategoryChart() {
       }}
     >
       <CardContent>
-        <Typography variant="h5" gutterBottom color="text.primary" sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
+        <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
           Phân loại khoản thu
         </Typography>
 
-        <Box sx={{ width: '100%', height: 300 }}>
-          <ResponsiveContainer>
+        <Box sx={{ width: '100%', height: 350 }}>
+          <ResponsiveContainer key={theme.palette.mode}>
             <PieChart>
               <Pie
                 data={data}
                 cx="50%"
                 cy="45%"
                 labelLine={false}
-                outerRadius={90}
+                outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
                 nameKey="name"
                 label={({ value, cx, cy, midAngle, innerRadius, outerRadius }) => {
                   const RADIAN = Math.PI / 180;
-                  const radius = innerRadius + (outerRadius - innerRadius) * 1.2;
+                  const radius = innerRadius + (outerRadius - innerRadius) * 1.25;
                   const x = cx + radius * Math.cos(-midAngle * RADIAN);
                   const y = cy + radius * Math.sin(-midAngle * RADIAN);
                   return (
                     <text 
                       x={x} 
                       y={y} 
-                      fill={isDark ? '#e2e8f0' : '#1e293b'} 
+                      fill={theme.palette.text.secondary} 
                       textAnchor={x > cx ? 'start' : 'end'} 
                       dominantBaseline="central"
-                      fontSize={13}
+                      fontSize={12}
                       fontWeight={500}
                     >
                       {`${value}%`}
@@ -79,17 +78,21 @@ export default function FeeByCategoryChart() {
               <Tooltip
                 formatter={(value) => `${value}%`}
                 contentStyle={{ 
-                  backgroundColor: isDark ? '#1e293b' : '#fff', 
+                  backgroundColor: theme.palette.background.paper, 
                   borderRadius: '8px',
                   border: `1px solid ${theme.palette.divider}`,
-                  color: theme.palette.text.primary
+                  color: theme.palette.text.secondary
                 }}
+                itemStyle={{ color: theme.palette.text.secondary }}
               />
 
               <Legend 
                 verticalAlign="bottom" 
                 height={36}
-                formatter={(value) => <span style={{ color: theme.palette.text.primary }}>{value}</span>}
+                wrapperStyle={{
+                  paddingTop: '10px',
+                  color: theme.palette.text.secondary 
+                }}
               />
             </PieChart>
           </ResponsiveContainer>

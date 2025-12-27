@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Card, CardContent, Stack, Chip } from '@mui/material';
+import { Box, Typography, Card, CardContent, Stack, Chip, useTheme } from '@mui/material';
 import { TrendingUp, TrendingDown, Users, Wallet, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 // project imports
@@ -12,36 +12,52 @@ import PaymentStatusBarChart from './charts/PaymentStatusBarChart';
 import RevenueOverTimeChart from './charts/RevenueOverTimeChart';
 
 // Stat Card Component (same as Report page)
-const StatCard = ({ title, value, subtitle, change, changeType, icon: Icon, color }) => (
+const StatCard = ({ title, value, subtitle, change, changeType, icon: Icon, color, isDark }) => (
     <Card sx={{ 
-        bgcolor: 'background.paper', 
+        bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'background.paper', 
         borderRadius: 3,
         border: '1px solid',
-        borderColor: 'divider',
-        height: '100%'
+        borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'divider',
+        height: '100%',
+        backdropFilter: isDark ? 'blur(10px)' : 'none'
     }}>
         <CardContent sx={{ p: 2.5 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                 <Box>
-                    <Typography variant="body1" color="text.secondary" sx={{ mb: 0.5, fontWeight: 500 }}>
+                    <Typography 
+                        variant="body1" 
+                        sx={{ 
+                            mb: 0.5, 
+                            fontWeight: 600, 
+                            color: isDark ? '#ffffff' : 'text.secondary',
+                            opacity: isDark ? 0.9 : 1
+                        }}
+                    >
                         {title}
                     </Typography>
-                    <Typography variant="h3" fontWeight={700} sx={{ color, fontSize: '2rem' }}>
+                    <Typography variant="h3" fontWeight={800} sx={{ color, fontSize: '2.2rem' }}>
                         {value}
                     </Typography>
                     {subtitle && (
-                        <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
+                        <Typography 
+                            variant="body2" 
+                            sx={{ 
+                                mt: 0.5, 
+                                color: isDark ? '#cbd5e1' : 'text.secondary',
+                                fontWeight: 400
+                            }}
+                        >
                             {subtitle}
                         </Typography>
                     )}
                     {change && (
-                        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 1 }}>
+                        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 1.5 }}>
                             {changeType === 'up' ? (
-                                <TrendingUp size={16} color="#22c55e" />
+                                <TrendingUp size={16} color="#4ade80" />
                             ) : (
-                                <TrendingDown size={16} color="#ef4444" />
+                                <TrendingDown size={16} color="#f87171" />
                             )}
-                            <Typography variant="body2" sx={{ color: changeType === 'up' ? '#22c55e' : '#ef4444', fontWeight: 500 }}>
+                            <Typography variant="body2" sx={{ color: changeType === 'up' ? '#4ade80' : '#f87171', fontWeight: 600 }}>
                                 {change}
                             </Typography>
                         </Stack>
@@ -50,12 +66,12 @@ const StatCard = ({ title, value, subtitle, change, changeType, icon: Icon, colo
                 <Box sx={{ 
                     p: 2, 
                     borderRadius: 2, 
-                    bgcolor: `${color}15`,
+                    bgcolor: isDark ? `${color}30` : `${color}15`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center'
                 }}>
-                    <Icon size={28} color={color} />
+                    <Icon size={30} color={isDark ? '#ffffff' : color} />
                 </Box>
             </Stack>
         </CardContent>
@@ -74,6 +90,8 @@ const headerActions = (
 // ==============================|| BAN QUẢN LÝ DASHBOARD PAGE ||============================== //
 
 export default function Dashboard() {
+    const isDark = useTheme().palette.mode === 'dark';
+
     return (
         <MainCard 
             title="Tổng quan"
@@ -82,7 +100,14 @@ export default function Dashboard() {
             contentSX={{ pt: 0 }}
         >
             {/* SUBTITLE */}
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, mt: 1 }}>
+            <Typography 
+                variant="body2" 
+                sx={{ 
+                    mb: 3, 
+                    mt: 1, 
+                    color: isDark ? '#94a3b8' : 'text.secondary' 
+                }}
+            >
                 Tổng quan về hoạt động thu phí và quản lý chung cư
             </Typography>
 
@@ -97,6 +122,7 @@ export default function Dashboard() {
                         changeType="up"
                         icon={Users}
                         color="#3b82f6"
+                        isDark={isDark}
                     />
                 </Box>
                 <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(25% - 18px)' } }}>
@@ -108,6 +134,7 @@ export default function Dashboard() {
                         changeType="up"
                         icon={CheckCircle2}
                         color="#22c55e"
+                        isDark={isDark}
                     />
                 </Box>
                 <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(25% - 18px)' } }}>
@@ -119,6 +146,7 @@ export default function Dashboard() {
                         changeType="down"
                         icon={AlertTriangle}
                         color="#ef4444"
+                        isDark={isDark}
                     />
                 </Box>
                 <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(25% - 18px)' } }}>
@@ -130,6 +158,7 @@ export default function Dashboard() {
                         changeType="down"
                         icon={Wallet}
                         color="#f59e0b"
+                        isDark={isDark}
                     />
                 </Box>
             </Stack>

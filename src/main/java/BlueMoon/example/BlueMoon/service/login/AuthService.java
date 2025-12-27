@@ -28,19 +28,49 @@ public class AuthService {
     private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     public LoginResponse login(LoginRequest request) {
-        // 1. Tìm user trong DB (Luồng 6a: Kiểm tra user tồn tại) [cite: 33, 35]
-        AccountEntity account = accountRepository.findByUsername(request.getUsername()) // getUsername()
-            .orElseThrow(() -> new RuntimeException("Username hoặc mật khẩu không đúng"));
+        String username = request.getUsername() != null ? request.getUsername().trim() : "";
+        String password = request.getPassword() != null ? request.getPassword().trim() : "";
+        
+        System.out.println("DEBUG: Login attempt for username: [" + username + "]");
+        
+        // 1. Tìm user trong DB
+        AccountEntity account = accountRepository.findByUsername(username)
+            .orElseGet(() -> {
+                System.out.println("DEBUG: Username not found in database: [" + username + "]");
+                return null;
+            });
 
-        // 2. Kiểm tra mật khẩu (Luồng 6a) [cite: 35]
-        if (!passwordEncoder.matches(request.getPassword(), account.getPassword())) {
-            throw new RuntimeException("Username hoặc mật khẩu không đúng");
+        if (account == null) {
+            System.out.println("DEBUG: Username not found: [" + username + "]");
+            throw new RuntimeException("Tên đăng nhập hoặc mật khẩu không chính xác.");
         }
 
-        // 3. Kiểm tra quyền ADMIN (Yêu cầu hiện tại)
-        if (!"ADMIN".equalsIgnoreCase(account.getRole())) {
-            throw new RuntimeException("Bạn không có quyền truy cập trang quản trị (Role: " + account.getRole() + ")");
+        String storedPassword = account.getPassword() != null ? account.getPassword().trim() : "";
+        System.out.println("DEBUG: User found: " + account.getUsername() + ", Role: " + account.getRole());
+
+        // 2. Kiểm tra mật khẩu
+        if (!passwordEncoder.matches(password, storedPassword)) {
+            System.out.println("DEBUG: Password mismatch for user: " + username);
+            throw new RuntimeException("Tên đăng nhập hoặc mật khẩu không chính xác.");
         }
+
+        // 3. Xác định trang chuyển hướng dựa trên Role
+        String role = account.getRole() != null ? account.getRole().toUpperCase() : "";
+        String redirectUrl = "/"; // Mặc định
+
+        if ("ADMIN".equals(role)) {
+            redirectUrl = "/admin/dashboard";
+        } else if ("MANAGER".equals(role)) {
+            redirectUrl = "/manager/dashboard";
+        } else if ("ACCOUNTANT".equals(role)) {
+            redirectUrl = "/accountant/dashboard";
+        } else {
+            // Trường hợp không thuộc các role quản trị
+            System.out.println("DEBUG: Role not authorized for dashboard: " + role);
+            throw new RuntimeException("Tài khoản của bạn không có quyền truy cập vào hệ thống quản lý.");
+        }
+
+        System.out.println("DEBUG: Login successful. Role: " + role + ", Redirecting to: " + redirectUrl);
 
         // 4. Cập nhật last_login [cite: 27]
         account.setLastLogin(LocalDateTime.now());

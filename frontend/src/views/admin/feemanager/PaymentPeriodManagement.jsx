@@ -22,6 +22,7 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    TablePagination,
     TextField,
     Tooltip,
     Typography,
@@ -90,6 +91,14 @@ const PaymentPeriodManagement = () => {
     const [filterStatus, setFilterStatus] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
 
+    // Pagination states for main table
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+
+    // Pagination states for detail table
+    const [detailPage, setDetailPage] = useState(0);
+    const [detailRowsPerPage, setDetailRowsPerPage] = useState(10);
+
     // Form state
     const [formData, setFormData] = useState({
         description: '',
@@ -136,6 +145,7 @@ const PaymentPeriodManagement = () => {
             });
             setTabValue(0);
             setFilterStatus('all');
+            setDetailPage(0);
         } else {
             setEditingRecord(null);
             setFormData({
@@ -152,6 +162,25 @@ const PaymentPeriodManagement = () => {
     const handleClose = () => {
         setOpen(false);
         setEditingRecord(null);
+        setPage(0);
+    };
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    const handleChangeDetailPage = (event, newPage) => {
+        setDetailPage(newPage);
+    };
+
+    const handleChangeDetailRowsPerPage = (event) => {
+        setDetailRowsPerPage(parseInt(event.target.value, 10));
+        setDetailPage(0);
     };
 
     const handleChange = (e) => {
@@ -298,36 +327,49 @@ const PaymentPeriodManagement = () => {
         );
     };
 
-    // --- HEADER ACTIONS ---
-    const headerActions = (
-        <Stack direction="row" spacing={1.5} alignItems="center">
-            <OutlinedInput
-                placeholder="Tìm theo tên đợt thu..."
-                startAdornment={
-                    <InputAdornment position="start">
-                        <Search size={18} />
-                    </InputAdornment>
-                }
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{ minWidth: 280, borderRadius: '12px' }}
-                size="small"
-            />
-
-            <Tooltip title="Tạo đợt thu mới">
-                <Button
-                    variant="contained"
-                    onClick={() => handleOpen()}
-                    sx={{ minWidth: 48, width: 48, height: 44, borderRadius: '12px', padding: 0 }}
-                >
-                    <Plus size={22} />
-                </Button>
-            </Tooltip>
-        </Stack>
-    );
-
     return (
-        <MainCard title="Quản lý Đợt thu phí" secondary={headerActions} contentSX={{ pt: 0 }}>
+        <MainCard contentSX={{ pt: 2 }}>
+            <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mr: 1 }}>
+                    Quản lý Đợt thu phí
+                </Typography>
+
+                <Tooltip title="Tạo đợt thu mới">
+                    <Button
+                        variant="contained"
+                        startIcon={<Plus size={20} />}
+                        onClick={() => handleOpen()}
+                        sx={{
+                            borderRadius: '12px',
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+                            minWidth: 'auto',
+                            px: 2,
+                            height: 40
+                        }}
+                    >
+                        Thêm
+                    </Button>
+                </Tooltip>
+
+                <OutlinedInput
+                    placeholder="Tìm theo tên đợt thu..."
+                    startAdornment={
+                        <InputAdornment position="start">
+                            <Search size={18} />
+                        </InputAdornment>
+                    }
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    sx={{ 
+                        minWidth: 280,
+                        borderRadius: '12px',
+                        height: 40
+                    }}
+                    size="small"
+                />
+            </Box>
             {/* MAIN TABLE */}
             <TableContainer>
                 <Table sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
@@ -351,9 +393,9 @@ const PaymentPeriodManagement = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredData.map((row, index) => (
+                        {filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => (
                             <TableRow key={row.payment_period_id} hover>
-                                <TableCell>{index + 1}</TableCell>
+                                <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                                 <TableCell>
                                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                                         {row.description}
@@ -433,6 +475,77 @@ const PaymentPeriodManagement = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
+            <TablePagination
+                rowsPerPageOptions={[10, 20, 50]}
+                component="div"
+                count={filteredData.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                labelRowsPerPage="Số hàng mỗi trang:"
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} trong ${count}`}
+                sx={{
+                    borderTop: '1px solid',
+                    borderColor: 'divider',
+                    '.MuiTablePagination-toolbar': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        pl: 1,
+                        '&::after': {
+                            content: '""',
+                            flex: 1,
+                            order: 10
+                        }
+                    },
+                    '.MuiTablePagination-spacer': {
+                        display: 'block',
+                        flex: 1,
+                        order: 2
+                    },
+                    '.MuiTablePagination-selectLabel': {
+                        margin: 0,
+                        lineHeight: 'inherit',
+                        order: 0
+                    },
+                    '.MuiTablePagination-select': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingTop: '2px',
+                        order: 1
+                    },
+                    '.MuiTablePagination-displayedRows': {
+                        margin: '0 16px',
+                        lineHeight: 'inherit',
+                        fontWeight: 600,
+                        color: 'primary.main',
+                        order: 4
+                    },
+                    '.MuiTablePagination-actions': {
+                        display: 'contents',
+                        '& .MuiIconButton-root': {
+                            borderRadius: '8px',
+                            margin: '0 2px',
+                            bgcolor: 'action.hover',
+                            '&:hover': {
+                                bgcolor: 'primary.main',
+                                color: 'white'
+                            },
+                            '&.Mui-disabled': {
+                                opacity: 0.3
+                            }
+                        },
+                        '& .MuiIconButton-root:nth-of-type(1)': {
+                            order: 3
+                        },
+                        '& .MuiIconButton-root:nth-of-type(2)': {
+                            order: 5
+                        }
+                    }
+                }}
+            />
 
             {/* MAIN DIALOG */}
             <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
@@ -440,7 +553,7 @@ const PaymentPeriodManagement = () => {
                     {editingRecord ? 'Chi tiết Đợt thu' : 'Tạo đợt thu mới'}
                 </DialogTitle>
                 <DialogContent>
-                    <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}>
+                    <Tabs centered value={tabValue} onChange={(e, v) => setTabValue(v)} sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}>
                         <Tab label="Thông tin chung" />
                         {editingRecord && <Tab label={`Danh sách chi tiết (${editingRecord.count} hộ)`} icon={<Users size={16} />} iconPosition="start" />}
                     </Tabs>
@@ -543,7 +656,7 @@ const PaymentPeriodManagement = () => {
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {getHouseholdStatusList().map((row) => (
+                                        {getHouseholdStatusList().slice(detailPage * detailRowsPerPage, detailPage * detailRowsPerPage + detailRowsPerPage).map((row) => (
                                             <TableRow key={row.id} hover>
                                                 <TableCell>
                                                     <Chip label={row.room} size="small" sx={{ bgcolor: 'rgba(168, 85, 247, 0.15)', color: '#a855f7' }} />
@@ -587,6 +700,77 @@ const PaymentPeriodManagement = () => {
                                     </TableBody>
                                 </Table>
                             </TableContainer>
+                            <TablePagination
+                                rowsPerPageOptions={[5, 10, 20]}
+                                component="div"
+                                count={getHouseholdStatusList().length}
+                                rowsPerPage={detailRowsPerPage}
+                                page={detailPage}
+                                onPageChange={handleChangeDetailPage}
+                                onRowsPerPageChange={handleChangeDetailRowsPerPage}
+                                labelRowsPerPage="Số hàng mỗi trang:"
+                                labelDisplayedRows={({ from, to, count }) => `${from}-${to} trong ${count}`}
+                                sx={{
+                                    borderTop: '1px solid',
+                                    borderColor: 'divider',
+                                    '.MuiTablePagination-toolbar': {
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        pl: 1,
+                                        '&::after': {
+                                            content: '""',
+                                            flex: 1,
+                                            order: 10
+                                        }
+                                    },
+                                    '.MuiTablePagination-spacer': {
+                                        display: 'block',
+                                        flex: 1,
+                                        order: 2
+                                    },
+                                    '.MuiTablePagination-selectLabel': {
+                                        margin: 0,
+                                        lineHeight: 'inherit',
+                                        order: 0
+                                    },
+                                    '.MuiTablePagination-select': {
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        paddingTop: '2px',
+                                        order: 1
+                                    },
+                                    '.MuiTablePagination-displayedRows': {
+                                        margin: '0 16px',
+                                        lineHeight: 'inherit',
+                                        fontWeight: 600,
+                                        color: 'primary.main',
+                                        order: 4
+                                    },
+                                    '.MuiTablePagination-actions': {
+                                        display: 'contents',
+                                        '& .MuiIconButton-root': {
+                                            borderRadius: '8px',
+                                            margin: '0 2px',
+                                            bgcolor: 'action.hover',
+                                            '&:hover': {
+                                                bgcolor: 'primary.main',
+                                                color: 'white'
+                                            },
+                                            '&.Mui-disabled': {
+                                                opacity: 0.3
+                                            }
+                                        },
+                                        '& .MuiIconButton-root:nth-of-type(1)': {
+                                            order: 3
+                                        },
+                                        '& .MuiIconButton-root:nth-of-type(2)': {
+                                            order: 5
+                                        }
+                                    }
+                                }}
+                            />
                         </Box>
                     )}
                 </DialogContent>

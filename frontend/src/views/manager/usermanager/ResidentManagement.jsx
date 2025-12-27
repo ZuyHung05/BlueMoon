@@ -206,6 +206,14 @@ export default function ResidentManagement() {
                     dataSource={searchResults}
                     loading={loading}
                     rowKey="id"
+                    pagination={{
+                        position: ['bottomCenter'],
+                        pageSizeOptions: ['10', '20', '50'],
+                        showSizeChanger: true,
+                        defaultPageSize: 10,
+                        locale: { items_per_page: '/ trang' },
+                        className: 'custom-pagination'
+                    }}
                 />
             </Card>
 

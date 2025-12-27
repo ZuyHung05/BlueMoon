@@ -22,6 +22,7 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    TablePagination,
     TextField,
     Tooltip,
     Typography,
@@ -72,6 +73,226 @@ const ResidentManagement = () => {
             family_role: 'Khác',
             job: 'Sinh viên',
             household_id: ''
+        },
+        {
+            id: 4,
+            full_name: 'Phạm Văn D',
+            gender: 'male',
+            date_of_birth: '1975-03-12',
+            phone_number: '0923456789',
+            id_number: '001075000004',
+            family_role: 'Chủ hộ',
+            job: 'Kinh doanh',
+            household_id: 'H002'
+        },
+        {
+            id: 5,
+            full_name: 'Hoàng Thị E',
+            gender: 'female',
+            date_of_birth: '1978-11-25',
+            phone_number: '0934567890',
+            id_number: '001078000005',
+            family_role: 'Vợ',
+            job: 'Kế toán',
+            household_id: 'H002'
+        },
+        {
+            id: 6,
+            full_name: 'Phạm Hoàng F',
+            gender: 'male',
+            date_of_birth: '2005-07-14',
+            phone_number: '0945678901',
+            id_number: '001205000006',
+            family_role: 'Con',
+            job: 'Học sinh',
+            household_id: 'H002'
+        },
+        {
+            id: 7,
+            full_name: 'Vũ Văn G',
+            gender: 'male',
+            date_of_birth: '1985-12-01',
+            phone_number: '0956789012',
+            id_number: '001085000007',
+            family_role: 'Chủ hộ',
+            job: 'Bác sĩ',
+            household_id: 'H003'
+        },
+        {
+            id: 8,
+            full_name: 'Đặng Thị H',
+            gender: 'female',
+            date_of_birth: '1988-04-18',
+            phone_number: '0967890123',
+            id_number: '001088000008',
+            family_role: 'Vợ',
+            job: 'Nội trợ',
+            household_id: 'H003'
+        },
+        {
+            id: 9,
+            full_name: 'Vũ Diệu I',
+            gender: 'female',
+            date_of_birth: '2012-09-30',
+            phone_number: '0978901234',
+            id_number: '001212000009',
+            family_role: 'Con',
+            job: 'Học sinh',
+            household_id: 'H003'
+        },
+        {
+            id: 10,
+            full_name: 'Đỗ Văn K',
+            gender: 'male',
+            date_of_birth: '1960-01-20',
+            phone_number: '0989012345',
+            id_number: '001060000010',
+            family_role: 'Chủ hộ',
+            job: 'Nghỉ hưu',
+            household_id: 'H004'
+        },
+        {
+            id: 11,
+            full_name: 'Bùi Thị L',
+            gender: 'female',
+            date_of_birth: '1963-06-15',
+            phone_number: '0990123456',
+            id_number: '001063000011',
+            family_role: 'Vợ',
+            job: 'Công nhân',
+            household_id: 'H004'
+        },
+        {
+            id: 12,
+            full_name: 'Đỗ Tiến M',
+            gender: 'male',
+            date_of_birth: '1995-10-05',
+            phone_number: '0911234567',
+            id_number: '001095000012',
+            family_role: 'Con',
+            job: 'Lập trình viên',
+            household_id: 'H004'
+        },
+        {
+            id: 13,
+            full_name: 'Lý Văn N',
+            gender: 'male',
+            date_of_birth: '1998-02-28',
+            phone_number: '0922345678',
+            id_number: '001098000013',
+            family_role: 'Chủ hộ',
+            job: 'Kiến trúc sư',
+            household_id: 'H005'
+        },
+        {
+            id: 14,
+            full_name: 'Trịnh Thị O',
+            gender: 'female',
+            date_of_birth: '2000-05-12',
+            phone_number: '0933456789',
+            id_number: '001200000014',
+            family_role: 'Vợ',
+            job: 'Nhân viên văn phòng',
+            household_id: 'H005'
+        },
+        {
+            id: 15,
+            full_name: 'Đinh Văn P',
+            gender: 'male',
+            date_of_birth: '1982-11-11',
+            phone_number: '0944567890',
+            id_number: '001082000015',
+            family_role: 'Chủ hộ',
+            job: 'Công an',
+            household_id: 'H006'
+        },
+        {
+            id: 16,
+            full_name: 'Trần Thị Q',
+            gender: 'female',
+            date_of_birth: '1985-08-08',
+            phone_number: '0955678901',
+            id_number: '001085000016',
+            family_role: 'Vợ',
+            job: 'Y tá',
+            household_id: 'H006'
+        },
+        {
+            id: 17,
+            full_name: 'Đinh Công R',
+            gender: 'male',
+            date_of_birth: '2010-01-01',
+            phone_number: '0966789012',
+            id_number: '001210000017',
+            family_role: 'Con',
+            job: 'Học sinh',
+            household_id: 'H006'
+        },
+        {
+            id: 18,
+            full_name: 'Hà Văn S',
+            gender: 'male',
+            date_of_birth: '1993-04-04',
+            phone_number: '0977890123',
+            id_number: '001093000018',
+            family_role: 'Khác',
+            job: 'Tài xế',
+            household_id: ''
+        },
+        {
+            id: 19,
+            full_name: 'Phan Thị T',
+            gender: 'female',
+            date_of_birth: '1997-07-07',
+            phone_number: '0988901234',
+            id_number: '001097000019',
+            family_role: 'Khác',
+            job: 'Nhân viên bán hàng',
+            household_id: ''
+        },
+        {
+            id: 20,
+            full_name: 'Võ Văn U',
+            gender: 'male',
+            date_of_birth: '1980-09-09',
+            phone_number: '0999012345',
+            id_number: '001080000020',
+            family_role: 'Chủ hộ',
+            job: 'Thợ điện',
+            household_id: 'H007'
+        },
+        {
+            id: 21,
+            full_name: 'Ngô Thị V',
+            gender: 'female',
+            date_of_birth: '1983-12-12',
+            phone_number: '0911223344',
+            id_number: '001083000021',
+            family_role: 'Vợ',
+            job: 'May mặc',
+            household_id: 'H007'
+        },
+        {
+            id: 22,
+            full_name: 'Ngô Văn X',
+            gender: 'male',
+            date_of_birth: '2008-05-05',
+            phone_number: '0922334455',
+            id_number: '001208000022',
+            family_role: 'Con',
+            job: 'Học sinh',
+            household_id: 'H007'
+        },
+        {
+            id: 23,
+            full_name: 'Hồ Thị Y',
+            gender: 'female',
+            date_of_birth: '1991-02-02',
+            phone_number: '0933445566',
+            id_number: '001091000023',
+            family_role: 'Chủ hộ',
+            job: 'Giảng viên',
+            household_id: 'H008'
         }
     ]);
 
@@ -84,6 +305,10 @@ const ResidentManagement = () => {
     const [genderFilter, setGenderFilter] = useState('ALL');
     const [householdFilter, setHouseholdFilter] = useState('ALL');
     const [roleFilter, setRoleFilter] = useState('ALL');
+
+    // Pagination states
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     // Filter menu anchor
     const [anchorEl, setAnchorEl] = useState(null);
@@ -146,6 +371,16 @@ const ResidentManagement = () => {
         setHouseholdFilter('ALL');
         setRoleFilter('ALL');
         setAnchorEl(null);
+        setPage(0);
+    };
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
     };
 
     const handleOpen = (record = null) => {
@@ -274,42 +509,67 @@ const ResidentManagement = () => {
         return date.toLocaleDateString('vi-VN');
     };
 
-    // --- HEADER ACTIONS (Top Right) ---
-    const headerActions = (
-        <Stack direction="row" spacing={1.5} alignItems="center">
-            {/* SEARCH BAR */}
-            <OutlinedInput
-                placeholder="Tìm tên, SĐT, CCCD..."
-                startAdornment={
-                    <InputAdornment position="start">
-                        <Search size={18} />
-                    </InputAdornment>
-                }
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{ 
-                    minWidth: 280,
-                    borderRadius: '12px'
-                }}
-                size="small"
-            />
+    return (
+        <MainCard contentSX={{ pt: 2 }}>
+            <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mr: 1 }}>
+                    Quản lý Cư dân
+                </Typography>
 
-            {/* FILTER BUTTON */}
-            <Tooltip title="Lọc theo điều kiện">
-                <IconButton 
-                    onClick={handleFilterClick}
-                    color={isFilterActive ? 'primary' : 'inherit'}
+                <Tooltip title="Thêm cư dân mới">
+                    <Button
+                        variant="contained"
+                        startIcon={<Plus size={20} />}
+                        onClick={() => handleOpen()}
+                        sx={{
+                            borderRadius: '12px',
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+                            minWidth: 'auto',
+                            px: 2,
+                            height: 40
+                        }}
+                    >
+                        Thêm
+                    </Button>
+                </Tooltip>
+
+                <Tooltip title="Lọc theo điều kiện">
+                    <IconButton 
+                        onClick={handleFilterClick}
+                        color={isFilterActive ? 'primary' : 'inherit'}
+                        sx={{ 
+                            border: '1px solid',
+                            borderColor: isFilterActive ? 'primary.main' : 'divider',
+                            borderRadius: '12px',
+                            padding: '8px',
+                            height: 40,
+                            width: 40
+                        }}
+                    >
+                        <Filter size={20} />
+                    </IconButton>
+                </Tooltip>
+
+                <OutlinedInput
+                    placeholder="Tìm tên, SĐT, CCCD..."
+                    startAdornment={
+                        <InputAdornment position="start">
+                            <Search size={18} />
+                        </InputAdornment>
+                    }
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     sx={{ 
-                        border: '1px solid',
-                        borderColor: isFilterActive ? 'primary.main' : 'divider',
+                        minWidth: 280,
                         borderRadius: '12px',
-                        padding: '10px'
+                        height: 40
                     }}
-                >
-                    <Filter size={20} />
-                </IconButton>
-            </Tooltip>
-            
+                    size="small"
+                />
+            </Box>
+
             {/* FILTER MENU */}
             <Menu
                 anchorEl={anchorEl}
@@ -370,28 +630,6 @@ const ResidentManagement = () => {
                     </>
                 )}
             </Menu>
-
-            {/* ADD BUTTON */}
-            <Tooltip title="Thêm cư dân mới">
-                <Button
-                    variant="contained"
-                    onClick={() => handleOpen()}
-                    sx={{ 
-                        minWidth: 48, 
-                        width: 48, 
-                        height: 44,
-                        borderRadius: '12px',
-                        padding: 0
-                    }}
-                >
-                    <Plus size={22} />
-                </Button>
-            </Tooltip>
-        </Stack>
-    );
-
-    return (
-        <MainCard title="Quản lý Cư dân" secondary={headerActions} contentSX={{ pt: 0 }}>
             {/* TABLE */}
             <TableContainer>
                 <Table sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
@@ -419,9 +657,9 @@ const ResidentManagement = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredData.map((row, index) => (
+                        {filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => (
                             <TableRow key={row.id} hover>
-                                <TableCell>{index + 1}</TableCell>
+                                <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                                 <TableCell>
                                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                                         {row.full_name}
@@ -476,6 +714,77 @@ const ResidentManagement = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
+            <TablePagination
+                rowsPerPageOptions={[10, 20, 50]}
+                component="div"
+                count={filteredData.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                labelRowsPerPage="Số hàng mỗi trang:"
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} trong ${count}`}
+                sx={{
+                    borderTop: '1px solid',
+                    borderColor: 'divider',
+                    '.MuiTablePagination-toolbar': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        pl: 1,
+                        '&::after': {
+                            content: '""',
+                            flex: 1,
+                            order: 10
+                        }
+                    },
+                    '.MuiTablePagination-spacer': {
+                        display: 'block',
+                        flex: 1,
+                        order: 2
+                    },
+                    '.MuiTablePagination-selectLabel': {
+                        margin: 0,
+                        lineHeight: 'inherit',
+                        order: 0
+                    },
+                    '.MuiTablePagination-select': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingTop: '2px',
+                        order: 1
+                    },
+                    '.MuiTablePagination-displayedRows': {
+                        margin: '0 16px',
+                        lineHeight: 'inherit',
+                        fontWeight: 600,
+                        color: 'primary.main',
+                        order: 4
+                    },
+                    '.MuiTablePagination-actions': {
+                        display: 'contents',
+                        '& .MuiIconButton-root': {
+                            borderRadius: '8px',
+                            margin: '0 2px',
+                            bgcolor: 'action.hover',
+                            '&:hover': {
+                                bgcolor: 'primary.main',
+                                color: 'white'
+                            },
+                            '&.Mui-disabled': {
+                                opacity: 0.3
+                            }
+                        },
+                        '& .MuiIconButton-root:nth-of-type(1)': {
+                            order: 3
+                        },
+                        '& .MuiIconButton-root:nth-of-type(2)': {
+                            order: 5
+                        }
+                    }
+                }}
+            />
 
             {/* ADD/EDIT DIALOG */}
             <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">

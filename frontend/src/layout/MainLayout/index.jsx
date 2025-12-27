@@ -33,9 +33,9 @@ export default function MainLayout() {
   const { menuMaster, menuMasterLoading } = useGetMenuMaster();
   const drawerOpen = menuMaster?.isDashboardDrawerOpened;
 
-  useEffect(() => {
-    handlerDrawerOpen(!miniDrawer);
-  }, [miniDrawer]);
+  // useEffect(() => {
+  //   handlerDrawerOpen(!miniDrawer);
+  // }, [miniDrawer]);
 
   useEffect(() => {
     downMD && handlerDrawerOpen(false);

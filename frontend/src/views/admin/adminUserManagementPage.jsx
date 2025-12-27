@@ -25,6 +25,7 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    TablePagination,
     TextField,
     Tooltip,
     Typography,
@@ -73,6 +74,10 @@ const AdminUserManagementPage = () => {
     const [editingRecord, setEditingRecord] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('ALL');
+
+    // Pagination states
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
     
     // Filter Menu State
     const [anchorEl, setAnchorEl] = useState(null);
@@ -190,8 +195,20 @@ const AdminUserManagementPage = () => {
     };
 
     const handleFilterClose = (role) => {
-        if (role) setRoleFilter(role);
+        if (role) {
+            setRoleFilter(role);
+            setPage(0);
+        }
         setAnchorEl(null);
+    };
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
     };
 
     const handleOpen = (record = null) => {
@@ -320,41 +337,67 @@ const AdminUserManagementPage = () => {
     };
 
     // Header action buttons for the top right corner
-    const headerActions = (
-        <Stack direction="row" spacing={1.5} alignItems="center">
-            {/* SEARCH BAR */}
-            <OutlinedInput
-                placeholder="Tìm tài khoản theo tên người dùng, số điện thoại"
-                startAdornment={
-                    <InputAdornment position="start">
-                        <Search size={18} />
-                    </InputAdornment>
-                }
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{ 
-                    minWidth: 380,
-                    borderRadius: '12px'
-                }}
-                size="small"
-            />
+    return (
+        <MainCard contentSX={{ pt: 2 }}>
+            <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mr: 1 }}>
+                    Quản lý Tài khoản
+                </Typography>
 
-            {/* FILTER BUTTON */}
-            <Tooltip title="Lọc theo vai trò">
-                <IconButton 
-                    onClick={handleFilterClick}
-                    color={roleFilter !== 'ALL' ? 'primary' : 'inherit'}
+                <Tooltip title="Tạo tài khoản mới">
+                    <Button
+                        variant="contained"
+                        startIcon={<Plus size={20} />}
+                        onClick={() => handleOpen()}
+                        sx={{
+                            borderRadius: '12px',
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+                            minWidth: 'auto',
+                            px: 2,
+                            height: 40
+                        }}
+                    >
+                        Thêm
+                    </Button>
+                </Tooltip>
+
+                <Tooltip title="Lọc theo vai trò">
+                    <IconButton 
+                        onClick={handleFilterClick}
+                        color={roleFilter !== 'ALL' ? 'primary' : 'inherit'}
+                        sx={{ 
+                            border: '1px solid',
+                            borderColor: roleFilter !== 'ALL' ? 'primary.main' : 'divider',
+                            borderRadius: '12px',
+                            padding: '8px',
+                            height: 40,
+                            width: 40
+                        }}
+                    >
+                        <Filter size={20} />
+                    </IconButton>
+                </Tooltip>
+
+                <OutlinedInput
+                    placeholder="Tìm tài khoản theo tên người dùng, số điện thoại"
+                    startAdornment={
+                        <InputAdornment position="start">
+                            <Search size={18} />
+                        </InputAdornment>
+                    }
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     sx={{ 
-                        border: '1px solid',
-                        borderColor: roleFilter !== 'ALL' ? 'primary.main' : 'divider',
+                        minWidth: 380,
                         borderRadius: '12px',
-                        padding: '10px'
+                        height: 40
                     }}
-                >
-                    <Filter size={20} />
-                </IconButton>
-            </Tooltip>
-            
+                    size="small"
+                />
+            </Box>
+
             {/* FILTER MENU */}
             <Menu
                 anchorEl={anchorEl}
@@ -384,28 +427,6 @@ const AdminUserManagementPage = () => {
                     Kế toán
                 </MenuItem>
             </Menu>
-
-            {/* ADD BUTTON */}
-            <Tooltip title="Tạo tài khoản mới">
-                <Button
-                    variant="contained"
-                    onClick={() => handleOpen()}
-                    sx={{ 
-                        minWidth: 48, 
-                        width: 48, 
-                        height: 44,
-                        borderRadius: '12px',
-                        padding: 0
-                    }}
-                >
-                    <Plus size={22} />
-                </Button>
-            </Tooltip>
-        </Stack>
-    );
-
-    return (
-        <MainCard title="Quản lý Tài khoản" secondary={headerActions} contentSX={{ pt: 0 }}>
             {/* TABLE */}
             <TableContainer>
                 <Table sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
@@ -429,9 +450,9 @@ const AdminUserManagementPage = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredData.map((row, index) => (
+                        {filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => (
                             <TableRow key={row.id} hover>
-                                <TableCell align="center">{index + 1}</TableCell>
+                                <TableCell align="center">{page * rowsPerPage + index + 1}</TableCell>
                                 <TableCell>
                                     <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                                         {row.username}
@@ -480,6 +501,77 @@ const AdminUserManagementPage = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
+            <TablePagination
+                rowsPerPageOptions={[10, 20, 50]}
+                component="div"
+                count={filteredData.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                labelRowsPerPage="Số hàng mỗi trang:"
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} trong ${count}`}
+                sx={{
+                    borderTop: '1px solid',
+                    borderColor: 'divider',
+                    '.MuiTablePagination-toolbar': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        pl: 1,
+                        '&::after': {
+                            content: '""',
+                            flex: 1,
+                            order: 10
+                        }
+                    },
+                    '.MuiTablePagination-spacer': {
+                        display: 'block',
+                        flex: 1,
+                        order: 2
+                    },
+                    '.MuiTablePagination-selectLabel': {
+                        margin: 0,
+                        lineHeight: 'inherit',
+                        order: 0
+                    },
+                    '.MuiTablePagination-select': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingTop: '2px',
+                        order: 1
+                    },
+                    '.MuiTablePagination-displayedRows': {
+                        margin: '0 16px',
+                        lineHeight: 'inherit',
+                        fontWeight: 600,
+                        color: 'primary.main',
+                        order: 4
+                    },
+                    '.MuiTablePagination-actions': {
+                        display: 'contents',
+                        '& .MuiIconButton-root': {
+                            borderRadius: '8px',
+                            margin: '0 2px',
+                            bgcolor: 'action.hover',
+                            '&:hover': {
+                                bgcolor: 'primary.main',
+                                color: 'white'
+                            },
+                            '&.Mui-disabled': {
+                                opacity: 0.3
+                            }
+                        },
+                        '& .MuiIconButton-root:nth-of-type(1)': {
+                            order: 3
+                        },
+                        '& .MuiIconButton-root:nth-of-type(2)': {
+                            order: 5
+                        }
+                    }
+                }}
+            />
 
             {/* DIALOG (MODAL) */}
             <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
