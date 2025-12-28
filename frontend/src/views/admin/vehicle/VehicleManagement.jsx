@@ -224,7 +224,37 @@ const VehicleManagement = () => {
             handleClose();
         } catch (error) {
             console.error('Error saving vehicle:', error);
-            const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra!';
+
+            // Xử lý nhiều loại error response từ backend
+            let errorMessage = 'Có lỗi xảy ra!';
+
+            if (error.response?.data) {
+                const data = error.response.data;
+
+                // Trường hợp 1: Backend trả về message trực tiếp
+                if (data.message) {
+                    errorMessage = data.message;
+                }
+                // Trường hợp 2: Validation errors (Spring Boot returns errors array or object)
+                else if (data.errors) {
+                    if (Array.isArray(data.errors)) {
+                        errorMessage = data.errors.join(', ');
+                    } else if (typeof data.errors === 'object') {
+                        errorMessage = Object.values(data.errors).join(', ');
+                    }
+                }
+                // Trường hợp 3: Field-specific validation errors
+                else if (data.plateNumber) {
+                    errorMessage = `Biển số xe: ${data.plateNumber}`;
+                }
+                // Trường hợp 4: Spring Validation default format
+                else if (data.error) {
+                    errorMessage = data.error;
+                }
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
             setSnackbar({ open: true, message: errorMessage, severity: 'error' });
         }
     };
@@ -634,7 +664,7 @@ const VehicleManagement = () => {
                                 </Typography>
                                 <TextField
                                     fullWidth
-                                    placeholder="VD: A-10"
+                                    placeholder="VD: A-1 hoặc A1"
                                     name="location"
                                     value={formData.location}
                                     onChange={handleChange}
