@@ -15,25 +15,26 @@ const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const EngineerRoutes = {
-  path: '/manager',
-  element: (
-        <MainLayout />
+    path: '/manager',
+    element: (
+        <ProtectedRoute allowedRoles={['MANAGER']}>
+            <MainLayout />
+        </ProtectedRoute>
     ),
-  children: [
-    {
-      path: 'dashboard',
-      element: <DashboardDefault />
-    },
-    {
-      path: 'resident',
-      element: <ResidentManagementPage />
-    },
-     {
-      path: 'household',
-      element: <HouseholdPage />
-    }
-  
-  ]
+    children: [
+        {
+            path: 'dashboard',
+            element: <DashboardDefault />
+        },
+        {
+            path: 'resident',
+            element: <ResidentManagementPage />
+        },
+        {
+            path: 'household',
+            element: <HouseholdPage />
+        }
+    ]
 };
 
 export default EngineerRoutes;

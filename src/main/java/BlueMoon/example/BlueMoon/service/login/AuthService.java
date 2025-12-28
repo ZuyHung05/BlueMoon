@@ -4,16 +4,11 @@ import BlueMoon.example.BlueMoon.dto.response.login.LoginResponse;
 import BlueMoon.example.BlueMoon.dto.request.login.LoginRequest;
 import BlueMoon.example.BlueMoon.entity.AccountEntity;
 import BlueMoon.example.BlueMoon.repository.AccountRepository;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Service
 public class AuthService {
@@ -24,8 +19,10 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // Key bí mật để ký JWT (Trong thực tế nên để trong biến môi trường)
-    private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    @Autowired
+    private BlueMoon.example.BlueMoon.utils.JwtUtil jwtUtil;
+
+    // Key bí mật đã được chuyển sang JwtUtil
 
     public LoginResponse login(LoginRequest request) {
         String username = request.getUsername() != null ? request.getUsername().trim() : "";
@@ -77,14 +74,8 @@ public class AuthService {
         accountRepository.save(account);
 
         // 5. Tạo JWT Token
-        String token = Jwts.builder()
-                .setSubject(account.getUsername())
-                .claim("role", account.getRole())
-                .claim("id", account.getAccountId())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 3600000)) // 1 giờ
-                .signWith(SECRET_KEY)
-                .compact();
+        // 5. Tạo JWT Token
+        String token = jwtUtil.generateToken(account.getUsername(), account.getRole(), String.valueOf(account.getAccountId()));
 
         // 6. Trả về kết quả để Frontend điều hướng
         return new LoginResponse(token, account.getUsername(), account.getRole(), "/admin/dashboard");

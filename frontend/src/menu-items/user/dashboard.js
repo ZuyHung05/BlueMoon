@@ -12,12 +12,12 @@ const icons = {
 
 const dashboard = {
   id: 'dashboard',
-  title: 'Navigation',
+  title: 'Điều hướng',
   type: 'group',
   children: [
     {
       id: 'user-welcome',
-      title: 'Home',
+      title: 'Trang chủ',
       type: 'item',
       url: '/user/home',
       icon: icons.Home,
@@ -25,7 +25,7 @@ const dashboard = {
     },
     {
       id: 'util-report_problem',
-      title: 'Report Problem',
+      title: 'Báo cáo vấn đề',
       type: 'item',
       url: '/user/report_problem',
       icon: icons.MessageCircleQuestion,
@@ -33,7 +33,7 @@ const dashboard = {
     },
     {
       id: 'util-my_report',
-      title: 'My Reports',
+      title: 'Báo cáo của tôi',
       type: 'item',
       url: '/user/my_report',
       icon: icons.FileText,

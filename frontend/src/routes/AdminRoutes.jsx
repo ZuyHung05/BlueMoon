@@ -1,8 +1,8 @@
 import { lazy } from 'react';
 
-// project imports
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
+import ProtectedRoute from './ProtectedRoutes';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/admin/dashboard/Default')));
@@ -17,45 +17,80 @@ const DefaultFeeManagement = Loadable(lazy(() => import('views/admin/feemanager/
 const VehicleManagement = Loadable(lazy(() => import('views/admin/vehicle/VehicleManagement')));
 
 const PaymentPeriodManagement = Loadable(lazy(() => import('views/admin/feemanager/PaymentPeriodManagement')));
-    
+
 const HouseholdManagement = Loadable(lazy(() => import('views/admin/household/HouseholdManagement')));
+
 // ==============================|| MAIN ROUTING ||============================== //
 
 const AdminRoutes = {
-    path: '/admin',
-    element: <MainLayout />,
+    path: '/',
+    element: (
+        <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'ACCOUNTANT']}>
+            <MainLayout />
+        </ProtectedRoute>
+    ),
     children: [
         {
             path: 'dashboard',
+            // Dashboard is allowed for everyone in the layout (ADMIN, MANAGER, ACCOUNTANT)
+            // So no extra wrapper needed, or wrap with all 3 if preferred for consistency.
             element: <DashboardDefault />
         },
         {
             path: 'resident',
-            element: <ResidentManagement />
+            element: (
+                <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
+                    <ResidentManagement />
+                </ProtectedRoute>
+            )
         },
         {
             path: 'report',
-            element: <ReportPage />
+            element: (
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                    <ReportPage />
+                </ProtectedRoute>
+            )
         },
         {
             path: 'user_management',
-            element: <AdminUserManagementPage />
+            element: (
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                    <AdminUserManagementPage />
+                </ProtectedRoute>
+            )
         },
         {
             path: 'default-fee',
-            element: <DefaultFeeManagement />
+            element: (
+                <ProtectedRoute allowedRoles={['ADMIN', 'ACCOUNTANT']}>
+                    <DefaultFeeManagement />
+                </ProtectedRoute>
+            )
         },
         {
             path: 'vehicle',
-            element: <VehicleManagement />
+            element: (
+                <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
+                    <VehicleManagement />
+                </ProtectedRoute>
+            )
         },
         {
             path: 'payment-period',
-            element: <PaymentPeriodManagement />
+            element: (
+                <ProtectedRoute allowedRoles={['ADMIN', 'ACCOUNTANT']}>
+                    <PaymentPeriodManagement />
+                </ProtectedRoute>
+            )
         },
         {
             path: 'household',
-            element: <HouseholdManagement />
+            element: (
+                <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
+                    <HouseholdManagement />
+                </ProtectedRoute>
+            )
         }
     ]
 };

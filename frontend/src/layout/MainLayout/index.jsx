@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 
 // material-ui
@@ -24,50 +24,56 @@ import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 // ==============================|| MAIN LAYOUT ||============================== //
 
 export default function MainLayout() {
-  const theme = useTheme();
-  const downMD = useMediaQuery(theme.breakpoints.down('md'));
+    const theme = useTheme();
+    const downMD = useMediaQuery(theme.breakpoints.down('md'));
 
-  const {
-    state: { borderRadius, miniDrawer }
-  } = useConfig();
-  const { menuMaster, menuMasterLoading } = useGetMenuMaster();
-  const drawerOpen = menuMaster?.isDashboardDrawerOpened;
+    const {
+        state: { borderRadius, miniDrawer }
+    } = useConfig();
+    const { menuMaster, menuMasterLoading } = useGetMenuMaster();
+    const drawerOpen = menuMaster?.isDashboardDrawerOpened;
 
-  // useEffect(() => {
-  //   handlerDrawerOpen(!miniDrawer);
-  // }, [miniDrawer]);
+    const [chatToggled, setChatToggled] = useState(false);
 
-  useEffect(() => {
-    downMD && handlerDrawerOpen(false);
-  }, [downMD]);
+    const handleChatToggle = () => {
+        setChatToggled((prev) => !prev);
+    };
 
-  // horizontal menu-list bar : drawer
+    // useEffect(() => {
+    //   handlerDrawerOpen(!miniDrawer);
+    // }, [miniDrawer]);
 
-  if (menuMasterLoading) return <Loader />;
+    useEffect(() => {
+        downMD && handlerDrawerOpen(false);
+    }, [downMD]);
 
-  return (
-    <Box sx={{ display: 'flex' }}>
-      {/* header */}
-      <AppBar enableColorOnDark position="fixed" color="inherit" elevation={0} sx={{ bgcolor: 'background.default' }}>
-        <Toolbar sx={{ p: 2 }}>
-          <Header />
-        </Toolbar>
-      </AppBar>
+    // horizontal menu-list bar : drawer
 
-      {/* menu / drawer */}
-      <Sidebar />
+    if (menuMasterLoading) return <Loader />;
 
-      {/* main content */}
-      <MainContentStyled {...{ borderRadius, open: drawerOpen }}>
-        <Box sx={{ ...{ px: { xs: 0 } }, minHeight: 'calc(100vh - 128px)', display: 'flex', flexDirection: 'column' }}>
-          {/* breadcrumb */}
-          <Breadcrumbs />
-          <Outlet />
-          <Footer />
+    return (
+        <Box sx={{ display: 'flex' }}>
+            {/* header */}
+            <AppBar enableColorOnDark position="fixed" color="inherit" elevation={0} sx={{ bgcolor: 'background.default' }}>
+                <Toolbar sx={{ p: 2 }}>
+                    <Header chatToggled={chatToggled} handleChatToggle={handleChatToggle} />
+                </Toolbar>
+            </AppBar>
+
+            {/* menu / drawer */}
+            <Sidebar />
+
+            {/* main content */}
+            <MainContentStyled {...{ borderRadius, open: drawerOpen }}>
+                <Box sx={{ ...{ px: { xs: 0 } }, minHeight: 'calc(100vh - 128px)', display: 'flex', flexDirection: 'column' }}>
+                    {/* breadcrumb */}
+                    <Breadcrumbs />
+                    <Outlet />
+                    <Footer />
+                </Box>
+            </MainContentStyled>
+            {/* <Customization /> */}
+            <Bot toggled={chatToggled} onClose={() => setChatToggled(false)} />
         </Box>
-      </MainContentStyled>
-      {/* <Customization /> */}
-      <Bot/>
-    </Box>
-  );
+    );
 }

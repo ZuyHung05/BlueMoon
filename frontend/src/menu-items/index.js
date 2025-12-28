@@ -1,16 +1,20 @@
 import adminMenu from './admin';
 import managerMenu from './manager';
+import userMenu from './user';
 
-const path = window.location.pathname; // e.g., "/manager/dashboard"
+const menuItems = {
+    get items() {
+        const role = localStorage.getItem('role')?.toUpperCase();
 
-let menuToExport;
+        // Check for management roles
+        if (['ADMIN', 'MANAGER', 'ACCOUNTANT'].includes(role)) {
+            return adminMenu.items;
+        }
 
-if (path.startsWith("/admin")) {
-  menuToExport = adminMenu;
+        // Default to user menu or other menus based on future logic
+        // Assuming 'USER' or others fall here
+        return userMenu.items;
+    }
+};
 
-} else if (path.startsWith("/manager")) {
-  menuToExport = managerMenu;
-
-} 
-
-export default menuToExport;
+export default menuItems;

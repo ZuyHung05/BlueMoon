@@ -31,7 +31,7 @@ export default function AuthLogin() {
     const [checked, setChecked] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
-    
+
     // State loading & success
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -49,8 +49,8 @@ export default function AuthLogin() {
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
 
-            console.log("DEBUG: Sending login request to:", `${apiUrl}/api/login`);
-            console.log("DEBUG: Payload:", { username: formData.username, password: formData.password });
+            console.log('DEBUG: Sending login request to:', `${apiUrl}/api/login`);
+            console.log('DEBUG: Payload:', { username: formData.username, password: formData.password });
 
             const response = await fetch(`${apiUrl}/api/login`, {
                 method: 'POST',
@@ -78,16 +78,11 @@ export default function AuthLogin() {
 
             // Đợi một chút để người dùng thấy thông báo thành công (đánh lừa thị giác)
             setTimeout(() => {
-                if (data.redirectUrl) {
-                    window.location.href = data.redirectUrl;
-                } else {
-                    window.location.href = '/';
-                }
+                window.location.href = '/dashboard';
             }, 1500);
-
         } catch (err) {
-            console.error("Lỗi đăng nhập:", err);
-            setErrorMsg(err.message || "Không thể kết nối đến server. Vui lòng thử lại.");
+            console.error('Lỗi đăng nhập:', err);
+            setErrorMsg(err.message || 'Không thể kết nối đến server. Vui lòng thử lại.');
             setIsLoading(false); // Tắt loading nếu có lỗi để người dùng nhập lại
         }
     };
@@ -100,7 +95,7 @@ export default function AuthLogin() {
                     sx={{
                         position: 'absolute',
                         top: { xs: -140, sm: -160 }, // Đẩy ngược lên để che phủ luôn cả Logo và Title
-                        left: { xs: -24, sm: -32 },  // Che phủ padding của AuthCardWrapper
+                        left: { xs: -24, sm: -32 }, // Che phủ padding của AuthCardWrapper
                         right: { xs: -24, sm: -32 },
                         bottom: { xs: -24, sm: -32 },
                         bgcolor: 'rgba(255, 255, 255, 0.95)',
@@ -124,28 +119,36 @@ export default function AuthLogin() {
                             </Typography>
                         </>
                     ) : (
-                        <Box sx={{ 
-                            animation: 'fadeInScale 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center'
-                        }}>
+                        <Box
+                            sx={{
+                                animation: 'fadeInScale 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center'
+                            }}
+                        >
                             <CheckCircle sx={{ fontSize: 110, color: '#00c853', mb: 2 }} />
-                            <Typography variant="h3" sx={{ 
-                                fontWeight: 900, 
-                                color: '#1b5e20', // Darker green for text for better readability
-                                mb: 1.5,
-                                letterSpacing: '-0.5px'
-                            }}>
+                            <Typography
+                                variant="h3"
+                                sx={{
+                                    fontWeight: 900,
+                                    color: '#1b5e20', // Darker green for text for better readability
+                                    mb: 1.5,
+                                    letterSpacing: '-0.5px'
+                                }}
+                            >
                                 Đăng nhập thành công!
                             </Typography>
-                            <Typography variant="h5" sx={{ 
-                                color: '#00c853', 
-                                fontWeight: 600,
-                                opacity: 1,
-                                letterSpacing: '0.2px',
-                                animation: 'blink 1.5s infinite'
-                            }}>
+                            <Typography
+                                variant="h5"
+                                sx={{
+                                    color: '#00c853',
+                                    fontWeight: 600,
+                                    opacity: 1,
+                                    letterSpacing: '0.2px',
+                                    animation: 'blink 1.5s infinite'
+                                }}
+                            >
                                 Đang chuyển hướng...
                             </Typography>
                         </Box>
@@ -190,10 +193,10 @@ export default function AuthLogin() {
                             spellCheck: 'false',
                             autoCapitalize: 'none'
                         }}
-                        sx={{ 
-                            borderRadius: '12px', 
+                        sx={{
+                            borderRadius: '12px',
                             backgroundColor: '#ffffff',
-                            '& .MuiOutlinedInput-input': { 
+                            '& .MuiOutlinedInput-input': {
                                 color: '#000000',
                                 padding: '12px 14px', // Slightly reduced padding
                                 '&:-webkit-autofill': {
@@ -218,7 +221,7 @@ export default function AuthLogin() {
                         }}
                         endAdornment={
                             <InputAdornment position="end">
-                                <AccountCircle color={isLoading ? "disabled" : "primary"} />
+                                <AccountCircle color={isLoading ? 'disabled' : 'primary'} />
                             </InputAdornment>
                         }
                     />
@@ -239,10 +242,10 @@ export default function AuthLogin() {
                         inputProps={{
                             spellCheck: 'false'
                         }}
-                        sx={{ 
-                            borderRadius: '12px', 
+                        sx={{
+                            borderRadius: '12px',
                             backgroundColor: '#ffffff',
-                            '& .MuiOutlinedInput-input': { 
+                            '& .MuiOutlinedInput-input': {
                                 color: '#000000',
                                 padding: '12px 14px', // Slightly reduced padding
                                 '&:-webkit-autofill': {
@@ -286,11 +289,11 @@ export default function AuthLogin() {
                     <Grid item>
                         <FormControlLabel
                             control={
-                                <Checkbox 
-                                    checked={checked} 
-                                    onChange={(e) => setChecked(e.target.checked)} 
+                                <Checkbox
+                                    checked={checked}
+                                    onChange={(e) => setChecked(e.target.checked)}
                                     color="primary"
-                                    disabled={isLoading} 
+                                    disabled={isLoading}
                                 />
                             }
                             label={
@@ -301,8 +304,6 @@ export default function AuthLogin() {
                         />
                     </Grid>
                 </Grid>
-
-
 
                 {/* --- BUTTON --- */}
                 <Box sx={{ mt: 1 }}>

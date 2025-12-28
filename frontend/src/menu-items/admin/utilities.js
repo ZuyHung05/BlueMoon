@@ -1,86 +1,76 @@
 // assets
-import {
-  UserCog,
-  Building,
-  Users,
-  Car,
-  DollarSign,
-  CalendarRange,
-  BarChart3
-} from 'lucide-react';
+import { UserCog, Building, Users, Car, DollarSign, CalendarRange, BarChart3 } from 'lucide-react';
 
 // constant
 const icons = {
-  UserCog,
-  Building,
-  Users,
-  Car,
-  DollarSign,
-  CalendarRange,
-  BarChart3
+    UserCog,
+    Building,
+    Users,
+    Car,
+    DollarSign,
+    CalendarRange,
+    BarChart3
 };
 
 const utilities = {
     id: 'utilities',
-    title: 'Menu',
+    title: 'Danh mục',
     type: 'group',
     children: [
         {
             id: 'util-user_management',
-            title: 'Account',
+            title: 'Tài khoản',
             type: 'item',
-            url: '/admin/user_management',
+            url: '/user_management',
             icon: icons.UserCog,
-            breadcrumbs: false
+            breadcrumbs: false,
+            roles: ['ADMIN']
         },
         {
             id: 'util-household', // <--- 3. Thêm mục Hộ khẩu
-            title: 'Households',
+            title: 'Hộ khẩu',
             type: 'item',
-            url: '/admin/household',
+            url: '/household',
             icon: icons.Building,
-            breadcrumbs: false
+            breadcrumbs: false,
+            roles: ['ADMIN', 'MANAGER']
         },
         {
             id: 'util-residents',
-            title: 'Residents',
+            title: 'Cư dân',
             type: 'item',
-            url: '/admin/resident',
+            url: '/resident',
             icon: icons.Users,
-            breadcrumbs: false
+            breadcrumbs: false,
+            roles: ['ADMIN', 'MANAGER']
         },
         {
             id: 'util-vehicle', // <--- 3. Thêm mục Phương tiện
-            title: 'Vehicles',
+            title: 'Phương tiện',
             type: 'item',
-            url: '/admin/vehicle',
+            url: '/vehicle',
             icon: icons.Car,
-            breadcrumbs: false
+            breadcrumbs: false,
+            roles: ['ADMIN', 'MANAGER']
         },
         {
             id: 'util-default-fee',
-            title: 'Default Fee',
+            title: 'Phí cố định',
             type: 'item',
-            url: '/admin/default-fee',
+            url: '/default-fee',
             icon: icons.DollarSign,
-            breadcrumbs: false
+            breadcrumbs: false,
+            roles: ['ADMIN', 'ACCOUNTANT']
         },
         {
             id: 'util-payment-period', // <--- 3. Thêm mục Đợt thu
-            title: 'Fee Periods',
+            title: 'Đợt thu phí',
             type: 'item',
-            url: '/admin/payment-period',
+            url: '/payment-period',
             icon: icons.CalendarRange,
-            breadcrumbs: false
-        },
-        {
-            id: 'util-report',
-            title: 'Reports',
-            type: 'item',
-            url: '/admin/report',
-            icon: icons.BarChart3,
-            breadcrumbs: false
-        },
+            breadcrumbs: false,
+            roles: ['ADMIN', 'ACCOUNTANT']
+        }
     ]
 };
 

@@ -8,12 +8,12 @@ const icons = { LayoutDashboard };
 
 const dashboard = {
   id: 'dashboard',
-  title: 'Dashboard',
+  title: 'Tổng quan',
   type: 'group',
   children: [
     {
       id: 'engineer-dashboard',
-      title: 'Dashboard',
+      title: 'Tổng quan',
       type: 'item',
       url: '/manager/dashboard',
       icon: icons.LayoutDashboard,

@@ -19,10 +19,8 @@ body {
   line-height:1;
   box-sizing: border-box;
   font-family: 'Raleway', sans-serif;
-  /* display: flex;
-  place-items: center; */
-  /* min-width: 320px;
-  min-height: 100vh; */
+  background-color: #020617; /* Default to dark background */
+  color: #f1f5f9; /* Default to light text */
 }
 
 h1 {
@@ -38,8 +36,8 @@ button:focus-visible {
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: #f1f5f9; /* Force dark mode text for now as app is dark */
+    background-color: #020617; /* Force dark mode bg */
   }
   a:hover {
     color: #fff;;

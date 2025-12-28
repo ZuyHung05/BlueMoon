@@ -54,7 +54,7 @@ export default function Customization() {
   return (
     <>
       {/* toggle button */}
-      <Tooltip title="Live Customize">
+      <Tooltip title="Tùy chỉnh giao diện">
         <Fab
           component="div"
           onClick={handleToggle}
@@ -86,10 +86,10 @@ export default function Customization() {
           <SimpleBar>
             <MainCard content={false} border={false}>
               <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', p: 2.5, gap: 1.5 }}>
-                <Typography variant="h5">Theme Customization</Typography>
+                <Typography variant="h5">Tùy chỉnh giao diện</Typography>
                 <Stack direction="row" sx={{ alignItems: 'center', gap: 1.25 }}>
                   <Button variant="outlined" color="error" size="small" onClick={handleReset}>
-                    Reset
+                    Mặc định
                   </Button>
                   <IconButton sx={{ p: 0, color: 'grey.600' }} onClick={handleToggle}>
                     <IconPlus size={24} style={{ transform: 'rotate(45deg)' }} />

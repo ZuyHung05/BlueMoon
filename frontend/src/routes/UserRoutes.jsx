@@ -8,24 +8,26 @@ const ReportProblemPage = Loadable(lazy(() => import('views/user/reportProblemPa
 const MyReportPage = Loadable(lazy(() => import('views/user/myReportPage')));
 
 const UserRoutes = {
-  path: '/user/',
-  element: (
-        <MainLayout />
+    path: '/user/',
+    element: (
+        <ProtectedRoute>
+            <MainLayout />
+        </ProtectedRoute>
     ),
-  children: [
-    {
-      path: 'home',
-      element: <UserHomePage />
-    },
-    {
-      path: 'report_problem',
-      element: <ReportProblemPage />
-    },
-    {
-      path: 'my_report',
-      element: <MyReportPage />
-    }
-  ]
+    children: [
+        {
+            path: 'home',
+            element: <UserHomePage />
+        },
+        {
+            path: 'report_problem',
+            element: <ReportProblemPage />
+        },
+        {
+            path: 'my_report',
+            element: <MyReportPage />
+        }
+    ]
 };
 
 export default UserRoutes;

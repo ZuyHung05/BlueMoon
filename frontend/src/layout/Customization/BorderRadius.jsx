@@ -24,7 +24,7 @@ export default function BorderRadius() {
 
   return (
     <Stack sx={{ pl: 2, pb: 2, pr: 4, gap: 2.5 }}>
-      <Typography variant="h5">BORDER RADIUS</Typography>
+      <Typography variant="h5">ĐỘ BO GÓC</Typography>
       <Grid container spacing={1.25} sx={{ pt: 2, alignItems: 'center', justifyContent: 'center' }}>
         <Grid>
           <Typography variant="h6">4px</Typography>

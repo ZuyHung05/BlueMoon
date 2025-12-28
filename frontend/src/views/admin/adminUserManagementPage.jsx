@@ -1,6 +1,7 @@
 // frontend/src/views/admin/adminUserManagementPage.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from 'api/axios';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -31,7 +32,10 @@ import {
     Typography,
     Stack,
     Snackbar,
-    Alert
+    Alert,
+    CircularProgress,
+    LinearProgress,
+    Backdrop
 } from '@mui/material';
 
 // project imports
@@ -41,33 +45,18 @@ import { gridSpacing } from 'store/constant';
 // assets
 import { Edit, Trash2, Plus, Search, Filter } from 'lucide-react';
 
+const ROLE_MAP = {
+    ADMIN: 'Quản trị viên',
+    MANAGER: 'Tổ trưởng',
+    ACCOUNTANT: 'Kế toán'
+};
+
 const AdminUserManagementPage = () => {
     const theme = useTheme();
 
-    // --- 1. MOCK DATA ---
-    const [data, setData] = useState([
-        {
-            id: 1,
-            username: 'admin_sys',
-            role: 'ADMIN',
-            phone: '0901000001',
-            last_login: '2025-10-20 08:30:00'
-        },
-        {
-            id: 2,
-            username: 'ketoan_lan',
-            role: 'ACCOUNTANT',
-            phone: '0901000234',
-            last_login: '2025-10-21 14:15:00'
-        },
-        {
-            id: 3,
-            username: 'totruong_dung',
-            role: 'MANAGER',
-            phone: '0905000333',
-            last_login: null
-        }
-    ]);
+    // --- 1. DATA STATE ---
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     // --- 2. STATE ---
     const [open, setOpen] = useState(false);
@@ -78,7 +67,7 @@ const AdminUserManagementPage = () => {
     // Pagination states
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    
+
     // Filter Menu State
     const [anchorEl, setAnchorEl] = useState(null);
     const openFilter = Boolean(anchorEl);
@@ -122,7 +111,7 @@ const AdminUserManagementPage = () => {
             return 'Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới';
         }
         // Check if username already exists (when creating new)
-        if (!editingRecord && data.some(item => item.username.toLowerCase() === value.toLowerCase())) {
+        if (!editingRecord && data.some((item) => item.username.toLowerCase() === value.toLowerCase())) {
             return 'Tên đăng nhập đã tồn tại';
         }
         return '';
@@ -175,19 +164,43 @@ const AdminUserManagementPage = () => {
             role: validateRole(formData.role)
         };
         setErrors(newErrors);
-        
+
         // Return true if no errors
-        return !Object.values(newErrors).some(error => error !== '');
+        return !Object.values(newErrors).some((error) => error !== '');
     };
 
-    // --- 3. FILTERING ---
-    const filteredData = data.filter((item) => {
-        const matchSearch =
-            item.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.phone.includes(searchTerm);
-        const matchRole = roleFilter === 'ALL' || item.role === roleFilter;
-        return matchSearch && matchRole;
-    });
+    // --- 3. FETCHING DATA ---
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const endpoint =
+                searchTerm || roleFilter !== 'ALL' ? `/api/accounts/search?query=${searchTerm}&role=${roleFilter}` : '/api/accounts';
+
+            const response = await api.get(endpoint);
+            if (response.data.success) {
+                setData(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching accounts:', error);
+            setSnackbar({
+                open: true,
+                message: 'Lỗi khi tải dữ liệu từ server: ' + (error.response?.data?.message || error.message),
+                severity: 'error'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchData();
+        }, 500); // Debounce search
+        return () => clearTimeout(timer);
+    }, [searchTerm, roleFilter]);
+
+    // Use derived state for pagination mapping if needed, but data now comes from DB
+    const filteredData = data;
 
     // --- 4. HANDLERS ---
     const handleFilterClick = (event) => {
@@ -243,36 +256,47 @@ const AdminUserManagementPage = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
-        
+
         // Clear error when user starts typing
         if (errors[name]) {
             setErrors({ ...errors, [name]: '' });
         }
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         // Validate form
         if (!validateForm()) {
             return;
         }
 
-        if (editingRecord) {
-            // Update
-            const updatedData = data.map((item) =>
-                item.id === editingRecord.id ? { ...item, ...formData, password: undefined } : item
-            );
-            setData(updatedData);
-            setSnackbar({ open: true, message: 'Cập nhật tài khoản thành công!', severity: 'success' });
-        } else {
-            // Create
-            const newId = data.length > 0 ? Math.max(...data.map((d) => d.id)) + 1 : 1;
-            setData([
-                ...data,
-                { id: newId, last_login: null, ...formData }
-            ]);
-            setSnackbar({ open: true, message: 'Tạo tài khoản mới thành công!', severity: 'success' });
+        setLoading(true);
+        try {
+            if (editingRecord) {
+                // Update
+                const response = await api.put(`/api/accounts/${editingRecord.accountId}`, formData);
+                if (response.data.success) {
+                    setSnackbar({ open: true, message: 'Cập nhật tài khoản thành công!', severity: 'success' });
+                    fetchData();
+                    handleClose();
+                }
+            } else {
+                // Create
+                const response = await api.post('/api/accounts', formData);
+                if (response.data.success) {
+                    setSnackbar({ open: true, message: 'Tạo tài khoản mới thành công!', severity: 'success' });
+                    fetchData();
+                    handleClose();
+                }
+            }
+        } catch (error) {
+            setSnackbar({
+                open: true,
+                message: 'Lỗi: ' + (error.response?.data?.message || error.message),
+                severity: 'error'
+            });
+        } finally {
+            setLoading(false);
         }
-        handleClose();
     };
 
     const handleDelete = (record) => {
@@ -280,13 +304,46 @@ const AdminUserManagementPage = () => {
         setDeleteDialogOpen(true);
     };
 
-    const handleConfirmDelete = () => {
+    const handleConfirmDelete = async () => {
         if (deletingRecord) {
-            setData(data.filter((item) => item.id !== deletingRecord.id));
-            setSnackbar({ open: true, message: 'Xóa tài khoản thành công!', severity: 'success' });
+            setLoading(true);
+            try {
+                const response = await api.delete(`/api/accounts/${deletingRecord.accountId}`);
+                if (response.data.success) {
+                    setSnackbar({ open: true, message: 'Xóa tài khoản thành công!', severity: 'success' });
+                    fetchData();
+                }
+            } catch (error) {
+                setSnackbar({
+                    open: true,
+                    message: 'Lỗi khi xóa tài khoản: ' + (error.response?.data?.message || error.message),
+                    severity: 'error'
+                });
+            } finally {
+                setLoading(false);
+            }
         }
         setDeleteDialogOpen(false);
         setDeletingRecord(null);
+    };
+
+    const formatDateTime = (dateString) => {
+        if (!dateString) return null;
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleString('vi-VN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false,
+                timeZone: 'Asia/Ho_Chi_Minh'
+            });
+        } catch (error) {
+            return dateString;
+        }
     };
 
     const handleCancelDelete = () => {
@@ -296,42 +353,41 @@ const AdminUserManagementPage = () => {
 
     // --- HELPER ---
     const getRoleChip = (role) => {
+        const normalizedRole = (role || '').toUpperCase();
         let bgColor = 'rgba(100, 100, 100, 0.2)';
         let textColor = '#94a3b8';
-        let label = role;
-        
-        switch (role) {
+
+        switch (normalizedRole) {
             case 'ADMIN':
                 bgColor = 'rgba(239, 68, 68, 0.15)';
                 textColor = '#f87171';
-                label = 'Admin';
                 break;
             case 'ACCOUNTANT':
                 bgColor = 'rgba(34, 197, 94, 0.15)';
                 textColor = '#4ade80';
-                label = 'Kế toán';
                 break;
             case 'MANAGER':
                 bgColor = 'rgba(34, 211, 238, 0.15)';
                 textColor = '#22d3ee';
-                label = 'Tổ trưởng';
                 break;
             default:
                 break;
         }
 
+        const label = ROLE_MAP[normalizedRole] || role;
+
         return (
-            <Chip 
-                label={label} 
-                size="small" 
-                sx={{ 
-                    bgcolor: bgColor, 
+            <Chip
+                label={label}
+                size="small"
+                sx={{
+                    bgcolor: bgColor,
                     color: textColor,
                     fontWeight: 500,
                     border: 'none',
                     minWidth: 80,
                     justifyContent: 'center'
-                }} 
+                }}
             />
         );
     };
@@ -364,10 +420,10 @@ const AdminUserManagementPage = () => {
                 </Tooltip>
 
                 <Tooltip title="Lọc theo vai trò">
-                    <IconButton 
+                    <IconButton
                         onClick={handleFilterClick}
                         color={roleFilter !== 'ALL' ? 'primary' : 'inherit'}
-                        sx={{ 
+                        sx={{
                             border: '1px solid',
                             borderColor: roleFilter !== 'ALL' ? 'primary.main' : 'divider',
                             borderRadius: '12px',
@@ -389,7 +445,7 @@ const AdminUserManagementPage = () => {
                     }
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    sx={{ 
+                    sx={{
                         minWidth: 380,
                         borderRadius: '12px',
                         height: 40
@@ -418,30 +474,42 @@ const AdminUserManagementPage = () => {
                     Tất cả vai trò
                 </MenuItem>
                 <MenuItem onClick={() => handleFilterClose('ADMIN')} selected={roleFilter === 'ADMIN'}>
-                    Admin
+                    {ROLE_MAP['ADMIN']}
                 </MenuItem>
                 <MenuItem onClick={() => handleFilterClose('MANAGER')} selected={roleFilter === 'MANAGER'}>
-                    Tổ trưởng
+                    {ROLE_MAP['MANAGER']}
                 </MenuItem>
                 <MenuItem onClick={() => handleFilterClose('ACCOUNTANT')} selected={roleFilter === 'ACCOUNTANT'}>
-                    Kế toán
+                    {ROLE_MAP['ACCOUNTANT']}
                 </MenuItem>
             </Menu>
+
+            {/* LOADING SPINNER INSTEAD OF LINEAR */}
+            {loading && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                    <CircularProgress size={24} />
+                </Box>
+            )}
+
             {/* TABLE */}
             <TableContainer>
                 <Table sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
-                    <TableHead sx={{ 
-                        bgcolor: 'action.hover',
-                        '& .MuiTableCell-root': { 
-                            color: 'text.primary', 
-                            fontWeight: 700,
-                            fontSize: '0.875rem',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px'
-                        }
-                    }}>
+                    <TableHead
+                        sx={{
+                            bgcolor: 'action.hover',
+                            '& .MuiTableCell-root': {
+                                color: 'text.primary',
+                                fontWeight: 700,
+                                fontSize: '0.875rem',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                            }
+                        }}
+                    >
                         <TableRow>
-                            <TableCell align="center" sx={{ width: 60 }}>STT</TableCell>
+                            <TableCell align="center" sx={{ width: 60 }}>
+                                STT
+                            </TableCell>
                             <TableCell>Tên đăng nhập</TableCell>
                             <TableCell align="center">Vai trò</TableCell>
                             <TableCell>Số điện thoại</TableCell>
@@ -451,7 +519,7 @@ const AdminUserManagementPage = () => {
                     </TableHead>
                     <TableBody>
                         {filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => (
-                            <TableRow key={row.id} hover>
+                            <TableRow key={row.accountId} hover>
                                 <TableCell align="center">{page * rowsPerPage + index + 1}</TableCell>
                                 <TableCell>
                                     <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
@@ -461,7 +529,7 @@ const AdminUserManagementPage = () => {
                                 <TableCell align="center">{getRoleChip(row.role)}</TableCell>
                                 <TableCell>{row.phone}</TableCell>
                                 <TableCell>
-                                    {row.last_login || (
+                                    {formatDateTime(row.lastLogin) || (
                                         <Typography variant="caption" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
                                             Chưa đăng nhập
                                         </Typography>
@@ -469,32 +537,36 @@ const AdminUserManagementPage = () => {
                                 </TableCell>
                                 <TableCell align="center">
                                     <Tooltip title="Sửa">
-                                        <IconButton 
-                                            color="primary" 
-                                            onClick={() => handleOpen(row)}
-                                            size="small"
-                                        >
+                                        <IconButton color="primary" onClick={() => handleOpen(row)} size="small">
                                             <Edit size={18} />
                                         </IconButton>
                                     </Tooltip>
                                     <Tooltip title="Xóa">
-                                        <IconButton 
-                                            color="error" 
-                                            onClick={() => handleDelete(row)}
-                                            size="small"
-                                        >
+                                        <IconButton color="error" onClick={() => handleDelete(row)} size="small">
                                             <Trash2 size={18} />
                                         </IconButton>
                                     </Tooltip>
                                 </TableCell>
                             </TableRow>
                         ))}
-                        {filteredData.length === 0 && (
+                        {filteredData.length === 0 && !loading && (
                             <TableRow>
                                 <TableCell colSpan={6} align="center">
                                     <Typography variant="body2" sx={{ py: 3 }}>
                                         Không tìm thấy dữ liệu
                                     </Typography>
+                                </TableCell>
+                            </TableRow>
+                        )}
+                        {loading && filteredData.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={6} align="center">
+                                    <Box sx={{ py: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                                        <CircularProgress size={32} />
+                                        <Typography variant="body2" color="text.secondary">
+                                            Đang tải dữ liệu...
+                                        </Typography>
+                                    </Box>
                                 </TableCell>
                             </TableRow>
                         )}
@@ -575,9 +647,7 @@ const AdminUserManagementPage = () => {
 
             {/* DIALOG (MODAL) */}
             <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-                <DialogTitle>
-                    {editingRecord ? 'Sửa thông tin tài khoản' : 'Tạo tài khoản mới'}
-                </DialogTitle>
+                <DialogTitle>{editingRecord ? 'Sửa thông tin tài khoản' : 'Tạo tài khoản mới'}</DialogTitle>
                 <DialogContent>
                     <Stack spacing={2.5} sx={{ mt: 1 }}>
                         <Box>
@@ -598,11 +668,12 @@ const AdminUserManagementPage = () => {
                         </Box>
                         <Box>
                             <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
-                                {editingRecord ? 'Mật khẩu mới' : 'Mật khẩu'} {!editingRecord && <span style={{ color: '#ef4444' }}>*</span>}
+                                {editingRecord ? 'Mật khẩu mới' : 'Mật khẩu'}{' '}
+                                {!editingRecord && <span style={{ color: '#ef4444' }}>*</span>}
                             </Typography>
                             <TextField
                                 fullWidth
-                                placeholder={editingRecord ? "Bỏ trống nếu không đổi" : "Nhập mật khẩu"}
+                                placeholder={editingRecord ? 'Bỏ trống nếu không đổi' : 'Nhập mật khẩu'}
                                 name="password"
                                 type="password"
                                 value={formData.password}
@@ -626,9 +697,9 @@ const AdminUserManagementPage = () => {
                                 helperText={errors.role}
                                 size="small"
                             >
-                                <MenuItem value="ADMIN">Admin</MenuItem>
-                                <MenuItem value="MANAGER">Tổ trưởng</MenuItem>
-                                <MenuItem value="ACCOUNTANT">Kế toán</MenuItem>
+                                <MenuItem value="ADMIN">{ROLE_MAP['ADMIN']}</MenuItem>
+                                <MenuItem value="MANAGER">{ROLE_MAP['MANAGER']}</MenuItem>
+                                <MenuItem value="ACCOUNTANT">{ROLE_MAP['ACCOUNTANT']}</MenuItem>
                             </TextField>
                         </Box>
                         <Box>
@@ -649,40 +720,42 @@ const AdminUserManagementPage = () => {
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ p: 2.5 }}>
-                    <Button onClick={handleClose} color="error">Hủy</Button>
-                    <Button onClick={handleSave} variant="contained" color="primary">
+                    <Button onClick={handleClose} color="error" disabled={loading}>
+                        Hủy
+                    </Button>
+                    <Button
+                        onClick={handleSave}
+                        variant="contained"
+                        color="primary"
+                        disabled={loading}
+                        startIcon={loading && <CircularProgress size={16} color="inherit" />}
+                    >
                         {editingRecord ? 'Cập nhật' : 'Tạo mới'}
                     </Button>
                 </DialogActions>
             </Dialog>
 
             {/* DELETE CONFIRMATION DIALOG */}
-            <Dialog 
-                open={deleteDialogOpen} 
-                onClose={handleCancelDelete}
-                maxWidth="xs"
-                fullWidth
-            >
-                <DialogTitle sx={{ pb: 1 }}>
-                    Xác nhận xóa tài khoản
-                </DialogTitle>
+            <Dialog open={deleteDialogOpen} onClose={handleCancelDelete} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ pb: 1 }}>Xác nhận xóa tài khoản</DialogTitle>
                 <DialogContent>
                     <Typography variant="body1">
-                        Bạn có chắc chắn muốn xóa tài khoản{' '}
-                        <strong>{deletingRecord?.username}</strong>?
+                        Bạn có chắc chắn muốn xóa tài khoản <strong>{deletingRecord?.username}</strong>?
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                         Hành động này không thể hoàn tác.
                     </Typography>
                 </DialogContent>
                 <DialogActions sx={{ p: 2.5, pt: 1.5 }}>
-                    <Button onClick={handleCancelDelete} variant="outlined">
+                    <Button onClick={handleCancelDelete} variant="outlined" disabled={loading}>
                         Hủy
                     </Button>
-                    <Button 
-                        onClick={handleConfirmDelete} 
-                        variant="contained" 
+                    <Button
+                        onClick={handleConfirmDelete}
+                        variant="contained"
                         color="error"
+                        disabled={loading}
+                        startIcon={loading && <CircularProgress size={16} color="inherit" />}
                     >
                         Xóa tài khoản
                     </Button>
@@ -690,17 +763,17 @@ const AdminUserManagementPage = () => {
             </Dialog>
 
             {/* SNACKBAR */}
-            <Snackbar 
-                open={snackbar.open} 
-                autoHideDuration={4000} 
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
                 onClose={handleCloseSnackbar}
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
-                <Alert 
-                    onClose={handleCloseSnackbar} 
-                    severity={snackbar.severity} 
+                <Alert
+                    onClose={handleCloseSnackbar}
+                    severity={snackbar.severity}
                     variant="filled"
-                    sx={{ 
+                    sx={{
                         width: '100%',
                         alignItems: 'center',
                         '& .MuiAlert-action': {

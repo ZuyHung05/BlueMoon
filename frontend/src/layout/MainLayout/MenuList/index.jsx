@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Divider from '@mui/material/Divider';
 import List from '@mui/material/List';
 import Typography from '@mui/material/Typography';
@@ -14,9 +15,11 @@ import { useGetMenuMaster } from 'api/menu';
 // ==============================|| SIDEBAR MENU LIST ||============================== //
 
 function MenuList() {
+  const { pathname } = useLocation();
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
   const [selectedID, setSelectedID] = useState('');
+
 
   // --- [FIX QUAN TRỌNG] KIỂM TRA DỮ LIỆU ĐỂ KHÔNG CRASH ---
   // Nếu không có items, dừng render ngay lập tức
@@ -42,7 +45,23 @@ function MenuList() {
   }
 
   // --- [FIX QUAN TRỌNG] THÊM ?. VÀO VÒNG LẶP MAP ---
-  const navItems = menuItems.items.slice(0, lastItemIndex + 1).map((item, index) => {
+  const role = localStorage.getItem('role')?.toUpperCase() || 'GUEST';
+
+  const filteredItems = menuItems.items.map((group) => {
+      // 1. Filter children within the group
+      if (group.children) {
+          const filteredChildren = group.children.filter((item) => {
+              if (!item.roles) return true; // No roles defined = visible to all
+              return item.roles.includes(role);
+          });
+          
+          // Return a new group object with filtered children
+          return { ...group, children: filteredChildren };
+      }
+      return group;
+  }).filter(group => group.children && group.children.length > 0); // Hide empty groups
+
+  const navItems = filteredItems.slice(0, lastItemIndex + 1).map((item, index) => {
     switch (item.type) {
       case 'group':
         if (item.url && item.id !== lastItemId) {

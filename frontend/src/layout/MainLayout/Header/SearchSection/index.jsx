@@ -54,7 +54,7 @@ function MobileSearch({ value, setValue, popupState }) {
       id="input-search-header"
       value={value}
       onChange={(e) => setValue(e.target.value)}
-      placeholder="Search"
+      placeholder="Tìm kiếm"
       startAdornment={
         <InputAdornment position="start">
           <IconSearch stroke={1.5} size="16px" />
@@ -130,7 +130,7 @@ export default function SearchSection() {
           id="input-search-header"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="Search"
+          placeholder="Tìm kiếm"
           startAdornment={
             <InputAdornment position="start">
               <IconSearch stroke={1.5} size="16px" />
