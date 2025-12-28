@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // material-ui
 import {
     Box,
     Button,
     Chip,
+    CircularProgress,
     Dialog,
     DialogActions,
     DialogContent,
@@ -34,43 +35,17 @@ import {
 import MainCard from 'ui-component/cards/MainCard';
 import ParkingMap from './ParkingMapDialog';
 
+// API service
+import { getAllVehicles, addVehicle, updateVehicle, deleteVehicle } from 'api/vehicleService';
+
 // assets
 import { Edit, Trash2, Plus, Search, Filter, Car, Bike, Map } from 'lucide-react';
 
 const VehicleManagement = () => {
-    // --- MOCK DATA ---
-    const mockHouseholds = [
-        { id: 101, name: 'Hộ 101 - Nguyễn Văn A', cccd: '00109xxx' },
-        { id: 102, name: 'Hộ 102 - Trần Thị B', cccd: '00108xxx' },
-        { id: 205, name: 'Hộ 205 - Lê Văn C', cccd: '00107xxx' }
-    ];
-
-    const [data, setData] = useState([
-        {
-            vehicle_id: 1,
-            household_id: 101,
-            plate_number: '29A-123.45',
-            type: 'car',
-            basement_floor: 1,
-            location: 'A-10'
-        },
-        {
-            vehicle_id: 2,
-            household_id: 101,
-            plate_number: '29B1-999.99',
-            type: 'bike',
-            basement_floor: 1,
-            location: 'B-05'
-        },
-        {
-            vehicle_id: 3,
-            household_id: 102,
-            plate_number: '30E-555.66',
-            type: 'car',
-            basement_floor: 2,
-            location: 'C-22'
-        }
-    ]);
+    // --- DATA STATE ---
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [households, setHouseholds] = useState([]);
 
     // --- UI STATE ---
     const [open, setOpen] = useState(false);
@@ -89,19 +64,16 @@ const VehicleManagement = () => {
 
     // Form state
     const [formData, setFormData] = useState({
-        household_id: '',
-        plate_number: '',
+        householdId: '',
+        plateNumber: '',
         type: 'bike',
-        basement_floor: 1,
+        basementFloor: 1,
         location: ''
     });
 
     // Delete dialog
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [deletingRecord, setDeletingRecord] = useState(null);
-
-    // Parking map dialog
-
 
     // Snackbar
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -110,11 +82,48 @@ const VehicleManagement = () => {
     // Filter active check
     const isFilterActive = typeFilter !== 'ALL';
 
+    // --- FETCH DATA ON MOUNT ---
+    useEffect(() => {
+        fetchVehicles();
+    }, []);
+
+    const fetchVehicles = async () => {
+        try {
+            setLoading(true);
+            const response = await getAllVehicles();
+            if (response.success && response.data) {
+                // Map backend fields to frontend format
+                const mappedData = response.data.map(item => ({
+                    vehicleId: item.vehicleId,
+                    householdId: item.householdId,
+                    plateNumber: item.plateNumber,
+                    type: item.type,
+                    basementFloor: item.basementFloor,
+                    location: item.location
+                }));
+                setData(mappedData);
+
+                // Extract unique households from vehicles
+                const uniqueHouseholds = [...new Set(response.data.map(v => v.householdId))];
+                setHouseholds(uniqueHouseholds.map(id => ({ id, name: `Hộ ${id}` })));
+            }
+        } catch (error) {
+            console.error('Error fetching vehicles:', error);
+            setSnackbar({
+                open: true,
+                message: 'Không thể tải danh sách phương tiện!',
+                severity: 'error'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // --- FILTERING ---
     const filteredData = data.filter((item) => {
-        const household = mockHouseholds.find((h) => h.id === item.household_id);
+        const household = households.find((h) => h.id === item.householdId);
         const ownerName = household ? household.name.toLowerCase() : '';
-        const plate = item.plate_number.toLowerCase();
+        const plate = item.plateNumber?.toLowerCase() || '';
         const search = searchTerm.toLowerCase();
 
         const matchSearch = plate.includes(search) || ownerName.includes(search);
@@ -149,19 +158,19 @@ const VehicleManagement = () => {
         if (record) {
             setEditingRecord(record);
             setFormData({
-                household_id: record.household_id,
-                plate_number: record.plate_number,
+                householdId: record.householdId,
+                plateNumber: record.plateNumber,
                 type: record.type,
-                basement_floor: record.basement_floor,
+                basementFloor: record.basementFloor,
                 location: record.location
             });
         } else {
             setEditingRecord(null);
             setFormData({
-                household_id: '',
-                plate_number: '',
+                householdId: '',
+                plateNumber: '',
                 type: 'bike',
-                basement_floor: 1,
+                basementFloor: 1,
                 location: ''
             });
         }
@@ -174,15 +183,16 @@ const VehicleManagement = () => {
     };
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
     };
 
-    const handleSave = () => {
-        if (!formData.household_id) {
+    const handleSave = async () => {
+        if (!formData.householdId) {
             setSnackbar({ open: true, message: 'Vui lòng chọn hộ gia đình!', severity: 'warning' });
             return;
         }
-        if (!formData.plate_number) {
+        if (!formData.plateNumber) {
             setSnackbar({ open: true, message: 'Vui lòng nhập biển số xe!', severity: 'warning' });
             return;
         }
@@ -191,18 +201,32 @@ const VehicleManagement = () => {
             return;
         }
 
-        if (editingRecord) {
-            const updatedData = data.map((item) =>
-                item.vehicle_id === editingRecord.vehicle_id ? { ...item, ...formData } : item
-            );
-            setData(updatedData);
-            setSnackbar({ open: true, message: 'Cập nhật thông tin xe thành công!', severity: 'success' });
-        } else {
-            const newId = data.length > 0 ? Math.max(...data.map((d) => d.vehicle_id)) + 1 : 1;
-            setData([...data, { vehicle_id: newId, ...formData }]);
-            setSnackbar({ open: true, message: 'Thêm phương tiện mới thành công!', severity: 'success' });
+        try {
+            if (editingRecord) {
+                // Update existing vehicle
+                const response = await updateVehicle(editingRecord.vehicleId, formData);
+                if (response.success) {
+                    setSnackbar({ open: true, message: 'Cập nhật thông tin xe thành công!', severity: 'success' });
+                    fetchVehicles(); // Refresh data
+                } else {
+                    setSnackbar({ open: true, message: response.message || 'Cập nhật thất bại!', severity: 'error' });
+                }
+            } else {
+                // Add new vehicle
+                const response = await addVehicle(formData);
+                if (response.success) {
+                    setSnackbar({ open: true, message: 'Thêm phương tiện mới thành công!', severity: 'success' });
+                    fetchVehicles(); // Refresh data
+                } else {
+                    setSnackbar({ open: true, message: response.message || 'Thêm mới thất bại!', severity: 'error' });
+                }
+            }
+            handleClose();
+        } catch (error) {
+            console.error('Error saving vehicle:', error);
+            const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra!';
+            setSnackbar({ open: true, message: errorMessage, severity: 'error' });
         }
-        handleClose();
     };
 
     const handleDelete = (record) => {
@@ -210,10 +234,21 @@ const VehicleManagement = () => {
         setDeleteDialogOpen(true);
     };
 
-    const handleConfirmDelete = () => {
+    const handleConfirmDelete = async () => {
         if (deletingRecord) {
-            setData(data.filter((item) => item.vehicle_id !== deletingRecord.vehicle_id));
-            setSnackbar({ open: true, message: 'Đã xóa phương tiện!', severity: 'success' });
+            try {
+                const response = await deleteVehicle(deletingRecord.vehicleId);
+                if (response.success) {
+                    setSnackbar({ open: true, message: 'Đã xóa phương tiện!', severity: 'success' });
+                    fetchVehicles(); // Refresh data
+                } else {
+                    setSnackbar({ open: true, message: response.message || 'Xóa thất bại!', severity: 'error' });
+                }
+            } catch (error) {
+                console.error('Error deleting vehicle:', error);
+                const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi xóa!';
+                setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+            }
         }
         setDeleteDialogOpen(false);
         setDeletingRecord(null);
@@ -226,30 +261,41 @@ const VehicleManagement = () => {
 
     // --- HELPER FUNCTIONS ---
     const getHouseholdName = (id) => {
-        const hh = mockHouseholds.find((h) => h.id === id);
-        return hh ? hh.name : 'Chưa rõ';
+        const hh = households.find((h) => h.id === id);
+        return hh ? hh.name : `Hộ ${id}`;
     };
 
     const getTypeChip = (type) => {
         return type === 'car' ? (
-            <Chip 
+            <Chip
                 icon={<Car size={14} />}
-                label="Ô tô" 
-                size="small" 
-                sx={{ bgcolor: 'rgba(168, 85, 247, 0.15)', color: '#a855f7', fontWeight: 500, minWidth: 80, justifyContent: 'center' }} 
+                label="Ô tô"
+                size="small"
+                sx={{ bgcolor: 'rgba(168, 85, 247, 0.15)', color: '#a855f7', fontWeight: 500, minWidth: 80, justifyContent: 'center' }}
             />
         ) : (
-            <Chip 
+            <Chip
                 icon={<Bike size={14} />}
-                label="Xe máy" 
-                size="small" 
-                sx={{ bgcolor: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', fontWeight: 500, minWidth: 80, justifyContent: 'center' }} 
+                label="Xe máy"
+                size="small"
+                sx={{ bgcolor: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', fontWeight: 500, minWidth: 80, justifyContent: 'center' }}
             />
         );
     };
 
     if (viewMode === 'map') {
         return <ParkingMap onBack={() => setViewMode('list')} />;
+    }
+
+    // Loading state
+    if (loading) {
+        return (
+            <MainCard contentSX={{ pt: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300 }}>
+                    <CircularProgress />
+                </Box>
+            </MainCard>
+        );
     }
 
     return (
@@ -279,10 +325,10 @@ const VehicleManagement = () => {
                 </Tooltip>
 
                 <Tooltip title="Lọc theo loại xe">
-                    <IconButton 
+                    <IconButton
                         onClick={handleFilterClick}
                         color={isFilterActive ? 'primary' : 'inherit'}
-                        sx={{ 
+                        sx={{
                             border: '1px solid',
                             borderColor: isFilterActive ? 'primary.main' : 'divider',
                             borderRadius: '12px',
@@ -296,9 +342,9 @@ const VehicleManagement = () => {
                 </Tooltip>
 
                 <Tooltip title="Sơ đồ bãi đỗ">
-                    <IconButton 
+                    <IconButton
                         onClick={() => setViewMode('map')}
-                        sx={{ 
+                        sx={{
                             border: '1px solid',
                             borderColor: 'divider',
                             borderRadius: '12px',
@@ -320,7 +366,7 @@ const VehicleManagement = () => {
                     }
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    sx={{ 
+                    sx={{
                         minWidth: 300,
                         borderRadius: '12px',
                         height: 40
@@ -357,7 +403,7 @@ const VehicleManagement = () => {
             {/* TABLE */}
             <TableContainer>
                 <Table sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
-                    <TableHead sx={{ 
+                    <TableHead sx={{
                         bgcolor: 'action.hover',
                         '& .MuiTableCell-root': {
                             color: 'text.primary',
@@ -378,31 +424,31 @@ const VehicleManagement = () => {
                     </TableHead>
                     <TableBody>
                         {filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => (
-                            <TableRow key={row.vehicle_id} hover>
+                            <TableRow key={row.vehicleId} hover>
                                 <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                                 <TableCell>
                                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                                        {getHouseholdName(row.household_id)}
+                                        {getHouseholdName(row.householdId)}
                                     </Typography>
                                 </TableCell>
                                 <TableCell>
-                                    <Chip 
-                                        label={row.plate_number} 
-                                        size="small" 
-                                        sx={{ bgcolor: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', fontWeight: 600, fontSize: '0.875rem' }} 
+                                    <Chip
+                                        label={row.plateNumber}
+                                        size="small"
+                                        sx={{ bgcolor: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', fontWeight: 600, fontSize: '0.875rem' }}
                                     />
                                 </TableCell>
                                 <TableCell align="center">{getTypeChip(row.type)}</TableCell>
                                 <TableCell>
                                     <Typography variant="body2">
-                                        Tầng hầm <strong>{row.basement_floor}</strong> - Ô <strong>{row.location}</strong>
+                                        Tầng hầm <strong>{row.basementFloor}</strong> - Ô <strong>{row.location}</strong>
                                     </Typography>
                                 </TableCell>
                                 <TableCell align="center">
                                     <Stack direction="row" spacing={0.5} justifyContent="center">
                                         <Tooltip title="Sửa thông tin">
-                                            <IconButton 
-                                                color="primary" 
+                                            <IconButton
+                                                color="primary"
                                                 onClick={() => handleOpen(row)}
                                                 size="small"
                                             >
@@ -410,7 +456,7 @@ const VehicleManagement = () => {
                                             </IconButton>
                                         </Tooltip>
                                         <Tooltip title="Xóa phương tiện">
-                                            <IconButton 
+                                            <IconButton
                                                 sx={{
                                                     color: '#ef4444',
                                                     '&:hover': {
@@ -521,22 +567,17 @@ const VehicleManagement = () => {
                     <Stack spacing={2.5} sx={{ mt: 1 }}>
                         <Box>
                             <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
-                                Thuộc hộ gia đình <span style={{ color: '#ef4444' }}>*</span>
+                                Mã hộ gia đình <span style={{ color: '#ef4444' }}>*</span>
                             </Typography>
                             <TextField
-                                select
                                 fullWidth
-                                name="household_id"
-                                value={formData.household_id}
+                                type="number"
+                                name="householdId"
+                                value={formData.householdId}
                                 onChange={handleChange}
                                 size="small"
-                            >
-                                {mockHouseholds.map((h) => (
-                                    <MenuItem key={h.id} value={h.id}>
-                                        {h.name}
-                                    </MenuItem>
-                                ))}
-                            </TextField>
+                                placeholder="Nhập mã hộ gia đình"
+                            />
                         </Box>
 
                         <Stack direction="row" spacing={2}>
@@ -546,9 +587,9 @@ const VehicleManagement = () => {
                                 </Typography>
                                 <TextField
                                     fullWidth
-                                    placeholder="VD: 29A-123.45"
-                                    name="plate_number"
-                                    value={formData.plate_number}
+                                    placeholder="VD: 30A-12345"
+                                    name="plateNumber"
+                                    value={formData.plateNumber}
                                     onChange={handleChange}
                                     size="small"
                                 />
@@ -580,8 +621,8 @@ const VehicleManagement = () => {
                                     fullWidth
                                     type="number"
                                     placeholder="VD: 1"
-                                    name="basement_floor"
-                                    value={formData.basement_floor}
+                                    name="basementFloor"
+                                    value={formData.basementFloor}
                                     onChange={handleChange}
                                     size="small"
                                     inputProps={{ min: 1, max: 3 }}
@@ -612,8 +653,8 @@ const VehicleManagement = () => {
             </Dialog>
 
             {/* DELETE CONFIRMATION */}
-            <Dialog 
-                open={deleteDialogOpen} 
+            <Dialog
+                open={deleteDialogOpen}
                 onClose={handleCancelDelete}
                 maxWidth="xs"
                 fullWidth
@@ -623,7 +664,7 @@ const VehicleManagement = () => {
                 </DialogTitle>
                 <DialogContent>
                     <Typography variant="body1">
-                        Bạn có chắc chắn muốn xóa xe biển số <strong>{deletingRecord?.plate_number}</strong>?
+                        Bạn có chắc chắn muốn xóa xe biển số <strong>{deletingRecord?.plateNumber}</strong>?
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                         Hành động này không thể hoàn tác.
@@ -633,9 +674,9 @@ const VehicleManagement = () => {
                     <Button onClick={handleCancelDelete} variant="outlined">
                         Hủy
                     </Button>
-                    <Button 
-                        onClick={handleConfirmDelete} 
-                        variant="contained" 
+                    <Button
+                        onClick={handleConfirmDelete}
+                        variant="contained"
                         color="error"
                     >
                         Xóa phương tiện
@@ -644,17 +685,17 @@ const VehicleManagement = () => {
             </Dialog>
 
             {/* SNACKBAR */}
-            <Snackbar 
-                open={snackbar.open} 
-                autoHideDuration={4000} 
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
                 onClose={handleCloseSnackbar}
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
-                <Alert 
-                    onClose={handleCloseSnackbar} 
-                    severity={snackbar.severity} 
+                <Alert
+                    onClose={handleCloseSnackbar}
+                    severity={snackbar.severity}
                     variant="filled"
-                    sx={{ 
+                    sx={{
                         width: '100%',
                         alignItems: 'center',
                         '& .MuiAlert-action': {

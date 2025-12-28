@@ -20,12 +20,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Tắt CSRF để API hoạt động dễ dàng
-            .cors(cors -> cors.configure(http)) // Kích hoạt cấu hình CORS bên Controller
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/login").permitAll() // Cho phép truy cập login không cần auth
-                .anyRequest().authenticated() // Các request khác phải đăng nhập
-            );
+                .csrf(csrf -> csrf.disable()) // Tắt CSRF để API hoạt động dễ dàng
+                .cors(cors -> cors.configure(http)) // Kích hoạt cấu hình CORS bên Controller
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/login").permitAll() // Cho phép truy cập login không cần auth
+                        .requestMatchers("/api/vehicles/**").permitAll() // Tạm thời cho phép truy cập vehicles không
+                                                                         // cần auth
+                        .anyRequest().authenticated() // Các request khác phải đăng nhập
+                );
         return http.build();
     }
 }
