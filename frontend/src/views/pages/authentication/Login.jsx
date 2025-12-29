@@ -62,7 +62,6 @@ export default function Login() {
                     </Grid>
                 </Grid>
 
-
             </Box>
         </AuthWrapper1>
     );

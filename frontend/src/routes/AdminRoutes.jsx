@@ -19,7 +19,6 @@ const VehicleManagement = Loadable(lazy(() => import('views/admin/vehicle/Vehicl
 const PaymentPeriodManagement = Loadable(lazy(() => import('views/admin/feemanager/PaymentPeriodManagement')));
 
 const HouseholdManagement = Loadable(lazy(() => import('views/admin/household/HouseholdManagement')));
-
 // ==============================|| MAIN ROUTING ||============================== //
 
 const AdminRoutes = {

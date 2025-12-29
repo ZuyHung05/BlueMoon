@@ -256,7 +256,6 @@ const AdminUserManagementPage = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
-
         // Clear error when user starts typing
         if (errors[name]) {
             setErrors({ ...errors, [name]: '' });

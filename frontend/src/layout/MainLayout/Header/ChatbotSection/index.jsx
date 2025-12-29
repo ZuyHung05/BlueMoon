@@ -2,7 +2,7 @@ import { useTheme } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
 import Tooltip from '@mui/material/Tooltip';
 import Badge from '@mui/material/Badge';
-import { Headset } from 'lucide-react';
+import { Bot } from 'lucide-react';
 
 // ==============================|| CHATBOT TOGGLE SECTION ||============================== //
 
@@ -43,7 +43,7 @@ export default function ChatbotSection({ toggled, handleToggle }) {
                     }}
                     onClick={handleToggle}
                 >
-                    <Headset strokeWidth={1.5} size="20px" />
+                    <Bot strokeWidth={1.5} size="20px" />
                 </Avatar>
             </Badge>
         </Tooltip>

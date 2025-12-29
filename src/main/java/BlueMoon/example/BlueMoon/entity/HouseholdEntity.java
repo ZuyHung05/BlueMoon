@@ -1,15 +1,15 @@
 package BlueMoon.example.BlueMoon.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
+@ToString
 @Table(name = "household")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,7 +19,6 @@ public class HouseholdEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "household_id")
     private Long householdId;
-
 
     @Column(name = "status")
     private String status;
@@ -32,26 +31,32 @@ public class HouseholdEntity {
 
     // change_history
     @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<ChangeHistoryEntity> changeHistory;
 
     // vehicle
     @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<VehicleEntity> vehicle;
 
     // apartment
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "apartment_id", nullable = false)
+    @ToString.Exclude
     private ApartmentEntity apartment;
 
-    //residents
+    // residents
     @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<ResidentsEntity> residents;
 
-    //fees
+    // fees
     @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<FeesEntity> fees;
 
     // pay
     @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<PayEntity> pay;
 }

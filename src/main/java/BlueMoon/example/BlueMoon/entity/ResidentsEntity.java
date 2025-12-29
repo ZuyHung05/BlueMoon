@@ -2,15 +2,14 @@ package BlueMoon.example.BlueMoon.entity;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Table(name = "residents")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -43,12 +42,15 @@ public class ResidentsEntity {
     private String job;
 
     @OneToMany(mappedBy = "resident", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<StayAbsenceRecordEntity> residents;
+    @ToString.Exclude
+    private List<StayAbsenceRecordEntity> stayAbsenceRecords;
 
     @OneToMany(mappedBy = "resident", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<ChangeHistoryEntity> changeHistories;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "household_id")
+    @ToString.Exclude
     private HouseholdEntity household;
 }

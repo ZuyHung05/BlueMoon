@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDate;
 
@@ -18,6 +19,7 @@ public class ChangeHistoryEntity {
     private ChangeHistoryId id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
     @MapsId("residentId")
     @JoinColumn(name = "resident_id")
     private ResidentsEntity resident;

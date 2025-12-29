@@ -1,6 +1,6 @@
 // frontend/src/views/admin/household/HouseholdManagement.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // material-ui
 import {
@@ -22,7 +22,6 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    TablePagination,
     TextField,
     Tooltip,
     Typography,
@@ -34,7 +33,8 @@ import {
     Tab,
     Autocomplete,
     Snackbar,
-    Alert
+    Alert,
+    TablePagination
 } from '@mui/material';
 
 // project imports
@@ -58,41 +58,34 @@ const HouseholdManagement = () => {
         { id: 4, full_name: 'Phạm Thị D', id_number: '001090000004', phone: '0901000004', gender: 'Nữ' }
     ];
 
-    const [households, setHouseholds] = useState([
-        {
-            household_id: 1,
-            apartment_id: 101,
-            head_of_household: 1,
-            status: 1,
-            start_day: '2020-01-15',
-            members: [
-                { id: 1, full_name: 'Nguyễn Văn A', role: 'Chủ hộ', id_number: '001090000001' },
-                { id: 2, full_name: 'Trần Thị B', role: 'Vợ', id_number: '001090000002' }
-            ]
-        },
-        {
-            household_id: 2,
-            apartment_id: 102,
-            head_of_household: 3,
-            status: 1,
-            start_day: '2021-05-20',
-            members: [{ id: 3, full_name: 'Lê Văn C', role: 'Chủ hộ', id_number: '001090000003' }]
-        }
-    ]);
+    const [households, setHouseholds] = useState([]);
+    const [availableApartments, setAvailableApartments] = useState([]); // Danh sách phòng available
 
     // --- 2. STATE ---
     const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
 
-    // Pagination states
+    // Pagination State
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    
+
     // Filter Menu State
     const [anchorEl, setAnchorEl] = useState(null);
     const openFilter = Boolean(anchorEl);
+
+    // Family roles constant (matching backend)
+    const FAMILY_ROLES = [
+        { value: 'Chủ hộ', label: 'Chủ hộ' },
+        { value: 'Vợ', label: 'Vợ' },
+        { value: 'Chồng', label: 'Chồng' },
+        { value: 'Con', label: 'Con' },
+        { value: 'Bố mẹ', label: 'Bố mẹ' },
+        { value: 'Thành viên khác', label: 'Thành viên khác' },
+        { value: 'Khác', label: 'Khác (Ở ghép/Tạm trú)' }
+    ];
 
     // Delete confirmation dialog state
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -113,24 +106,114 @@ const HouseholdManagement = () => {
     const [currentMembers, setCurrentMembers] = useState([]);
     const [selectedMemberId, setSelectedMemberId] = useState('');
 
+    // Search residents for adding to household
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [tempMembers, setTempMembers] = useState([]); // Danh sách members tạm thời khi tạo mới
+
+    // Delete member confirmation dialog state
+    const [deleteMemberDialogOpen, setDeleteMemberDialogOpen] = useState(false);
+    const [deletingMember, setDeletingMember] = useState(null);
+
+    // Edit member dialog state
+    const [editMemberDialogOpen, setEditMemberDialogOpen] = useState(false);
+    const [editingMember, setEditingMember] = useState(null);
+    const [memberFormData, setMemberFormData] = useState({
+        fullName: '',
+        idNumber: '',
+        dateOfBirth: '',
+        gender: '',
+        familyRole: '',
+        phoneNumber: '',
+        householdId: '',
+        job: ''
+    });
+
     // Snackbar state
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
     const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
-    // --- 3. FILTERING ---
-    const filteredData = households.filter((item) => {
-        const apartment = MOCK_APARTMENTS.find((a) => a.id === item.apartment_id);
-        const head = MOCK_RESIDENTS.find((r) => r.id === item.head_of_household);
+    // --- 3. FETCH DATA FROM BACKEND ---
+    const fetchHouseholds = async () => {
+        setLoading(true);
+        try {
+            const requestBody = {
+                searchKeyword: searchTerm || null,
+                status: statusFilter === 'ALL' ? null : parseInt(statusFilter)
+            };
 
-        const matchSearch =
-            (head && head.full_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (head && head.id_number.includes(searchTerm)) ||
-            (apartment && apartment.room_number.toLowerCase().includes(searchTerm.toLowerCase()));
+            const response = await fetch('http://localhost:8081/household/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+            });
 
-        const matchStatus = statusFilter === 'ALL' || item.status === parseInt(statusFilter);
+            if (!response.ok) {
+                // Handle 404 (no results found)
+                if (response.status === 404) {
+                    setHouseholds([]);
+                    return;
+                }
+                throw new Error('Failed to fetch households');
+            }
 
-        return matchSearch && matchStatus;
-    });
+            const result = await response.json();
+            const householdsData = result.result;
+
+
+            // Map backend response to frontend format
+            const mappedData = householdsData.map((item) => ({
+                household_id: item.householdId,
+                apartment_id: item.apartment, // Số phòng từ apartment
+                head_of_household: item.headOfHouseholdName,
+                status: parseInt(item.status),
+                start_day: item.startDay,
+                members: item.members ? item.members.map(member => ({
+                    id: member.residentId,
+                    full_name: member.fullName,
+                    id_number: member.idNumber,
+                    role: member.familyRole,
+                    date_of_birth: member.dateOfBirth,
+                    gender: member.gender,
+                    phone_number: member.phoneNumber,
+                    job: member.job
+                })) : []
+            }));
+
+            setHouseholds(mappedData);
+        } catch (error) {
+            console.error('Error fetching households:', error);
+            setSnackbar({ open: true, message: 'Lỗi khi tải dữ liệu hộ khẩu!', severity: 'error' });
+            setHouseholds([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch available apartments
+    const fetchAvailableApartments = async () => {
+        try {
+            const response = await fetch('http://localhost:8081/household/available-apartments');
+            if (!response.ok) throw new Error('Failed to fetch apartments');
+
+            const result = await response.json();
+            setAvailableApartments(result.result || []);
+        } catch (error) {
+            console.error('Error fetching apartments:', error);
+            setAvailableApartments([]);
+        }
+    };
+
+    // Fetch data when component mounts or filters change
+    useEffect(() => {
+        fetchHouseholds();
+        fetchAvailableApartments(); // Load apartments khi component mount
+    }, [searchTerm, statusFilter]);
+
+    // Use data directly (no client-side filtering needed)
+    const filteredData = households;
 
     // --- 4. HANDLERS ---
     const handleFilterClick = (event) => {
@@ -182,13 +265,127 @@ const HouseholdManagement = () => {
     const handleClose = () => {
         setOpen(false);
         setEditingRecord(null);
+        setTempMembers([]); // Clear temp members
+        setSearchQuery(''); // Clear search
+        setSearchResults([]); // Clear search results
     };
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSave = () => {
+    // Search residents by name or ID number
+    const handleSearchResidents = async () => {
+        if (!searchQuery.trim()) {
+            setSearchResults([]);
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:8081/resident/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    searchKeyword: searchQuery,
+                    hasHousehold: false, // Only show residents without household
+                    page: 1,
+                    pageSize: 10
+                })
+            });
+
+            if (!response.ok) throw new Error('Failed to search residents');
+
+            const result = await response.json();
+            setSearchResults(result.result?.data || []);
+        } catch (error) {
+            console.error('Error searching residents:', error);
+            setSnackbar({ open: true, message: 'Lỗi khi tìm kiếm cư dân!', severity: 'error' });
+        }
+    };
+
+    // Add resident to temp members list (create mode) or to household (edit mode)
+    const handleAddMemberToList = async (resident) => {
+        // Check if already added
+        const existingList = editingRecord ? currentMembers : tempMembers;
+        if (existingList.find(m => (m.residentId || m.id) === resident.residentId)) {
+            setSnackbar({ open: true, message: 'Cư dân đã có trong danh sách!', severity: 'warning' });
+            return;
+        }
+
+        // Check if trying to add a second head of household
+        if (resident.familyRole === 'Chủ hộ') {
+            const hasHead = existingList.some(m => (m.familyRole || m.role) === 'Chủ hộ');
+            if (hasHead) {
+                setSnackbar({ open: true, message: 'Hộ khẩu đã có Chủ hộ! Không thể thêm Chủ hộ thứ 2.', severity: 'error' });
+                return;
+            }
+        }
+
+        if (editingRecord) {
+            // EDIT MODE: Call API to add resident to household
+            try {
+                setLoading(true);
+                const response = await fetch(`http://localhost:8081/resident/update/${resident.residentId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        fullName: resident.fullName,
+                        idNumber: resident.idNumber,
+                        dateOfBirth: resident.dateOfBirth,
+                        gender: resident.gender,
+                        familyRole: resident.familyRole,
+                        phoneNumber: resident.phoneNumber,
+                        job: resident.job,
+                        householdId: editingRecord.household_id // Add to current household
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to add resident to household');
+                }
+
+                setSnackbar({ open: true, message: 'Thêm thành viên thành công!', severity: 'success' });
+                setSearchQuery('');
+                setSearchResults([]);
+                fetchHouseholds(); // Reload to get updated members
+            } catch (error) {
+                console.error('Error adding resident to household:', error);
+                setSnackbar({ open: true, message: error.message || 'Lỗi khi thêm thành viên!', severity: 'error' });
+            } finally {
+                setLoading(false);
+            }
+        } else {
+            // CREATE MODE: Add to temp list
+            setTempMembers([...tempMembers, {
+                residentId: resident.residentId,
+                fullName: resident.fullName,
+                idNumber: resident.idNumber,
+                familyRole: resident.familyRole || '' // Use existing role from resident
+            }]);
+            setSearchQuery('');
+            setSearchResults([]);
+        }
+    };
+
+    // Remove member from temp list
+    const handleRemoveTempMember = (residentId) => {
+        setTempMembers(tempMembers.filter(m => m.residentId !== residentId));
+    };
+
+    // Update member role in temp list
+    const handleUpdateMemberRole = (residentId, role) => {
+        setTempMembers(tempMembers.map(m =>
+            m.residentId === residentId ? { ...m, familyRole: role } : m
+        ));
+    };
+
+
+    const handleSave = async () => {
         // Validate required fields
         if (!formData.apartment_id) {
             setSnackbar({ open: true, message: 'Vui lòng chọn căn hộ!', severity: 'warning' });
@@ -206,37 +403,122 @@ const HouseholdManagement = () => {
             return;
         }
 
-        if (currentMembers.length === 0) {
+        // Validate members based on mode
+        const membersToCheck = editingRecord ? currentMembers : tempMembers;
+        if (membersToCheck.length === 0) {
             setSnackbar({ open: true, message: 'Hộ khẩu phải có ít nhất 1 thành viên!', severity: 'error' });
             setTabValue(1); // Switch to members tab
             return;
         }
 
         if (editingRecord) {
-            const updatedData = households.map((item) =>
-                item.household_id === editingRecord.household_id 
-                    ? { ...item, ...formData, members: currentMembers } 
-                    : item
-            );
-            setHouseholds(updatedData);
-            setSnackbar({ open: true, message: 'Cập nhật hộ khẩu thành công!', severity: 'success' });
-        } else {
-            const newId = households.length > 0 ? Math.max(...households.map((d) => d.household_id)) + 1 : 1;
-            
-            let finalMembers = [...currentMembers];
-            const headInfo = MOCK_RESIDENTS.find((r) => r.id === formData.head_of_household);
-            if (headInfo && !finalMembers.some((m) => m.id === headInfo.id)) {
-                finalMembers.push({ ...headInfo, role: 'Chủ hộ' });
+            // Check if there are any changes
+            const hasChanges =
+                formData.apartment_id !== editingRecord.apartment_id ||
+                formData.start_day !== editingRecord.start_day ||
+                formData.status !== editingRecord.status;
+
+            if (!hasChanges) {
+                setSnackbar({ open: true, message: 'Chưa có thay đổi nào!', severity: 'warning' });
+                return;
             }
 
-            setHouseholds([
-                ...households,
-                { household_id: newId, ...formData, members: finalMembers }
-            ]);
-            setSnackbar({ open: true, message: 'Tạo hộ khẩu mới thành công!', severity: 'success' });
+            try {
+                setLoading(true);
+                const response = await fetch(`http://localhost:8081/household/update/${editingRecord.household_id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        apartment: formData.apartment_id, // Send room number as string
+                        startDay: formData.start_day,
+                        status: formData.status.toString() // Convert to string
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to update household');
+                }
+
+                setSnackbar({ open: true, message: 'Cập nhật hộ khẩu thành công!', severity: 'success' });
+                handleClose();
+                fetchHouseholds(); // Reload data
+            } catch (error) {
+                console.error('Error updating household:', error);
+                setSnackbar({ open: true, message: error.message || 'Lỗi khi cập nhật hộ khẩu!', severity: 'error' });
+            } finally {
+                setLoading(false);
+            }
+        } else {
+            // Create new household
+            // Validate tempMembers
+            if (tempMembers.length === 0) {
+                setSnackbar({ open: true, message: 'Phải có ít nhất 1 thành viên!', severity: 'warning' });
+                setTabValue(1);
+                return;
+            }
+
+            // Check if all members have roles
+            const membersWithoutRole = tempMembers.filter(m => !m.familyRole);
+            if (membersWithoutRole.length > 0) {
+                setSnackbar({ open: true, message: 'Vui lòng chọn vai trò cho tất cả thành viên!', severity: 'warning' });
+                setTabValue(1);
+                return;
+            }
+
+            // Check if there's at least one "Chủ hộ"
+            const headCount = tempMembers.filter(m => m.familyRole === 'Chủ hộ').length;
+            if (headCount === 0) {
+                setSnackbar({ open: true, message: 'Phải có ít nhất 1 Chủ hộ!', severity: 'warning' });
+                setTabValue(1);
+                return;
+            }
+
+            // Check if there's more than one "Chủ hộ"
+            if (headCount > 1) {
+                setSnackbar({ open: true, message: 'Không thể có nhiều hơn 1 Chủ hộ!', severity: 'error' });
+                setTabValue(1);
+                return;
+            }
+
+            try {
+                setLoading(true);
+                const response = await fetch('http://localhost:8081/household/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        apartment: formData.apartment_id,
+                        startDay: formData.start_day,
+                        status: formData.status.toString(),
+                        members: tempMembers.map(m => ({
+                            residentId: m.residentId,
+                            familyRole: m.familyRole
+                        }))
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to create household');
+                }
+
+                setSnackbar({ open: true, message: 'Tạo hộ khẩu thành công!', severity: 'success' });
+                handleClose();
+                setTempMembers([]); // Clear temp members
+                fetchHouseholds(); // Reload data
+            } catch (error) {
+                console.error('Error creating household:', error);
+                setSnackbar({ open: true, message: error.message || 'Lỗi khi tạo hộ khẩu!', severity: 'error' });
+            } finally {
+                setLoading(false);
+            }
         }
-        handleClose();
     };
+
 
     const handleDelete = (record) => {
         setDeletingRecord(record);
@@ -273,80 +555,175 @@ const HouseholdManagement = () => {
         setSelectedMemberId('');
     };
 
-    const handleRemoveMember = (memberId) => {
-        if (memberId === formData.head_of_household) {
-            return;
+    const handleRemoveMember = (member) => {
+        setDeletingMember(member);
+        setDeleteMemberDialogOpen(true);
+    };
+
+    const confirmDeleteMember = async () => {
+        if (!deletingMember) return;
+
+        try {
+            setLoading(true);
+            const response = await fetch(`http://localhost:8081/resident/delete1`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    residentId: deletingMember.id,
+                    fullName: deletingMember.full_name,
+                    idNumber: deletingMember.id_number,
+                    familyRole: deletingMember.role,
+                    dateOfBirth: deletingMember.date_of_birth,
+                    gender: deletingMember.gender
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to delete resident');
+            }
+
+            setSnackbar({ open: true, message: 'Xóa thành viên thành công!', severity: 'success' });
+            setDeleteMemberDialogOpen(false);
+            setDeletingMember(null);
+
+            // Close the update household dialog and reload data
+            handleClose();
+            fetchHouseholds();
+        } catch (error) {
+            console.error('Error deleting member:', error);
+            setSnackbar({ open: true, message: error.message || 'Lỗi khi xóa thành viên!', severity: 'error' });
+        } finally {
+            setLoading(false);
         }
-        setCurrentMembers(currentMembers.filter((m) => m.id !== memberId));
+    };
+
+    const handleEditMember = (member) => {
+        setEditingMember(member);
+        setMemberFormData({
+            fullName: member.full_name || '',
+            idNumber: member.id_number || '',
+            dateOfBirth: member.date_of_birth || '',
+            gender: member.gender || '',
+            familyRole: member.role || '',
+            phoneNumber: member.phone_number || '',
+            householdId: editingRecord?.household_id || '',
+            job: member.job || ''
+        });
+        setEditMemberDialogOpen(true);
+    };
+
+    const handleSaveMember = async () => {
+        if (!editingMember) return;
+
+        try {
+            setLoading(true);
+            const response = await fetch(`http://localhost:8081/resident/update/${editingMember.id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    fullName: memberFormData.fullName,
+                    idNumber: memberFormData.idNumber,
+                    dateOfBirth: memberFormData.dateOfBirth,
+                    gender: memberFormData.gender,
+                    familyRole: memberFormData.familyRole,
+                    phoneNumber: memberFormData.phoneNumber,
+                    job: memberFormData.job
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to update resident');
+            }
+
+            setSnackbar({ open: true, message: 'Cập nhật thành viên thành công!', severity: 'success' });
+            setEditMemberDialogOpen(false);
+            setEditingMember(null);
+
+            // Close the update household dialog and reload data
+            handleClose();
+            fetchHouseholds();
+        } catch (error) {
+            console.error('Error updating member:', error);
+            setSnackbar({ open: true, message: error.message || 'Lỗi khi cập nhật thành viên!', severity: 'error' });
+        } finally {
+            setLoading(false);
+        }
     };
 
     // --- HELPER ---
-    const getApartmentName = (id) => MOCK_APARTMENTS.find((a) => a.id === id)?.room_number || '---';
-    const getHeadName = (id) => MOCK_RESIDENTS.find((r) => r.id === id)?.full_name || '---';
+    const getApartmentName = (apartment) => apartment || '---'; // Display apartment (room_number) directly
+    const getHeadName = (name) => name || '---'; // Now receiving name directly from backend
+
 
     const getStatusChip = (status) => {
         if (status === 1) {
             return (
-                <Chip 
-                    label="Đang ở" 
-                    size="small" 
-                    sx={{ 
-                        bgcolor: 'rgba(34, 197, 94, 0.15)', 
+                <Chip
+                    label="Đang ở"
+                    size="small"
+                    sx={{
+                        bgcolor: 'rgba(34, 197, 94, 0.15)',
                         color: '#4ade80',
                         fontWeight: 500,
                         border: 'none',
                         minWidth: 70,
                         justifyContent: 'center'
-                    }} 
+                    }}
                 />
             );
         }
         return (
-            <Chip 
-                label="Đã đi" 
-                size="small" 
-                sx={{ 
-                    bgcolor: 'rgba(100, 100, 100, 0.2)', 
+            <Chip
+                label="Đã đi"
+                size="small"
+                sx={{
+                    bgcolor: 'rgba(100, 100, 100, 0.2)',
                     color: '#94a3b8',
                     fontWeight: 500,
                     border: 'none',
                     minWidth: 70,
                     justifyContent: 'center'
-                }} 
+                }}
             />
         );
     };
 
     const getMemberCountChip = (count) => {
         return (
-            <Chip 
-                label={`${count} người`} 
-                size="small" 
-                sx={{ 
-                    bgcolor: 'rgba(139, 92, 246, 0.15)', 
+            <Chip
+                label={`${count} người`}
+                size="small"
+                sx={{
+                    bgcolor: 'rgba(139, 92, 246, 0.15)',
                     color: '#a78bfa',
                     fontWeight: 500,
                     border: 'none',
                     minWidth: 70,
                     justifyContent: 'center'
-                }} 
+                }}
             />
         );
     };
 
     const getHouseholdIdChip = (id) => {
         return (
-            <Chip 
-                label={`H${id}`} 
-                size="small" 
-                sx={{ 
-                    bgcolor: 'rgba(59, 130, 246, 0.15)', 
+            <Chip
+                label={`H${id}`}
+                size="small"
+                sx={{
+                    bgcolor: 'rgba(59, 130, 246, 0.15)',
                     color: '#60a5fa',
                     fontWeight: 500,
                     border: 'none',
                     minWidth: 50,
                     justifyContent: 'center'
-                }} 
+                }}
             />
         );
     };
@@ -608,80 +985,42 @@ const HouseholdManagement = () => {
 
                     {tabValue === 0 && (
                         <Stack spacing={2} sx={{ mt: 2 }}>
-                            <Stack direction="row" spacing={2}>
-                                <Autocomplete
-                                    fullWidth
-                                    options={MOCK_APARTMENTS}
-                                    getOptionLabel={(option) => `${option.room_number} (${option.area}m²)`}
-                                    filterOptions={(options, { inputValue }) => {
-                                        const searchTerm = inputValue.toLowerCase();
-                                        return options.filter((option) =>
-                                            option.room_number.toLowerCase().includes(searchTerm)
-                                        );
-                                    }}
-                                    value={MOCK_APARTMENTS.find((a) => a.id === formData.apartment_id) || null}
-                                    onChange={(event, newValue) => {
-                                        setFormData({ ...formData, apartment_id: newValue ? newValue.id : '' });
-                                    }}
-                                    renderOption={(props, option) => (
-                                        <Box component="li" {...props} key={option.id}>
-                                            <Stack direction="row" justifyContent="space-between" width="100%">
-                                                <Typography variant="body1" fontWeight={500}>
-                                                    {option.room_number}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    {option.area}m² - {option.status ? 'Đang ở' : 'Trống'}
-                                                </Typography>
-                                            </Stack>
-                                        </Box>
-                                    )}
-                                    renderInput={(params) => (
-                                        <TextField
-                                            {...params}
-                                            label="Tìm căn hộ (Số phòng)"
-                                            placeholder="Nhập số phòng..."
-                                        />
-                                    )}
-                                    noOptionsText="Không tìm thấy căn hộ"
-                                />
-                                <Autocomplete
-                                    fullWidth
-                                    options={MOCK_RESIDENTS}
-                                    getOptionLabel={(option) => option.full_name}
-                                    filterOptions={(options, { inputValue }) => {
-                                        const searchTerm = inputValue.toLowerCase();
-                                        return options.filter((option) =>
-                                            option.full_name.toLowerCase().includes(searchTerm) ||
-                                            option.id_number.includes(searchTerm) ||
-                                            option.phone.includes(searchTerm)
-                                        );
-                                    }}
-                                    value={MOCK_RESIDENTS.find((r) => r.id === formData.head_of_household) || null}
-                                    onChange={(event, newValue) => {
-                                        setFormData({ ...formData, head_of_household: newValue ? newValue.id : '' });
-                                    }}
-                                    renderOption={(props, option) => (
-                                        <Box component="li" {...props} key={option.id}>
-                                            <Stack>
-                                                <Typography variant="body1" fontWeight={500}>
-                                                    {option.full_name}
-                                                </Typography>
-                                                <Typography variant="caption" color="text.secondary">
-                                                    CCCD: {option.id_number} | SĐT: {option.phone}
-                                                </Typography>
-                                            </Stack>
-                                        </Box>
-                                    )}
-                                    renderInput={(params) => (
-                                        <TextField
-                                            {...params}
-                                            label="Tìm chủ hộ (Tên, CCCD, SĐT)"
-                                            placeholder="Nhập để tìm..."
-                                        />
-                                    )}
-                                    noOptionsText="Không tìm thấy cư dân"
-                                />
-                            </Stack>
+                            <Autocomplete
+                                fullWidth
+                                options={availableApartments}
+                                getOptionLabel={(option) => `${option.roomNumber} (${option.area}m²)`}
+                                filterOptions={(options, { inputValue }) => {
+                                    const searchTerm = inputValue.toLowerCase();
+                                    return options.filter((option) =>
+                                        option.roomNumber.toString().toLowerCase().includes(searchTerm)
+                                    );
+                                }}
+                                value={availableApartments.find((a) => a.roomNumber.toString() === formData.apartment_id) || null}
+                                onChange={(event, newValue) => {
+                                    setFormData({ ...formData, apartment_id: newValue ? newValue.roomNumber.toString() : '' });
+                                }}
+                                renderOption={(props, option) => (
+                                    <Box component="li" {...props} key={option.apartmentId}>
+                                        <Stack direction="row" justifyContent="space-between" width="100%">
+                                            <Typography variant="body1" fontWeight={500}>
+                                                Phòng {option.roomNumber}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {option.area}m² - Tầng {option.floor}
+                                            </Typography>
+                                        </Stack>
+                                    </Box>
+                                )}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Số phòng"
+                                        placeholder="Chọn số phòng..."
+                                    />
+                                )}
+                                noOptionsText="Không có phòng trống"
+                            />
+
                             <Stack direction="row" spacing={2}>
                                 <TextField
                                     fullWidth
@@ -710,152 +1049,322 @@ const HouseholdManagement = () => {
 
                     {tabValue === 1 && (
                         <Box sx={{ mt: 2 }}>
-                            {/* Add member section */}
-                            <Stack 
-                                direction="row" 
-                                spacing={2} 
-                                sx={{ 
-                                    mb: 2, 
-                                    p: 2, 
-                                    bgcolor: 'action.hover', 
-                                    borderRadius: 2 
-                                }}
-                            >
-                                <Autocomplete
-                                    sx={{ flex: 1 }}
-                                    options={MOCK_RESIDENTS.filter((r) => !currentMembers.some((m) => m.id === r.id))}
-                                    getOptionLabel={(option) => `${option.full_name} - ${option.id_number}`}
-                                    filterOptions={(options, { inputValue }) => {
-                                        const searchTerm = inputValue.toLowerCase();
-                                        return options.filter((option) =>
-                                            option.full_name.toLowerCase().includes(searchTerm) ||
-                                            option.id_number.includes(searchTerm) ||
-                                            option.phone.includes(searchTerm)
-                                        );
-                                    }}
-                                    value={MOCK_RESIDENTS.find((r) => r.id === selectedMemberId) || null}
-                                    onChange={(event, newValue) => {
-                                        setSelectedMemberId(newValue ? newValue.id : '');
-                                    }}
-                                    renderOption={(props, option) => (
-                                        <Box component="li" {...props} key={option.id}>
-                                            <Stack>
-                                                <Typography variant="body1" fontWeight={500}>
-                                                    {option.full_name}
-                                                </Typography>
-                                                <Typography variant="caption" color="text.secondary">
-                                                    CCCD: {option.id_number} | SĐT: {option.phone}
-                                                </Typography>
-                                            </Stack>
-                                        </Box>
-                                    )}
-                                    renderInput={(params) => (
+                            {/* CREATE MODE: Search and add residents */}
+                            {!editingRecord && (
+                                <>
+                                    {/* Search box */}
+                                    <Stack
+                                        direction="row"
+                                        spacing={2}
+                                        sx={{
+                                            mb: 2,
+                                            p: 2,
+                                            bgcolor: 'action.hover',
+                                            borderRadius: 2
+                                        }}
+                                    >
                                         <TextField
-                                            {...params}
+                                            fullWidth
                                             label="Tìm kiếm cư dân (Tên, CCCD, SĐT)"
                                             placeholder="Nhập để tìm kiếm..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    handleSearchResidents();
+                                                }
+                                            }}
                                             InputProps={{
-                                                ...params.InputProps,
                                                 startAdornment: (
-                                                    <>
-                                                        <InputAdornment position="start">
-                                                            <Search size={18} />
-                                                        </InputAdornment>
-                                                        {params.InputProps.startAdornment}
-                                                    </>
+                                                    <InputAdornment position="start">
+                                                        <Search size={18} />
+                                                    </InputAdornment>
                                                 )
                                             }}
                                         />
-                                    )}
-                                    noOptionsText="Không tìm thấy cư dân"
-                                />
-                                <Button
-                                    variant="contained"
-                                    startIcon={<UserPlus size={18} />}
-                                    onClick={handleAddMember}
-                                    disabled={!selectedMemberId}
-                                >
-                                    Thêm
-                                </Button>
-                            </Stack>
+                                        <Button
+                                            variant="contained"
+                                            startIcon={<UserPlus size={18} />}
+                                            onClick={handleSearchResidents}
+                                            disabled={!searchQuery.trim()}
+                                        >
+                                            Tìm
+                                        </Button>
+                                    </Stack>
 
-                            {/* Members table */}
-                            <TableContainer>
-                                <Table size="small" sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Họ tên</TableCell>
-                                            <TableCell>CCCD</TableCell>
-                                            <TableCell>Vai trò</TableCell>
-                                            <TableCell align="center">Hành động</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {currentMembers.map((member) => (
-                                            <TableRow key={member.id}>
-                                                <TableCell>{member.full_name}</TableCell>
-                                                <TableCell>{member.id_number}</TableCell>
-                                                <TableCell>
-                                                    {member.id === formData.head_of_household ? (
-                                                        <Chip 
-                                                            label="Chủ hộ" 
-                                                            size="small" 
-                                                            sx={{ 
-                                                                bgcolor: 'rgba(234, 179, 8, 0.15)', 
-                                                                color: '#fbbf24',
-                                                                fontWeight: 500,
-                                                                minWidth: 80,
-                                                                justifyContent: 'center'
-                                                            }} 
-                                                        />
-                                                    ) : (
-                                                        <Chip 
-                                                            label={member.role || 'Thành viên'} 
-                                                            size="small" 
-                                                            sx={{ 
-                                                                bgcolor: 'rgba(100, 116, 139, 0.15)', 
-                                                                color: '#94a3b8',
-                                                                fontWeight: 500,
-                                                                minWidth: 80,
-                                                                justifyContent: 'center'
-                                                            }} 
-                                                        />
-                                                    )}
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    <Tooltip title={member.id === formData.head_of_household ? "Không thể xóa chủ hộ" : "Xóa khỏi hộ"}>
-                                                        <span>
-                                                            <IconButton
-                                                                size="small"
-                                                                onClick={() => handleRemoveMember(member.id)}
-                                                                disabled={member.id === formData.head_of_household}
-                                                                sx={{
-                                                                    color: member.id === formData.head_of_household ? 'text.disabled' : '#ef4444',
-                                                                    '&:hover': {
-                                                                        bgcolor: 'rgba(239, 68, 68, 0.1)',
-                                                                        color: '#dc2626'
-                                                                    }
-                                                                }}
-                                                            >
-                                                                <Trash2 size={18} />
-                                                            </IconButton>
-                                                        </span>
-                                                    </Tooltip>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                        {currentMembers.length === 0 && (
-                                            <TableRow>
-                                                <TableCell colSpan={4} align="center">
-                                                    <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
-                                                        Chưa có thành viên nào
-                                                    </Typography>
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
+                                    {/* Search results */}
+                                    {searchResults.length > 0 && (
+                                        <Box sx={{ mb: 2, p: 2, bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                                            <Typography variant="subtitle2" sx={{ mb: 1 }}>Kết quả tìm kiếm:</Typography>
+                                            <Stack spacing={1}>
+                                                {searchResults.map((resident) => (
+                                                    <Stack
+                                                        key={resident.residentId}
+                                                        direction="row"
+                                                        justifyContent="space-between"
+                                                        alignItems="center"
+                                                        sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 1 }}
+                                                    >
+                                                        <Stack>
+                                                            <Typography variant="body2" fontWeight={500}>
+                                                                {resident.fullName}
+                                                            </Typography>
+                                                            <Typography variant="caption" color="text.secondary">
+                                                                CCCD: {resident.idNumber} | SĐT: {resident.phoneNumber}
+                                                            </Typography>
+                                                        </Stack>
+                                                        <Button
+                                                            size="small"
+                                                            variant="outlined"
+                                                            onClick={() => handleAddMemberToList(resident)}
+                                                        >
+                                                            Thêm
+                                                        </Button>
+                                                    </Stack>
+                                                ))}
+                                            </Stack>
+                                        </Box>
+                                    )}
+
+                                    {/* Temp members table */}
+                                    <TableContainer>
+                                        <Table size="small" sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell>Họ tên</TableCell>
+                                                    <TableCell>CCCD</TableCell>
+                                                    <TableCell>Vai trò</TableCell>
+                                                    <TableCell align="center">Hành động</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {tempMembers.length === 0 ? (
+                                                    <TableRow>
+                                                        <TableCell colSpan={4} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                                                            Chưa có thành viên nào
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ) : (
+                                                    tempMembers.map((member) => (
+                                                        <TableRow key={member.residentId}>
+                                                            <TableCell>{member.fullName}</TableCell>
+                                                            <TableCell>{member.idNumber}</TableCell>
+                                                            <TableCell>
+                                                                {member.familyRole ? (
+                                                                    <Chip
+                                                                        label={member.familyRole}
+                                                                        size="small"
+                                                                        sx={{
+                                                                            bgcolor: member.familyRole === 'Chủ hộ'
+                                                                                ? 'rgba(234, 179, 8, 0.15)'
+                                                                                : 'rgba(100, 116, 139, 0.15)',
+                                                                            color: member.familyRole === 'Chủ hộ'
+                                                                                ? '#fbbf24'
+                                                                                : '#94a3b8',
+                                                                            fontWeight: 500,
+                                                                            minWidth: 80,
+                                                                            justifyContent: 'center'
+                                                                        }}
+                                                                    />
+                                                                ) : (
+                                                                    <Typography variant="caption" color="text.secondary">
+                                                                        Chưa có vai trò
+                                                                    </Typography>
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                <Tooltip title="Xóa">
+                                                                    <IconButton
+                                                                        size="small"
+                                                                        onClick={() => handleRemoveTempMember(member.residentId)}
+                                                                        sx={{ color: 'error.main' }}
+                                                                    >
+                                                                        <Trash2 size={16} />
+                                                                    </IconButton>
+                                                                </Tooltip>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))
+                                                )}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </>
+                            )}
+
+                            {/* EDIT MODE: Show existing members */}
+                            {editingRecord && (
+                                <>
+                                    {/* Search box - same as create mode */}
+                                    <Stack
+                                        direction="row"
+                                        spacing={2}
+                                        sx={{
+                                            mb: 2,
+                                            p: 2,
+                                            bgcolor: 'action.hover',
+                                            borderRadius: 2
+                                        }}
+                                    >
+                                        <TextField
+                                            fullWidth
+                                            label="Tìm kiếm cư dân (Tên, CCCD, SĐT)"
+                                            placeholder="Nhập để tìm kiếm..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    handleSearchResidents();
+                                                }
+                                            }}
+                                            InputProps={{
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <Search size={18} />
+                                                    </InputAdornment>
+                                                )
+                                            }}
+                                        />
+                                        <Button
+                                            variant="contained"
+                                            startIcon={<UserPlus size={18} />}
+                                            onClick={handleSearchResidents}
+                                            disabled={!searchQuery.trim()}
+                                        >
+                                            Tìm
+                                        </Button>
+                                    </Stack>
+
+                                    {/* Search results */}
+                                    {searchResults.length > 0 && (
+                                        <Box sx={{ mb: 2, p: 2, bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                                            <Typography variant="subtitle2" sx={{ mb: 1 }}>Kết quả tìm kiếm:</Typography>
+                                            <Stack spacing={1}>
+                                                {searchResults.map((resident) => (
+                                                    <Stack
+                                                        key={resident.residentId}
+                                                        direction="row"
+                                                        justifyContent="space-between"
+                                                        alignItems="center"
+                                                        sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 1 }}
+                                                    >
+                                                        <Stack>
+                                                            <Typography variant="body2" fontWeight={500}>
+                                                                {resident.fullName}
+                                                            </Typography>
+                                                            <Typography variant="caption" color="text.secondary">
+                                                                CCCD: {resident.idNumber} | SĐT: {resident.phoneNumber}
+                                                            </Typography>
+                                                        </Stack>
+                                                        <Button
+                                                            size="small"
+                                                            variant="outlined"
+                                                            onClick={() => handleAddMemberToList(resident)}
+                                                        >
+                                                            Thêm
+                                                        </Button>
+                                                    </Stack>
+                                                ))}
+                                            </Stack>
+                                        </Box>
+                                    )}
+
+                                    {/* Members table */}
+                                    <TableContainer>
+                                        <Table size="small" sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell>Họ tên</TableCell>
+                                                    <TableCell>CCCD</TableCell>
+                                                    <TableCell>Vai trò</TableCell>
+                                                    <TableCell align="center">Hành động</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {currentMembers.map((member) => (
+                                                    <TableRow key={member.id}>
+                                                        <TableCell>{member.full_name}</TableCell>
+                                                        <TableCell>{member.id_number}</TableCell>
+                                                        <TableCell>
+                                                            {member.id === formData.head_of_household ? (
+                                                                <Chip
+                                                                    label="Chủ hộ"
+                                                                    size="small"
+                                                                    sx={{
+                                                                        bgcolor: 'rgba(234, 179, 8, 0.15)',
+                                                                        color: '#fbbf24',
+                                                                        fontWeight: 500,
+                                                                        minWidth: 80,
+                                                                        justifyContent: 'center'
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                <Chip
+                                                                    label={member.role || 'Thành viên'}
+                                                                    size="small"
+                                                                    sx={{
+                                                                        bgcolor: 'rgba(100, 116, 139, 0.15)',
+                                                                        color: '#94a3b8',
+                                                                        fontWeight: 500,
+                                                                        minWidth: 80,
+                                                                        justifyContent: 'center'
+                                                                    }}
+                                                                />
+                                                            )}
+                                                        </TableCell>
+                                                        <TableCell align="center">
+                                                            <Stack direction="row" spacing={1} justifyContent="center">
+                                                                <Tooltip title="Chỉnh sửa thành viên">
+                                                                    <IconButton
+                                                                        size="small"
+                                                                        onClick={() => handleEditMember(member)}
+                                                                        sx={{
+                                                                            color: '#3b82f6',
+                                                                            '&:hover': {
+                                                                                bgcolor: 'rgba(59, 130, 246, 0.1)',
+                                                                                color: '#2563eb'
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        <Edit size={18} />
+                                                                    </IconButton>
+                                                                </Tooltip>
+                                                                <Tooltip title={member.id === formData.head_of_household ? "Không thể xóa chủ hộ" : "Xóa khỏi hộ"}>
+                                                                    <span>
+                                                                        <IconButton
+                                                                            size="small"
+                                                                            onClick={() => handleRemoveMember(member)}
+                                                                            disabled={member.id === formData.head_of_household}
+                                                                            sx={{
+                                                                                color: member.id === formData.head_of_household ? 'text.disabled' : '#ef4444',
+                                                                                '&:hover': {
+                                                                                    bgcolor: 'rgba(239, 68, 68, 0.1)',
+                                                                                    color: '#dc2626'
+                                                                                }
+                                                                            }}
+                                                                        >
+                                                                            <Trash2 size={18} />
+                                                                        </IconButton>
+                                                                    </span>
+                                                                </Tooltip>
+                                                            </Stack>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                                {currentMembers.length === 0 && (
+                                                    <TableRow>
+                                                        <TableCell colSpan={4} align="center">
+                                                            <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+                                                                Chưa có thành viên nào
+                                                            </Typography>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                )}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </>
+                            )}
                         </Box>
                     )}
                 </DialogContent>
@@ -868,8 +1377,8 @@ const HouseholdManagement = () => {
             </Dialog>
 
             {/* DELETE CONFIRMATION DIALOG */}
-            <Dialog 
-                open={deleteDialogOpen} 
+            <Dialog
+                open={deleteDialogOpen}
                 onClose={handleCancelDelete}
                 maxWidth="xs"
                 fullWidth
@@ -890,9 +1399,9 @@ const HouseholdManagement = () => {
                     <Button onClick={handleCancelDelete} variant="outlined">
                         Hủy
                     </Button>
-                    <Button 
-                        onClick={handleConfirmDelete} 
-                        variant="contained" 
+                    <Button
+                        onClick={handleConfirmDelete}
+                        variant="contained"
                         color="error"
                     >
                         Xóa hộ khẩu
@@ -901,17 +1410,17 @@ const HouseholdManagement = () => {
             </Dialog>
 
             {/* SNACKBAR */}
-            <Snackbar 
-                open={snackbar.open} 
-                autoHideDuration={4000} 
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
                 onClose={handleCloseSnackbar}
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
-                <Alert 
-                    onClose={handleCloseSnackbar} 
-                    severity={snackbar.severity} 
+                <Alert
+                    onClose={handleCloseSnackbar}
+                    severity={snackbar.severity}
                     variant="filled"
-                    sx={{ 
+                    sx={{
                         width: '100%',
                         alignItems: 'center',
                         '& .MuiAlert-action': {
@@ -923,6 +1432,205 @@ const HouseholdManagement = () => {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
+
+            {/* Delete Member Confirmation Dialog */}
+            <Dialog
+                open={deleteMemberDialogOpen}
+                onClose={() => setDeleteMemberDialogOpen(false)}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle sx={{ pb: 2 }}>
+                    Xác nhận xóa thành viên
+                </DialogTitle>
+                <DialogContent>
+                    <Typography variant="body1" gutterBottom>
+                        Bạn có chắc chắn muốn xóa thành viên này khỏi hệ thống?
+                    </Typography>
+                    {deletingMember && (
+                        <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(239, 68, 68, 0.1)', borderRadius: 1 }}>
+                            <Typography variant="body2" fontWeight={600}>
+                                {deletingMember.full_name}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                CCCD: {deletingMember.id_number}
+                            </Typography>
+                        </Box>
+                    )}
+                    <Typography variant="body2" color="error" sx={{ mt: 2 }}>
+                        ⚠️ Hành động này không thể hoàn tác!
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button
+                        onClick={() => setDeleteMemberDialogOpen(false)}
+                        variant="outlined"
+                    >
+                        Hủy
+                    </Button>
+                    <Button
+                        onClick={confirmDeleteMember}
+                        variant="contained"
+                        color="error"
+                        disabled={loading}
+                    >
+                        {loading ? 'Đang xóa...' : 'Xóa'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Edit Member Dialog */}
+            <Dialog
+                open={editMemberDialogOpen}
+                onClose={() => setEditMemberDialogOpen(false)}
+                maxWidth="md"
+                fullWidth
+            >
+                <DialogTitle>Cập nhật thông tin cư dân</DialogTitle>
+                <DialogContent>
+                    <Stack spacing={2.5} sx={{ mt: 1 }}>
+                        {/* Row 1: Họ tên & Ngày sinh */}
+                        <Stack direction="row" spacing={2}>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Họ và tên <span style={{ color: '#ef4444' }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    placeholder="Nhập họ và tên"
+                                    value={memberFormData.fullName}
+                                    onChange={(e) => setMemberFormData({ ...memberFormData, fullName: e.target.value })}
+                                    size="small"
+                                />
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Ngày sinh <span style={{ color: '#ef4444' }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    type="date"
+                                    value={memberFormData.dateOfBirth}
+                                    onChange={(e) => setMemberFormData({ ...memberFormData, dateOfBirth: e.target.value })}
+                                    size="small"
+                                    InputLabelProps={{ shrink: true }}
+                                />
+                            </Box>
+                        </Stack>
+
+                        {/* Row 2: Giới tính & SĐT */}
+                        <Stack direction="row" spacing={2}>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Giới tính <span style={{ color: '#ef4444' }}>*</span>
+                                </Typography>
+                                <TextField
+                                    select
+                                    fullWidth
+                                    value={memberFormData.gender}
+                                    onChange={(e) => setMemberFormData({ ...memberFormData, gender: e.target.value })}
+                                    size="small"
+                                >
+                                    <MenuItem value="Nam">Nam</MenuItem>
+                                    <MenuItem value="Nữ">Nữ</MenuItem>
+                                </TextField>
+                            </Box>
+                            <Box sx={{ flex: 2 }}>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Số điện thoại <span style={{ color: '#ef4444' }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    placeholder="Nhập số điện thoại"
+                                    value={memberFormData.phoneNumber || ''}
+                                    onChange={(e) => setMemberFormData({ ...memberFormData, phoneNumber: e.target.value })}
+                                    size="small"
+                                />
+                            </Box>
+                        </Stack>
+
+                        {/* Row 3: CCCD & Mã hộ */}
+                        <Stack direction="row" spacing={2}>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Số CCCD <span style={{ color: '#ef4444' }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    placeholder="Nhập số CCCD"
+                                    value={memberFormData.idNumber}
+                                    onChange={(e) => setMemberFormData({ ...memberFormData, idNumber: e.target.value })}
+                                    size="small"
+                                />
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Mã hộ gia đình (Tùy chọn)
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    placeholder="VD: 14 (Bỏ trống nếu chưa có)"
+                                    value={memberFormData.householdId || ''}
+                                    onChange={(e) => setMemberFormData({ ...memberFormData, householdId: e.target.value })}
+                                    size="small"
+                                    disabled
+                                />
+                            </Box>
+                        </Stack>
+
+                        {/* Row 4: Quan hệ & Công việc */}
+                        <Stack direction="row" spacing={2}>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Quan hệ với chủ hộ <span style={{ color: '#ef4444' }}>*</span>
+                                </Typography>
+                                <TextField
+                                    select
+                                    fullWidth
+                                    value={memberFormData.familyRole}
+                                    onChange={(e) => setMemberFormData({ ...memberFormData, familyRole: e.target.value })}
+                                    size="small"
+                                >
+                                    <MenuItem value="Chủ hộ">Chủ hộ</MenuItem>
+                                    <MenuItem value="Vợ">Vợ</MenuItem>
+                                    <MenuItem value="Chồng">Chồng</MenuItem>
+                                    <MenuItem value="Con">Con</MenuItem>
+                                    <MenuItem value="Bố mẹ">Bố mẹ</MenuItem>
+                                    <MenuItem value="Thành viên khác">Thành viên khác</MenuItem>
+                                    <MenuItem value="Khác">Khác (Ở ghép/Tạm trú)</MenuItem>
+                                </TextField>
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                                    Công việc <span style={{ color: '#ef4444' }}>*</span>
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    placeholder="Nhập công việc hiện tại"
+                                    value={memberFormData.job || ''}
+                                    onChange={(e) => setMemberFormData({ ...memberFormData, job: e.target.value })}
+                                    size="small"
+                                />
+                            </Box>
+                        </Stack>
+                    </Stack>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button
+                        onClick={() => setEditMemberDialogOpen(false)}
+                        variant="outlined"
+                    >
+                        Hủy
+                    </Button>
+                    <Button
+                        onClick={handleSaveMember}
+                        variant="contained"
+                        disabled={loading}
+                    >
+                        {loading ? 'Đang lưu...' : 'Cập Nhật'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </MainCard>
     );
 };

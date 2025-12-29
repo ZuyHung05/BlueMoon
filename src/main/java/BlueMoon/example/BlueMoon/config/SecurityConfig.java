@@ -33,6 +33,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/login").permitAll() // Cho phép truy cập login không cần auth
                         .requestMatchers("/api/vehicles/**").permitAll() // Tạm thời cho phép truy cập vehicles
+                        .requestMatchers("/resident/**").permitAll() // Tạm thời cho phép truy cập resident
+                        .requestMatchers("/household/**").permitAll() // Tạm thời cho phép truy cập household
+                        .requestMatchers("/default-fee/**").permitAll() // Tạm thời cho phép truy cập default-fee
+                        .requestMatchers("/payment-periods/**").permitAll() // Tạm thời cho phép truy cập payment-periods
                         .anyRequest().authenticated() // Các request khác phải đăng nhập
                 )
                 .addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);

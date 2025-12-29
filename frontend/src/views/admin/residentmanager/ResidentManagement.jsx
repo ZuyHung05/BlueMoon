@@ -1,6 +1,6 @@
 // frontend/src/views/admin/residentmanager/ResidentManagement.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // material-ui
 import {
@@ -39,276 +39,23 @@ import MainCard from 'ui-component/cards/MainCard';
 import { Edit, Trash2, Plus, Search, Filter } from 'lucide-react';
 
 const ResidentManagement = () => {
-    // --- 1. MOCK DATA ---
-    const [data, setData] = useState([
-        {
-            id: 1,
-            full_name: 'Nguyễn Văn A',
-            gender: 'male',
-            date_of_birth: '1990-05-15',
-            phone_number: '0987654321',
-            id_number: '001090000001',
-            family_role: 'Chủ hộ',
-            job: 'Kỹ sư',
-            household_id: 'H001'
-        },
-        {
-            id: 2,
-            full_name: 'Trần Thị B',
-            gender: 'female',
-            date_of_birth: '1992-08-20',
-            phone_number: '0901234567',
-            id_number: '001092000002',
-            family_role: 'Vợ',
-            job: 'Giáo viên',
-            household_id: 'H001'
-        },
-        {
-            id: 3,
-            full_name: 'Lê Văn C',
-            gender: 'male',
-            date_of_birth: '2000-10-10',
-            phone_number: '0912345678',
-            id_number: '001200000003',
-            family_role: 'Khác',
-            job: 'Sinh viên',
-            household_id: ''
-        },
-        {
-            id: 4,
-            full_name: 'Phạm Văn D',
-            gender: 'male',
-            date_of_birth: '1975-03-12',
-            phone_number: '0923456789',
-            id_number: '001075000004',
-            family_role: 'Chủ hộ',
-            job: 'Kinh doanh',
-            household_id: 'H002'
-        },
-        {
-            id: 5,
-            full_name: 'Hoàng Thị E',
-            gender: 'female',
-            date_of_birth: '1978-11-25',
-            phone_number: '0934567890',
-            id_number: '001078000005',
-            family_role: 'Vợ',
-            job: 'Kế toán',
-            household_id: 'H002'
-        },
-        {
-            id: 6,
-            full_name: 'Phạm Hoàng F',
-            gender: 'male',
-            date_of_birth: '2005-07-14',
-            phone_number: '0945678901',
-            id_number: '001205000006',
-            family_role: 'Con',
-            job: 'Học sinh',
-            household_id: 'H002'
-        },
-        {
-            id: 7,
-            full_name: 'Vũ Văn G',
-            gender: 'male',
-            date_of_birth: '1985-12-01',
-            phone_number: '0956789012',
-            id_number: '001085000007',
-            family_role: 'Chủ hộ',
-            job: 'Bác sĩ',
-            household_id: 'H003'
-        },
-        {
-            id: 8,
-            full_name: 'Đặng Thị H',
-            gender: 'female',
-            date_of_birth: '1988-04-18',
-            phone_number: '0967890123',
-            id_number: '001088000008',
-            family_role: 'Vợ',
-            job: 'Nội trợ',
-            household_id: 'H003'
-        },
-        {
-            id: 9,
-            full_name: 'Vũ Diệu I',
-            gender: 'female',
-            date_of_birth: '2012-09-30',
-            phone_number: '0978901234',
-            id_number: '001212000009',
-            family_role: 'Con',
-            job: 'Học sinh',
-            household_id: 'H003'
-        },
-        {
-            id: 10,
-            full_name: 'Đỗ Văn K',
-            gender: 'male',
-            date_of_birth: '1960-01-20',
-            phone_number: '0989012345',
-            id_number: '001060000010',
-            family_role: 'Chủ hộ',
-            job: 'Nghỉ hưu',
-            household_id: 'H004'
-        },
-        {
-            id: 11,
-            full_name: 'Bùi Thị L',
-            gender: 'female',
-            date_of_birth: '1963-06-15',
-            phone_number: '0990123456',
-            id_number: '001063000011',
-            family_role: 'Vợ',
-            job: 'Công nhân',
-            household_id: 'H004'
-        },
-        {
-            id: 12,
-            full_name: 'Đỗ Tiến M',
-            gender: 'male',
-            date_of_birth: '1995-10-05',
-            phone_number: '0911234567',
-            id_number: '001095000012',
-            family_role: 'Con',
-            job: 'Lập trình viên',
-            household_id: 'H004'
-        },
-        {
-            id: 13,
-            full_name: 'Lý Văn N',
-            gender: 'male',
-            date_of_birth: '1998-02-28',
-            phone_number: '0922345678',
-            id_number: '001098000013',
-            family_role: 'Chủ hộ',
-            job: 'Kiến trúc sư',
-            household_id: 'H005'
-        },
-        {
-            id: 14,
-            full_name: 'Trịnh Thị O',
-            gender: 'female',
-            date_of_birth: '2000-05-12',
-            phone_number: '0933456789',
-            id_number: '001200000014',
-            family_role: 'Vợ',
-            job: 'Nhân viên văn phòng',
-            household_id: 'H005'
-        },
-        {
-            id: 15,
-            full_name: 'Đinh Văn P',
-            gender: 'male',
-            date_of_birth: '1982-11-11',
-            phone_number: '0944567890',
-            id_number: '001082000015',
-            family_role: 'Chủ hộ',
-            job: 'Công an',
-            household_id: 'H006'
-        },
-        {
-            id: 16,
-            full_name: 'Trần Thị Q',
-            gender: 'female',
-            date_of_birth: '1985-08-08',
-            phone_number: '0955678901',
-            id_number: '001085000016',
-            family_role: 'Vợ',
-            job: 'Y tá',
-            household_id: 'H006'
-        },
-        {
-            id: 17,
-            full_name: 'Đinh Công R',
-            gender: 'male',
-            date_of_birth: '2010-01-01',
-            phone_number: '0966789012',
-            id_number: '001210000017',
-            family_role: 'Con',
-            job: 'Học sinh',
-            household_id: 'H006'
-        },
-        {
-            id: 18,
-            full_name: 'Hà Văn S',
-            gender: 'male',
-            date_of_birth: '1993-04-04',
-            phone_number: '0977890123',
-            id_number: '001093000018',
-            family_role: 'Khác',
-            job: 'Tài xế',
-            household_id: ''
-        },
-        {
-            id: 19,
-            full_name: 'Phan Thị T',
-            gender: 'female',
-            date_of_birth: '1997-07-07',
-            phone_number: '0988901234',
-            id_number: '001097000019',
-            family_role: 'Khác',
-            job: 'Nhân viên bán hàng',
-            household_id: ''
-        },
-        {
-            id: 20,
-            full_name: 'Võ Văn U',
-            gender: 'male',
-            date_of_birth: '1980-09-09',
-            phone_number: '0999012345',
-            id_number: '001080000020',
-            family_role: 'Chủ hộ',
-            job: 'Thợ điện',
-            household_id: 'H007'
-        },
-        {
-            id: 21,
-            full_name: 'Ngô Thị V',
-            gender: 'female',
-            date_of_birth: '1983-12-12',
-            phone_number: '0911223344',
-            id_number: '001083000021',
-            family_role: 'Vợ',
-            job: 'May mặc',
-            household_id: 'H007'
-        },
-        {
-            id: 22,
-            full_name: 'Ngô Văn X',
-            gender: 'male',
-            date_of_birth: '2008-05-05',
-            phone_number: '0922334455',
-            id_number: '001208000022',
-            family_role: 'Con',
-            job: 'Học sinh',
-            household_id: 'H007'
-        },
-        {
-            id: 23,
-            full_name: 'Hồ Thị Y',
-            gender: 'female',
-            date_of_birth: '1991-02-02',
-            phone_number: '0933445566',
-            id_number: '001091000023',
-            family_role: 'Chủ hộ',
-            job: 'Giảng viên',
-            household_id: 'H008'
-        }
-    ]);
+    // --- 1. DATA STATE ---
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    // Pagination State
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
 
     // --- 2. STATE QUẢN LÝ UI ---
     const [open, setOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    
     // Filter states
     const [genderFilter, setGenderFilter] = useState('ALL');
     const [householdFilter, setHouseholdFilter] = useState('ALL');
     const [roleFilter, setRoleFilter] = useState('ALL');
-
-    // Pagination states
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     // Filter menu anchor
     const [anchorEl, setAnchorEl] = useState(null);
@@ -334,28 +81,102 @@ const ResidentManagement = () => {
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
+    // Confirm Dialog State for Role Change
+    const [confirmRoleDialog, setConfirmRoleDialog] = useState(false);
+    const [pendingRoleValue, setPendingRoleValue] = useState(null);
+    const [conflictingHeadName, setConflictingHeadName] = useState('');
+
     // Check if any filter is active
     const isFilterActive = genderFilter !== 'ALL' || householdFilter !== 'ALL' || roleFilter !== 'ALL';
 
-    // --- 3. FILTERING ---
-    const filteredData = data.filter((item) => {
-        const matchText =
-            item.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.phone_number.includes(searchTerm) ||
-            item.id_number.includes(searchTerm) ||
-            (item.household_id && item.household_id.toLowerCase().includes(searchTerm.toLowerCase()));
+    // Pagination Handlers
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
 
-        const matchGender = genderFilter === 'ALL' || item.gender === genderFilter;
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
 
-        let matchHousehold = true;
-        if (householdFilter === 'HAS_HOUSEHOLD') matchHousehold = !!item.household_id;
-        if (householdFilter === 'NO_HOUSEHOLD') matchHousehold = !item.household_id;
+    // --- 3. FETCH DATA FROM BACKEND ---
+    const fetchResidents = async () => {
+        setLoading(true);
+        try {
+            // Map frontend filter values to backend format
+            const requestBody = {
+                searchKeyword: searchTerm || null,
+                gender: genderFilter === 'ALL' ? null : genderFilter === 'male' ? 'M' : 'F',
+                hasHousehold: householdFilter === 'ALL' ? null : householdFilter === 'HAS_HOUSEHOLD' ? true : false,
+                familyRole: roleFilter === 'ALL' ? null : roleFilter === 'OWNER' ? 'Head of Household' : null,
+                page: page + 1,
+                pageSize: rowsPerPage
+            };
 
-        const matchRole = roleFilter === 'ALL' || 
-                          (roleFilter === 'OWNER' && item.family_role === 'Chủ hộ');
+            const response = await fetch('http://localhost:8081/resident/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
 
-        return matchText && matchGender && matchHousehold && matchRole;
-    });
+            if (!response.ok) {
+                throw new Error('Failed to fetch residents');
+            }
+
+            const result = await response.json();
+            const pageResponse = result.result;
+
+            // Map backend response to frontend format
+            const roleMapping = {
+                'Head of Household': 'Chủ hộ',
+                Wife: 'Vợ',
+                Husband: 'Chồng',
+                Child: 'Con',
+                Son: 'Con',
+                Daughter: 'Con',
+                Parent: 'Bố mẹ',
+                Father: 'Bố mẹ',
+                Mother: 'Bố mẹ',
+                Member: 'Thành viên khác',
+                Other: 'Khác'
+            };
+
+            const mappedData = pageResponse.data.map((item) => ({
+                id: item.residentId,
+                full_name: item.fullName,
+                gender: item.gender === 'M' ? 'male' : 'female',
+                date_of_birth: item.dateOfBirth,
+                phone_number: item.phoneNumber,
+                id_number: item.idNumber,
+                family_role: roleMapping[item.familyRole] || item.familyRole,
+                job: item.job,
+                household_id: item.householdId || ''
+            }));
+
+            setData(mappedData);
+            setTotalCount(pageResponse.totalElements);
+        } catch (error) {
+            console.error('Error fetching residents:', error);
+            setSnackbar({ open: true, message: 'Lỗi khi tải dữ liệu cư dân!', severity: 'error' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch data when component mounts or filters/pagination change
+    useEffect(() => {
+        fetchResidents();
+    }, [searchTerm, genderFilter, householdFilter, roleFilter, page, rowsPerPage]);
+
+    // Reset page to 0 when filters change, to avoid empty results on non-existent pages
+    useEffect(() => {
+        setPage(0);
+    }, [searchTerm, genderFilter, householdFilter, roleFilter]);
+
+    // Use data directly (no client-side filtering needed)
+    const filteredData = data;
 
     // --- 4. HANDLERS ---
     const handleFilterClick = (event) => {
@@ -371,16 +192,6 @@ const ResidentManagement = () => {
         setHouseholdFilter('ALL');
         setRoleFilter('ALL');
         setAnchorEl(null);
-        setPage(0);
-    };
-
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
     };
 
     const handleOpen = (record = null) => {
@@ -418,10 +229,46 @@ const ResidentManagement = () => {
     };
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+
+        // Logic check trùng chủ hộ khi chọn "Chủ hộ"
+        if (name === 'family_role' && value === 'Chủ hộ') {
+            // Chỉ check nếu đã nhập household_id
+            if (formData.household_id) {
+                const currentHead = data.find(
+                    (item) =>
+                        // So sánh household_id (chú ý type string/number)
+                        String(item.household_id) === String(formData.household_id) &&
+                        item.family_role === 'Chủ hộ' &&
+                        item.id !== editingRecord?.id // Không check chính mình
+                );
+
+                if (currentHead) {
+                    setConflictingHeadName(currentHead.full_name);
+                    setPendingRoleValue(value);
+                    setConfirmRoleDialog(true);
+                    return; // Chưa update state vội
+                }
+            }
+        }
+
+        setFormData({ ...formData, [name]: value });
     };
 
-    const handleSave = () => {
+    const handleConfirmRoleChange = () => {
+        setFormData({ ...formData, family_role: pendingRoleValue });
+        setConfirmRoleDialog(false);
+        setConflictingHeadName('');
+        setPendingRoleValue(null);
+    };
+
+    const handleCancelRoleChange = () => {
+        setConfirmRoleDialog(false);
+        setPendingRoleValue(null);
+        setConflictingHeadName('');
+    };
+
+    const handleSave = async () => {
         // Validate required fields
         if (!formData.full_name) {
             setSnackbar({ open: true, message: 'Vui lòng nhập họ tên!', severity: 'warning' });
@@ -440,18 +287,51 @@ const ResidentManagement = () => {
             return;
         }
 
-        if (editingRecord) {
-            const updatedData = data.map((item) =>
-                item.id === editingRecord.id ? { ...item, ...formData } : item
-            );
-            setData(updatedData);
-            setSnackbar({ open: true, message: 'Cập nhật cư dân thành công!', severity: 'success' });
-        } else {
-            const newId = data.length > 0 ? Math.max(...data.map((d) => d.id)) + 1 : 1;
-            setData([...data, { id: newId, ...formData }]);
-            setSnackbar({ open: true, message: 'Thêm cư dân mới thành công!', severity: 'success' });
+        try {
+            const apiData = {
+                fullName: formData.full_name,
+                gender: formData.gender === 'male' ? 'M' : 'F',
+                dateOfBirth: formData.date_of_birth,
+                phoneNumber: formData.phone_number,
+                idNumber: formData.id_number,
+                familyRole: formData.family_role,
+                job: formData.job,
+                householdId: formData.household_id && String(formData.household_id).trim() !== '' ? formData.household_id : null
+            };
+
+            let response;
+            if (editingRecord) {
+                response = await fetch(`http://localhost:8081/resident/update/${editingRecord.id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(apiData)
+                });
+            } else {
+                response = await fetch(`http://localhost:8081/resident/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(apiData)
+                });
+            }
+
+            // Xử lý response lỗi từ server
+            if (!response.ok) {
+                const errorData = await response.json();
+                // Ưu tiên hiển thị message từ backend trả về
+                throw new Error(errorData.message || (errorData.error ? errorData.error : 'Lỗi khi lưu dữ liệu'));
+            }
+
+            setSnackbar({
+                open: true,
+                message: editingRecord ? 'Cập nhật cư dân thành công!' : 'Thêm cư dân mới thành công!',
+                severity: 'success'
+            });
+            handleClose();
+            fetchResidents(); // Reload list
+        } catch (error) {
+            console.error('Save error:', error);
+            setSnackbar({ open: true, message: error.message, severity: 'error' });
         }
-        handleClose();
     };
 
     const handleDelete = (record) => {
@@ -459,7 +339,7 @@ const ResidentManagement = () => {
         setDeleteDialogOpen(true);
     };
 
-    const handleConfirmDelete = () => {
+    const handleConfirmDelete = async () => {
         if (deletingRecord) {
             if (deletingRecord.family_role === 'Chủ hộ') {
                 setSnackbar({ open: true, message: 'Không thể xóa cư dân đang là Chủ hộ! Hãy đổi chủ hộ trước.', severity: 'error' });
@@ -467,8 +347,30 @@ const ResidentManagement = () => {
                 setDeletingRecord(null);
                 return;
             }
-            setData(data.filter((item) => item.id !== deletingRecord.id));
-            setSnackbar({ open: true, message: 'Đã xóa cư dân!', severity: 'success' });
+
+            try {
+                // Call API to delete
+                const response = await fetch('http://localhost:8081/resident/delete1', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ residentId: deletingRecord.id })
+                });
+
+                if (response.ok) {
+                    setData(data.filter((item) => item.id !== deletingRecord.id));
+                    setSnackbar({ open: true, message: 'Đã xóa cư dân thành công!', severity: 'success' });
+                    // Refresh data from server
+                    await fetchResidents();
+                } else {
+                    const errorData = await response.json();
+                    setSnackbar({ open: true, message: errorData.message || 'Lỗi khi xóa cư dân!', severity: 'error' });
+                }
+            } catch (error) {
+                console.error('Error deleting resident:', error);
+                setSnackbar({ open: true, message: 'Lỗi kết nối server!', severity: 'error' });
+            }
         }
         setDeleteDialogOpen(false);
         setDeletingRecord(null);
@@ -482,25 +384,53 @@ const ResidentManagement = () => {
     // --- 5. HELPER FUNCTIONS ---
     const getGenderChip = (gender) => {
         return gender === 'male' ? (
-            <Chip label="Nam" size="small" sx={{ bgcolor: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', fontWeight: 500, minWidth: 60, justifyContent: 'center' }} />
+            <Chip
+                label="Nam"
+                size="small"
+                sx={{ bgcolor: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', fontWeight: 500, minWidth: 60, justifyContent: 'center' }}
+            />
         ) : (
-            <Chip label="Nữ" size="small" sx={{ bgcolor: 'rgba(236, 72, 153, 0.15)', color: '#f472b6', fontWeight: 500, minWidth: 60, justifyContent: 'center' }} />
+            <Chip
+                label="Nữ"
+                size="small"
+                sx={{ bgcolor: 'rgba(236, 72, 153, 0.15)', color: '#f472b6', fontWeight: 500, minWidth: 60, justifyContent: 'center' }}
+            />
         );
     };
 
     const getHouseholdChip = (householdId) => {
         return householdId ? (
-            <Chip label={householdId} size="small" sx={{ bgcolor: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', fontWeight: 500, minWidth: 70, justifyContent: 'center' }} />
+            <Chip
+                label={householdId}
+                size="small"
+                sx={{ bgcolor: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', fontWeight: 500, minWidth: 70, justifyContent: 'center' }}
+            />
         ) : (
-            <Chip label="Chưa có" size="small" sx={{ bgcolor: 'rgba(100, 116, 139, 0.15)', color: '#94a3b8', fontWeight: 500, minWidth: 70, justifyContent: 'center' }} />
+            <Chip
+                label="Chưa có"
+                size="small"
+                sx={{ bgcolor: 'rgba(100, 116, 139, 0.15)', color: '#94a3b8', fontWeight: 500, minWidth: 70, justifyContent: 'center' }}
+            />
         );
     };
 
     const getRoleChip = (role) => {
         if (role === 'Chủ hộ') {
-            return <Chip label="Chủ hộ" size="small" sx={{ bgcolor: 'rgba(234, 179, 8, 0.15)', color: '#fbbf24', fontWeight: 600, minWidth: 80, justifyContent: 'center' }} />;
+            return (
+                <Chip
+                    label="Chủ hộ"
+                    size="small"
+                    sx={{ bgcolor: 'rgba(234, 179, 8, 0.15)', color: '#fbbf24', fontWeight: 600, minWidth: 80, justifyContent: 'center' }}
+                />
+            );
         }
-        return <Chip label={role} size="small" sx={{ bgcolor: 'rgba(100, 116, 139, 0.15)', color: '#94a3b8', fontWeight: 500, minWidth: 80, justifyContent: 'center' }} />;
+        return (
+            <Chip
+                label={role}
+                size="small"
+                sx={{ bgcolor: 'rgba(100, 116, 139, 0.15)', color: '#94a3b8', fontWeight: 500, minWidth: 80, justifyContent: 'center' }}
+            />
+        );
     };
 
     const formatDate = (dateStr) => {
@@ -509,6 +439,8 @@ const ResidentManagement = () => {
         return date.toLocaleDateString('vi-VN');
     };
 
+
+
     return (
         <MainCard contentSX={{ pt: 2 }}>
             <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
@@ -516,6 +448,7 @@ const ResidentManagement = () => {
                     Quản lý Cư dân
                 </Typography>
 
+                {/* ADD BUTTON */}
                 <Tooltip title="Thêm cư dân mới">
                     <Button
                         variant="contained"
@@ -535,11 +468,12 @@ const ResidentManagement = () => {
                     </Button>
                 </Tooltip>
 
+                {/* FILTER BUTTON */}
                 <Tooltip title="Lọc theo điều kiện">
-                    <IconButton 
+                    <IconButton
                         onClick={handleFilterClick}
                         color={isFilterActive ? 'primary' : 'inherit'}
-                        sx={{ 
+                        sx={{
                             border: '1px solid',
                             borderColor: isFilterActive ? 'primary.main' : 'divider',
                             borderRadius: '12px',
@@ -552,7 +486,8 @@ const ResidentManagement = () => {
                     </IconButton>
                 </Tooltip>
 
-                <OutlinedInput
+                 {/* SEARCH BAR */}
+                 <OutlinedInput
                     placeholder="Tìm tên, SĐT, CCCD..."
                     startAdornment={
                         <InputAdornment position="start">
@@ -561,8 +496,8 @@ const ResidentManagement = () => {
                     }
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    sx={{ 
-                        minWidth: 280,
+                    sx={{
+                        minWidth: 300,
                         borderRadius: '12px',
                         height: 40
                     }}
@@ -570,8 +505,8 @@ const ResidentManagement = () => {
                 />
             </Box>
 
-            {/* FILTER MENU */}
-            <Menu
+             {/* FILTER MENU */}
+             <Menu
                 anchorEl={anchorEl}
                 open={openFilter}
                 onClose={handleFilterClose}
@@ -630,19 +565,22 @@ const ResidentManagement = () => {
                     </>
                 )}
             </Menu>
+
             {/* TABLE */}
             <TableContainer>
                 <Table sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
-                    <TableHead sx={{ 
-                        bgcolor: 'action.hover',
-                        '& .MuiTableCell-root': {
-                            color: 'text.primary',
-                            fontWeight: 700,
-                            fontSize: '0.875rem',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px'
-                        }
-                    }}>
+                    <TableHead
+                        sx={{
+                            bgcolor: 'action.hover',
+                            '& .MuiTableCell-root': {
+                                color: 'text.primary',
+                                fontWeight: 700,
+                                fontSize: '0.875rem',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                            }
+                        }}
+                    >
                         <TableRow>
                             <TableCell>STT</TableCell>
                             <TableCell>Họ và tên</TableCell>
@@ -657,7 +595,7 @@ const ResidentManagement = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => (
+                        {filteredData.map((row, index) => (
                             <TableRow key={row.id} hover>
                                 <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                                 <TableCell>
@@ -675,16 +613,12 @@ const ResidentManagement = () => {
                                 <TableCell align="center">
                                     <Stack direction="row" spacing={0.5} justifyContent="center">
                                         <Tooltip title="Sửa thông tin">
-                                            <IconButton 
-                                                color="primary" 
-                                                onClick={() => handleOpen(row)}
-                                                size="small"
-                                            >
+                                            <IconButton color="primary" onClick={() => handleOpen(row)} size="small">
                                                 <Edit size={18} />
                                             </IconButton>
                                         </Tooltip>
                                         <Tooltip title="Xóa cư dân">
-                                            <IconButton 
+                                            <IconButton
                                                 sx={{
                                                     color: '#ef4444',
                                                     '&:hover': {
@@ -715,15 +649,15 @@ const ResidentManagement = () => {
                 </Table>
             </TableContainer>
             <TablePagination
-                rowsPerPageOptions={[10, 20, 50]}
+                rowsPerPageOptions={[5, 10, 25, 50]}
                 component="div"
-                count={filteredData.length}
+                count={totalCount}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 onPageChange={handleChangePage}
                 onRowsPerPageChange={handleChangeRowsPerPage}
                 labelRowsPerPage="Số hàng mỗi trang:"
-                labelDisplayedRows={({ from, to, count }) => `${from}-${to} trong ${count}`}
+                labelDisplayedRows={({ from, to, count }) => `${from}–${to} trong ${count}`}
                 sx={{
                     borderTop: '1px solid',
                     borderColor: 'divider',
@@ -788,9 +722,7 @@ const ResidentManagement = () => {
 
             {/* ADD/EDIT DIALOG */}
             <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-                <DialogTitle>
-                    {editingRecord ? 'Cập nhật thông tin cư dân' : 'Thêm cư dân mới'}
-                </DialogTitle>
+                <DialogTitle>{editingRecord ? 'Cập nhật thông tin cư dân' : 'Thêm cư dân mới'}</DialogTitle>
                 <DialogContent>
                     <Stack spacing={2.5} sx={{ mt: 1 }}>
                         {/* Row 1: Họ tên & Ngày sinh */}
@@ -830,14 +762,7 @@ const ResidentManagement = () => {
                                 <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
                                     Giới tính <span style={{ color: '#ef4444' }}>*</span>
                                 </Typography>
-                                <TextField
-                                    select
-                                    fullWidth
-                                    name="gender"
-                                    value={formData.gender}
-                                    onChange={handleChange}
-                                    size="small"
-                                >
+                                <TextField select fullWidth name="gender" value={formData.gender} onChange={handleChange} size="small">
                                     <MenuItem value="male">Nam</MenuItem>
                                     <MenuItem value="female">Nữ</MenuItem>
                                 </TextField>
@@ -883,6 +808,7 @@ const ResidentManagement = () => {
                                     value={formData.household_id}
                                     onChange={handleChange}
                                     size="small"
+                                    // Đảm bảo KHÔNG CÓ dòng: required
                                 />
                             </Box>
                         </Stack>
@@ -927,7 +853,9 @@ const ResidentManagement = () => {
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ p: 2.5 }}>
-                    <Button onClick={handleClose} color="error">Hủy</Button>
+                    <Button onClick={handleClose} color="error">
+                        Hủy
+                    </Button>
                     <Button onClick={handleSave} variant="contained" color="primary">
                         {editingRecord ? 'Cập nhật' : 'Thêm mới'}
                     </Button>
@@ -935,15 +863,8 @@ const ResidentManagement = () => {
             </Dialog>
 
             {/* DELETE CONFIRMATION DIALOG */}
-            <Dialog 
-                open={deleteDialogOpen} 
-                onClose={handleCancelDelete}
-                maxWidth="xs"
-                fullWidth
-            >
-                <DialogTitle sx={{ pb: 1 }}>
-                    Xác nhận xóa cư dân
-                </DialogTitle>
+            <Dialog open={deleteDialogOpen} onClose={handleCancelDelete} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ pb: 1 }}>Xác nhận xóa cư dân</DialogTitle>
                 <DialogContent>
                     <Typography variant="body1">
                         Bạn có chắc chắn muốn xóa cư dân <strong>{deletingRecord?.full_name}</strong>?
@@ -956,28 +877,46 @@ const ResidentManagement = () => {
                     <Button onClick={handleCancelDelete} variant="outlined">
                         Hủy
                     </Button>
-                    <Button 
-                        onClick={handleConfirmDelete} 
-                        variant="contained" 
-                        color="error"
-                    >
+                    <Button onClick={handleConfirmDelete} variant="contained" color="error">
                         Xóa cư dân
                     </Button>
                 </DialogActions>
             </Dialog>
 
+            {/* CONFIRM SWITCH ROLE DIALOG */}
+            <Dialog open={confirmRoleDialog} onClose={handleCancelRoleChange} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ pb: 1, color: 'warning.main' }}>⚠️ Xác nhận thay đổi Chủ hộ</DialogTitle>
+                <DialogContent>
+                    <Typography variant="body1">
+                        Hộ gia đình này hiện đã có chủ hộ là ông/bà <strong>{conflictingHeadName}</strong>.
+                    </Typography>
+                    <Typography variant="body1" sx={{ mt: 1 }}>
+                        Bạn có chắc chắn muốn chuyển quyền chủ hộ sang cho người này không?
+                        <strong>{conflictingHeadName}</strong> sẽ được chuyển thành thành viên.
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ p: 2.5, pt: 1.5 }}>
+                    <Button onClick={handleCancelRoleChange} variant="outlined">
+                        Hủy
+                    </Button>
+                    <Button onClick={handleConfirmRoleChange} variant="contained" color="warning">
+                        Đồng ý chuyển đổi
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
             {/* SNACKBAR */}
-            <Snackbar 
-                open={snackbar.open} 
-                autoHideDuration={4000} 
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
                 onClose={handleCloseSnackbar}
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
-                <Alert 
-                    onClose={handleCloseSnackbar} 
-                    severity={snackbar.severity} 
+                <Alert
+                    onClose={handleCloseSnackbar}
+                    severity={snackbar.severity}
                     variant="filled"
-                    sx={{ 
+                    sx={{
                         width: '100%',
                         alignItems: 'center',
                         '& .MuiAlert-action': {

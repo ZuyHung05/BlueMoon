@@ -43,46 +43,12 @@ import { Edit, Trash2, Plus, Search, Upload, Download, Printer, CheckCircle, XCi
 import dayjs from 'dayjs';
 
 const PaymentPeriodManagement = () => {
-    // --- DATA ĐỢT THU (MOCK) ---
-    const [data, setData] = useState([
-        {
-            payment_period_id: 1,
-            description: 'Phí dịch vụ chung cư Tháng 10/2025',
-            start_date: '2025-10-01',
-            end_date: '2025-10-31',
-            is_mandatory: true,
-            count: 2,
-            total: 8
-        },
-        {
-            payment_period_id: 2,
-            description: 'Quyên góp quỹ từ thiện 2025',
-            start_date: '2025-10-05',
-            end_date: '2025-11-05',
-            is_mandatory: false,
-            count: 1,
-            total: 8
-        }
-    ]);
-
-    // --- MOCK DATA HỘ DÂN ---
-    const mockAllHouseholds = [
-        { id: 101, name: 'Hộ 101 - Nguyễn Văn A', room: '101', required_amount: 500000 },
-        { id: 102, name: 'Hộ 102 - Lê Thị C', room: '102', required_amount: 500000 },
-        { id: 201, name: 'Hộ 201 - Hoàng Văn D', room: '201', required_amount: 650000 },
-        { id: 205, name: 'Hộ 205 - Trần Thị B', room: '205', required_amount: 650000 },
-        { id: 301, name: 'Hộ 301 - Lê Văn C', room: '301', required_amount: 420000 },
-        { id: 302, name: 'Hộ 302 - Ngô Thị E', room: '302', required_amount: 420000 },
-        { id: 401, name: 'Hộ 401 - Đỗ Văn G', room: '401', required_amount: 550000 },
-        { id: 402, name: 'Hộ 402 - Phạm Thị D', room: '402', required_amount: 550000 }
-    ];
-
-    // --- MOCK DATA ĐÃ ĐÓNG TIỀN ---
-    const [paidResidents, setPaidResidents] = useState([
-        { key: 'p1', payment_period_id: 1, household_id: 101, household_name: 'Hộ 101 - Nguyễn Văn A', room: '101', amount: 500000, date: '2025-10-05', method: 'Chuyển khoản' },
-        { key: 'p2', payment_period_id: 1, household_id: 205, household_name: 'Hộ 205 - Trần Thị B', room: '205', amount: 650000, date: '2025-10-06', method: 'Tiền mặt' },
-        { key: 'p3', payment_period_id: 2, household_id: 301, household_name: 'Hộ 301 - Lê Văn C', room: '301', amount: 200000, date: '2025-10-10', method: 'Chuyển khoản' }
-    ]);
+    // --- STATE ---
+    const [data, setData] = useState([]);
+    const [householdDetails, setHouseholdDetails] = useState([]);
+    const [loading, setLoading] = useState(false);
+    
+    // --- MOCK DATA REMOVED ---
 
     // --- STATE ---
     const [open, setOpen] = useState(false);
@@ -128,6 +94,40 @@ const PaymentPeriodManagement = () => {
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
+    // --- API CALLS ---
+    useEffect(() => {
+        fetchPaymentPeriods();
+    }, []);
+
+    const fetchPaymentPeriods = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch('http://localhost:8081/payment-periods');
+            const result = await response.json();
+            if (result.code === 1000) {
+                setData(result.result);
+            }
+        } catch (error) {
+            console.error('Error fetching payment periods:', error);
+            setSnackbar({ open: true, message: 'Lỗi khi tải danh sách đợt thu', severity: 'error' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchPaymentPeriodDetails = async (id) => {
+        try {
+            const response = await fetch(`http://localhost:8081/payment-periods/${id}/details`);
+            const result = await response.json();
+            if (result.code === 1000) {
+                setHouseholdDetails(result.result);
+            }
+        } catch (error) {
+            console.error('Error fetching details:', error);
+             setSnackbar({ open: true, message: 'Lỗi khi tải chi tiết', severity: 'error' });
+        }
+    };
+
     // --- FILTERING ---
     const filteredData = data.filter((item) =>
         item.description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -139,10 +139,11 @@ const PaymentPeriodManagement = () => {
             setEditingRecord(record);
             setFormData({
                 description: record.description,
-                start_date: record.start_date,
-                end_date: record.end_date,
-                is_mandatory: record.is_mandatory
+                start_date: record.startDate || record.start_date, // Handle both cases just in case
+                end_date: record.endDate || record.end_date,
+                is_mandatory: record.isMandatory !== undefined ? record.isMandatory : record.is_mandatory
             });
+            fetchPaymentPeriodDetails(record.payment_period_id);
             setTabValue(0);
             setFilterStatus('all');
             setDetailPage(0);
@@ -154,6 +155,7 @@ const PaymentPeriodManagement = () => {
                 end_date: '',
                 is_mandatory: true
             });
+             setHouseholdDetails([]);
             setTabValue(0);
         }
         setOpen(true);
@@ -187,7 +189,7 @@ const PaymentPeriodManagement = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!formData.description) {
             setSnackbar({ open: true, message: 'Vui lòng nhập tên đợt thu!', severity: 'warning' });
             return;
@@ -197,18 +199,38 @@ const PaymentPeriodManagement = () => {
             return;
         }
 
-        if (editingRecord) {
-            const updatedData = data.map((item) =>
-                item.payment_period_id === editingRecord.payment_period_id ? { ...item, ...formData } : item
-            );
-            setData(updatedData);
-            setSnackbar({ open: true, message: 'Cập nhật đợt thu thành công!', severity: 'success' });
-        } else {
-            const newId = data.length > 0 ? Math.max(...data.map((d) => d.payment_period_id)) + 1 : 1;
-            setData([...data, { payment_period_id: newId, count: 0, total: mockAllHouseholds.length, ...formData }]);
-            setSnackbar({ open: true, message: 'Tạo đợt thu mới thành công!', severity: 'success' });
-        }
-        handleClose();
+        try {
+             let url = 'http://localhost:8081/payment-periods';
+             let method = 'POST';
+             const payload = {
+                 description: formData.description,
+                 startDate: formData.start_date, // Note: Backend expects camelCase
+                 endDate: formData.end_date,
+                 isMandatory: formData.is_mandatory
+             };
+
+             if (editingRecord) {
+                 url = `http://localhost:8081/payment-periods/${editingRecord.payment_period_id}`;
+                 method = 'PUT';
+             }
+             
+             const response = await fetch(url, {
+                 method: method,
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify(payload)
+             });
+             const result = await response.json();
+             
+             if (result.code === 1000) {
+                 setSnackbar({ open: true, message: editingRecord ? 'Cập nhật thành công!' : 'Tạo mới thành công!', severity: 'success' });
+                 fetchPaymentPeriods();
+                 handleClose();
+             } else {
+                  setSnackbar({ open: true, message: result.message || 'Có lỗi xảy ra', severity: 'error' });
+             }
+         } catch (error) {
+              setSnackbar({ open: true, message: 'Lỗi kết nối', severity: 'error' });
+         }
     };
 
     const handleDelete = (record) => {
@@ -225,14 +247,7 @@ const PaymentPeriodManagement = () => {
         setDeletingRecord(null);
     };
 
-    const savePayment = (newPayment) => {
-        setPaidResidents([newPayment, ...paidResidents]);
-        const updatedMainData = data.map((item) =>
-            item.payment_period_id === editingRecord.payment_period_id ? { ...item, count: item.count + 1 } : item
-        );
-        setData(updatedMainData);
-        setEditingRecord((prev) => ({ ...prev, count: prev.count + 1 }));
-    };
+
 
     const handleOpenPayModal = (household) => {
         setTargetHousehold(household);
@@ -240,43 +255,68 @@ const PaymentPeriodManagement = () => {
         setPayModalOpen(true);
     };
 
-    const handleConfirmPayment = () => {
-        const newPayment = {
-            key: Date.now(),
-            payment_period_id: editingRecord.payment_period_id,
-            household_id: targetHousehold.id,
-            household_name: targetHousehold.name,
-            room: targetHousehold.room,
-            amount: targetHousehold.required_amount,
-            date: dayjs().format('YYYY-MM-DD'),
-            method: paymentMethod
-        };
-        savePayment(newPayment);
-        setSnackbar({ open: true, message: `Đã thu ${formatCurrency(targetHousehold.required_amount)} của ${targetHousehold.name}`, severity: 'success' });
-        setPayModalOpen(false);
-        setTargetHousehold(null);
+    const handleConfirmPayment = async () => {
+        try {
+            const payload = {
+                householdId: targetHousehold.id,
+                amount: targetHousehold.required_amount,
+                method: paymentMethod
+            };
+            
+            const response = await fetch(`http://localhost:8081/payment-periods/${editingRecord.payment_period_id}/pay`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+             
+             if (result.code === 1000) {
+                 setSnackbar({ open: true, message: `Thu tiền thành công!`, severity: 'success' });
+                 setPayModalOpen(false);
+                 setTargetHousehold(null);
+                 fetchPaymentPeriodDetails(editingRecord.payment_period_id);
+                 fetchPaymentPeriods();
+             } else {
+                 setSnackbar({ open: true, message: result.message || 'Lỗi', severity: 'error' });
+             }
+        } catch (e) {
+             setSnackbar({ open: true, message: 'Lỗi kết nối', severity: 'error' });
+        }
     };
 
-    const handleAddDonation = () => {
+    const handleAddDonation = async () => {
         if (!donationData.household_id || !donationData.amount) {
             setSnackbar({ open: true, message: 'Vui lòng điền đầy đủ thông tin!', severity: 'warning' });
             return;
         }
-        const selectedHousehold = mockAllHouseholds.find((h) => h.id === donationData.household_id);
-        const newPayment = {
-            key: Date.now(),
-            payment_period_id: editingRecord.payment_period_id,
-            household_id: selectedHousehold.id,
-            household_name: selectedHousehold.name,
-            room: selectedHousehold.room,
-            amount: Number(donationData.amount),
-            date: dayjs().format('YYYY-MM-DD'),
-            method: donationData.method
-        };
-        savePayment(newPayment);
-        setSnackbar({ open: true, message: 'Thêm đóng góp thành công!', severity: 'success' });
-        setDonationModalOpen(false);
-        setDonationData({ household_id: '', amount: '', method: 'Tiền mặt' });
+
+        try {
+             // household_id is from Selection, which uses ID (101 etc).
+             const payload = {
+                 householdId: donationData.household_id,
+                 amount: Number(donationData.amount),
+                 method: donationData.method
+             };
+             
+             const response = await fetch(`http://localhost:8081/payment-periods/${editingRecord.payment_period_id}/pay`, {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify(payload)
+             });
+             const result = await response.json();
+             
+              if (result.code === 1000) {
+                 setSnackbar({ open: true, message: 'Thêm đóng góp thành công!', severity: 'success' });
+                 setDonationModalOpen(false);
+                 setDonationData({ household_id: '', amount: '', method: 'Tiền mặt' });
+                 fetchPaymentPeriodDetails(editingRecord.payment_period_id);
+                 fetchPaymentPeriods();
+              } else {
+                  setSnackbar({ open: true, message: result.message || 'Lỗi', severity: 'error' });
+              }
+        } catch (e) {
+              setSnackbar({ open: true, message: 'Lỗi kết nối', severity: 'error' });
+        }
     };
 
     const handleExportBill = (record) => {
@@ -291,32 +331,23 @@ const PaymentPeriodManagement = () => {
     const getHouseholdStatusList = () => {
         if (!editingRecord) return [];
 
-        const paidInThisPeriod = paidResidents.filter((p) => p.payment_period_id === editingRecord.payment_period_id);
+        // Determine list based on API details
+        const list = householdDetails.map(hh => ({
+            ...hh,
+            id: hh.householdId,
+            name: hh.householdName,
+            required_amount: hh.requiredAmount,
+             // paymentInfo used for detail modal
+            paymentInfo: hh.status === 'Paid' ? {
+                date: hh.paidDate,
+                method: hh.method,
+                amount: hh.paidAmount
+            } : null
+        }));
 
-        if (!editingRecord.is_mandatory) {
-            return paidInThisPeriod.map((p) => ({
-                ...p,
-                id: p.household_id,
-                name: p.household_name,
-                required_amount: p.amount,
-                status: 'Paid',
-                paymentInfo: p
-            }));
-        }
-
-        const fullList = mockAllHouseholds.map((hh) => {
-            const paymentInfo = paidInThisPeriod.find((p) => p.household_id === hh.id);
-            return {
-                ...hh,
-                key: hh.id,
-                status: paymentInfo ? 'Paid' : 'Unpaid',
-                paymentInfo: paymentInfo
-            };
-        });
-
-        if (filterStatus === 'paid') return fullList.filter((item) => item.status === 'Paid');
-        if (filterStatus === 'unpaid') return fullList.filter((item) => item.status === 'Unpaid');
-        return fullList;
+        if (filterStatus === 'paid') return list.filter((item) => item.status === 'Paid');
+        if (filterStatus === 'unpaid') return list.filter((item) => item.status === 'Unpaid');
+        return list;
     };
 
     const getTypeChip = (isMandatory) => {
@@ -430,7 +461,7 @@ const PaymentPeriodManagement = () => {
                                     ) : (
                                         <Box>
                                             <Typography sx={{ color: '#22c55e', fontWeight: 700 }}>
-                                                {formatCurrency(paidResidents.filter(p => p.payment_period_id === row.payment_period_id).reduce((sum, item) => sum + item.amount, 0))}
+                                                {formatCurrency(row.collectedAmount || 0)}
                                             </Typography>
                                             <Typography variant="caption" color="text.secondary">
                                                 ({row.count} lượt đóng)
@@ -824,10 +855,10 @@ const PaymentPeriodManagement = () => {
                                 onChange={(e) => setDonationData({ ...donationData, household_id: e.target.value })}
                                 size="small"
                             >
-                                {mockAllHouseholds
-                                    .filter(h => !paidResidents.some(p => p.household_id === h.id && p.payment_period_id === editingRecord?.payment_period_id))
+                                {householdDetails
+                                    .filter(h => h.status !== 'Paid')
                                     .map((h) => (
-                                        <MenuItem key={h.id} value={h.id}>{h.name} - {h.room}</MenuItem>
+                                        <MenuItem key={h.householdId} value={h.householdId}>{h.householdName} - {h.room}</MenuItem>
                                     ))}
                             </TextField>
                         </Box>
