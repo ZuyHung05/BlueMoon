@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Box, IconButton, TextField, Typography, Avatar } from '@mui/material';
+import { Box, IconButton, TextField, Typography, Avatar, CircularProgress } from '@mui/material';
 import { useTheme, useColorScheme } from '@mui/material/styles';
 import { Send, User, Plus, Smile, X } from 'lucide-react';
 
@@ -10,7 +10,7 @@ export default function Bot({ toggled, onClose }) {
     const theme = useTheme();
     const { mode, systemMode } = useColorScheme();
     const isDarkMode = mode === 'dark' || (mode === 'system' && systemMode === 'dark');
-    
+
     const [messages, setMessages] = useState([{ id: 1, role: 'bot', content: 'Xin chào! Tôi có thể hỗ trợ gì cho bạn?' }]);
 
     const [inputValue, setInputValue] = useState('');
@@ -38,43 +38,84 @@ export default function Bot({ toggled, onClose }) {
         setInputValue('');
         setIsLoading(true);
 
-        // Add a placeholder for bot response
         const botMessageId = Date.now() + 1;
-        setMessages((prev) => [...prev, { id: botMessageId, role: 'bot', content: '', isStreaming: true }]);
+        setMessages((prev) => [...prev, {
+            id: botMessageId,
+            role: 'bot',
+            content: 'Đang xử lý...',
+            isStreaming: true,
+            isLoading: true
+        }]);
 
         try {
-            const response = await fetch('http://localhost:8000/stream', {
+            // Sử dụng endpoint /stream để hiển thị SQL sớm
+            const response = await fetch('http://localhost:8001/stream', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: inputValue })
             });
 
-            if (!response.ok || !response.body) {
-                throw new Error('Không thể kết nối đến server');
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || 'Không thể kết nối đến server');
             }
 
             const reader = response.body.getReader();
-            const decoder = new TextDecoder('utf-8');
-            let fullText = '';
+            const decoder = new TextDecoder();
+            let buffer = '';
 
             while (true) {
                 const { value, done } = await reader.read();
                 if (done) break;
 
-                const chunk = decoder.decode(value, { stream: true });
-                fullText += chunk;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
 
-                // Update bot message with streamed content
-                setMessages((prev) => prev.map((msg) => (msg.id === botMessageId ? { ...msg, content: fullText } : msg)));
+                // Giữ lại phần chưa hoàn thành vào buffer
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+                    try {
+                        const data = JSON.parse(line);
+
+                        setMessages((prev) => prev.map((msg) => {
+                            if (msg.id !== botMessageId) return msg;
+
+                            const newMsg = { ...msg };
+                            if (data.type === 'sql') {
+                                newMsg.sql = data.content;
+                                // Khi có SQL, chúng ta có thể dừng spinner hoặc giữ lại tùy ý
+                                // Ở đây tôi giữ lại spinner cho đến khi có kết quả cuối cùng
+                                newMsg.isLoading = true;
+                            } else if (data.type === 'answer') {
+                                newMsg.answer = data.content;
+                                newMsg.content = data.content;
+                                newMsg.rawResult = data.raw;
+                                newMsg.isLoading = false; // Có kết quả rồi, tắt spinner
+                                newMsg.isStreaming = false;
+                            } else if (data.type === 'error') {
+                                newMsg.content = `⚠️ Lỗi: ${data.content}`;
+                                newMsg.isLoading = false;
+                                newMsg.isStreaming = false;
+                            }
+                            return newMsg;
+                        }));
+                    } catch (e) {
+                        console.error('Error parsing stream line:', e);
+                    }
+                }
             }
-
-            // Mark streaming as complete
-            setMessages((prev) => prev.map((msg) => (msg.id === botMessageId ? { ...msg, isStreaming: false } : msg)));
         } catch (error) {
-            console.error('Backend streaming error:', error);
+            console.error('Streaming error:', error);
             setMessages((prev) =>
                 prev.map((msg) =>
-                    msg.id === botMessageId ? { ...msg, content: '⚠️ Lỗi kết nối. Vui lòng thử lại!', isStreaming: false } : msg
+                    msg.id === botMessageId ? {
+                        ...msg,
+                        content: `⚠️ Lỗi: ${error.message}`,
+                        isLoading: false,
+                        isStreaming: false
+                    } : msg
                 )
             );
         } finally {
@@ -133,19 +174,19 @@ export default function Bot({ toggled, onClose }) {
                     }}
                 />
                 <Box sx={{ flex: 1 }}>
-                    <Typography 
-                        variant="subtitle1" 
-                        fontWeight={600} 
-                        sx={{ 
+                    <Typography
+                        variant="subtitle1"
+                        fontWeight={600}
+                        sx={{
                             lineHeight: 1.2,
                             color: isDarkMode ? '#00334e' : 'inherit'
                         }}
                     >
                         Trợ lý ảo BlueMoon
                     </Typography>
-                    <Typography 
-                        variant="caption" 
-                        sx={{ 
+                    <Typography
+                        variant="caption"
+                        sx={{
                             opacity: 0.9,
                             color: isDarkMode ? '#004e5a' : 'inherit'
                         }}
@@ -200,34 +241,130 @@ export default function Bot({ toggled, onClose }) {
                         )}
                         <Box
                             sx={{
-                                maxWidth: '70%',
+                                maxWidth: msg.role === 'bot' ? '85%' : '70%',
                                 px: 2,
                                 py: 1.25,
                                 borderRadius: msg.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
                                 bgcolor:
-                                    msg.role === 'user' 
-                                        ? 'primary.main' 
-                                        : isDarkMode 
-                                            ? '#1e293b' 
+                                    msg.role === 'user'
+                                        ? 'primary.main'
+                                        : isDarkMode
+                                            ? '#1e293b'
                                             : 'white',
                                 boxShadow: msg.role === 'user' ? 'none' : '0 1px 3px rgba(0,0,0,0.1)',
-                                whiteSpace: 'pre-wrap',
                                 wordBreak: 'break-word'
                             }}
                         >
-                            <Typography 
-                                variant="body2" 
-                                sx={{ 
-                                    lineHeight: 1.5,
-                                    color: msg.role === 'user' 
-                                        ? '#ffffff' 
-                                        : isDarkMode 
-                                            ? '#f1f5f9' 
-                                            : '#1a1a1a'
-                                }}
-                            >
-                                {msg.content || (msg.isStreaming ? '...' : '')}
-                            </Typography>
+                            {msg.role === 'bot' && msg.sql ? (
+                                // Render structured response with SQL
+                                <Box>
+                                    {/* SQL Query - hiển thị trước */}
+                                    <Box
+                                        sx={{
+                                            bgcolor: isDarkMode ? '#0f172a' : '#f8fafc',
+                                            borderRadius: '8px',
+                                            p: 1.5,
+                                            mb: 1.5,
+                                            border: '1px solid',
+                                            borderColor: isDarkMode ? '#334155' : '#e2e8f0'
+                                        }}
+                                    >
+                                        <Typography
+                                            variant="caption"
+                                            sx={{
+                                                color: isDarkMode ? '#94a3b8' : '#64748b',
+                                                display: 'block',
+                                                mb: 0.5
+                                            }}
+                                        >
+                                            🔍 SQL Query:
+                                        </Typography>
+                                        <Typography
+                                            component="pre"
+                                            sx={{
+                                                fontFamily: 'monospace',
+                                                fontSize: '0.75rem',
+                                                color: isDarkMode ? '#22d3ee' : '#0891b2',
+                                                whiteSpace: 'pre-wrap',
+                                                wordBreak: 'break-all',
+                                                m: 0,
+                                                lineHeight: 1.4
+                                            }}
+                                        >
+                                            {msg.sql}
+                                        </Typography>
+                                    </Box>
+
+                                    {/* Kết quả - hiển thị sau */}
+                                    <Box
+                                        sx={{
+                                            bgcolor: isDarkMode ? '#064e3b' : '#ecfdf5',
+                                            borderRadius: '8px',
+                                            p: 1.5,
+                                            border: '1px solid',
+                                            borderColor: isDarkMode ? '#065f46' : '#a7f3d0'
+                                        }}
+                                    >
+                                        <Typography
+                                            variant="caption"
+                                            sx={{
+                                                color: isDarkMode ? '#6ee7b7' : '#059669',
+                                                display: 'block',
+                                                mb: 0.5,
+                                                fontWeight: 600
+                                            }}
+                                        >
+                                            📊 Kết quả:
+                                        </Typography>
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                color: isDarkMode ? '#f1f5f9' : '#1a1a1a',
+                                                fontWeight: 500,
+                                                fontSize: '1rem',
+                                                whiteSpace: 'pre-wrap'
+                                            }}
+                                        >
+                                            {msg.answer || msg.content}
+                                        </Typography>
+                                    </Box>
+                                </Box>
+                            ) : msg.role === 'bot' && msg.isLoading ? (
+                                // Render loading spinner
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                    <CircularProgress
+                                        size={20}
+                                        sx={{
+                                            color: isDarkMode ? '#22d3ee' : '#0891b2'
+                                        }}
+                                    />
+                                    <Typography
+                                        variant="body2"
+                                        sx={{
+                                            color: isDarkMode ? '#94a3b8' : '#64748b',
+                                            fontStyle: 'italic'
+                                        }}
+                                    >
+                                        Đang xử lý...
+                                    </Typography>
+                                </Box>
+                            ) : (
+                                // Render normal text
+                                <Typography
+                                    variant="body2"
+                                    sx={{
+                                        lineHeight: 1.5,
+                                        whiteSpace: 'pre-wrap',
+                                        color: msg.role === 'user'
+                                            ? '#ffffff'
+                                            : isDarkMode
+                                                ? '#f1f5f9'
+                                                : '#1a1a1a'
+                                    }}
+                                >
+                                    {msg.content || (msg.isStreaming ? '...' : '')}
+                                </Typography>
+                            )}
                         </Box>
                         {msg.role === 'user' && (
                             <Avatar

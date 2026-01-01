@@ -52,7 +52,7 @@
     "prettier": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
     "dev": "npm-run-all --parallel dev:react dev:api",
     "dev:react": "vite",
-    "dev:api": "cd .. && uvicorn bot_engine.api:app --host 0.0.0.0 --port 8000"
+    "dev:api": "cd .. && uvicorn premsql_bot.api:app --host 0.0.0.0 --port 8001"
   },
   "eslintConfig": {
     "extends": [
