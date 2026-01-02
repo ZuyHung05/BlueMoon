@@ -19,6 +19,13 @@ public class HouseHoldController {
     @Autowired
     private HouseHoldService houseHoldService;
 
+    @GetMapping
+    public ApiResponse<List<HouseholdResponse>> getAllHouseholds() {
+        return ApiResponse.<List<HouseholdResponse>>builder()
+                .result(houseHoldService.getAllHouseholds())
+                .build();
+    }
+
     @PostMapping("/search")
     ApiResponse<List<HouseholdResponse>> searchHouseHolds(@RequestBody HouseHoldSelectRequest request) {
         List<HouseholdResponse> results = houseHoldService.searchHouseHolds(request);

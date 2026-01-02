@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface HouseholdRepository extends JpaRepository<HouseholdEntity, Long> {
+    long countByStatus(String status);
 }

@@ -21,4 +21,5 @@ public class PaymentPeriodDetailResponse {
     private String status; // "Paid" or "Unpaid"
     private LocalDateTime paidDate;
     private String method;
+    private java.util.List<FeeDetailResponse> feeDetails;
 }

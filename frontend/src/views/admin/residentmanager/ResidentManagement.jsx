@@ -113,7 +113,7 @@ const ResidentManagement = () => {
                 pageSize: rowsPerPage
             };
 
-            const response = await fetch('http://localhost:8081/resident/search', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/resident/search`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -301,13 +301,13 @@ const ResidentManagement = () => {
 
             let response;
             if (editingRecord) {
-                response = await fetch(`http://localhost:8081/resident/update/${editingRecord.id}`, {
+                response = await fetch(`${import.meta.env.VITE_API_URL}/resident/update/${editingRecord.id}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(apiData)
                 });
             } else {
-                response = await fetch(`http://localhost:8081/resident/add`, {
+                response = await fetch(`${import.meta.env.VITE_API_URL}/resident/add`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(apiData)
@@ -350,7 +350,7 @@ const ResidentManagement = () => {
 
             try {
                 // Call API to delete
-                const response = await fetch('http://localhost:8081/resident/delete1', {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/resident/delete1`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

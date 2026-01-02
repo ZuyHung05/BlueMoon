@@ -59,15 +59,13 @@ const DefaultFeeManagement = () => {
     const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
     // --- 3. FILTERING ---
-    const filteredData = data.filter((item) =>
-        item.descriptionVi.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredData = data.filter((item) => item.descriptionVi.toLowerCase().includes(searchTerm.toLowerCase()));
 
     // --- 4. FETCH DATA ---
     const fetchDefaultFees = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:8081/default-fee');
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/default-fee`);
             if (!response.ok) throw new Error('Failed to fetch default fees');
             const result = await response.json();
             setData(result.result);
@@ -118,7 +116,7 @@ const DefaultFeeManagement = () => {
         }
 
         try {
-            const response = await fetch(`http://localhost:8081/default-fee/${editingRecord.id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/default-fee/${editingRecord.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -160,7 +158,7 @@ const DefaultFeeManagement = () => {
                     }
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    sx={{ 
+                    sx={{
                         minWidth: 280,
                         borderRadius: '12px',
                         height: 40
@@ -171,21 +169,25 @@ const DefaultFeeManagement = () => {
             {/* TABLE */}
             <TableContainer>
                 <Table sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
-                    <TableHead sx={{ 
-                        bgcolor: 'action.hover',
-                        '& .MuiTableCell-root': {
-                            color: 'text.primary',
-                            fontWeight: 700,
-                            fontSize: '0.875rem',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px'
-                        }
-                    }}>
+                    <TableHead
+                        sx={{
+                            bgcolor: 'action.hover',
+                            '& .MuiTableCell-root': {
+                                color: 'text.primary',
+                                fontWeight: 700,
+                                fontSize: '0.875rem',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                            }
+                        }}
+                    >
                         <TableRow>
                             <TableCell width={80}>STT</TableCell>
                             <TableCell>Mô tả / Tên loại phí</TableCell>
                             <TableCell align="right">Đơn giá (VNĐ)</TableCell>
-                            <TableCell align="center" width={150}>Hành động</TableCell>
+                            <TableCell align="center" width={150}>
+                                Hành động
+                            </TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -193,7 +195,7 @@ const DefaultFeeManagement = () => {
                             <TableRow key={row.id} hover>
                                 <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                                 <TableCell>
-                                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                    <Typography variant="body1" sx={{ fontWeight: 600, fontSize: '0.95rem' }}>
                                         {row.descriptionVi}
                                     </Typography>
                                 </TableCell>
@@ -204,11 +206,7 @@ const DefaultFeeManagement = () => {
                                 </TableCell>
                                 <TableCell align="center">
                                     <Tooltip title="Sửa đơn giá">
-                                        <IconButton 
-                                            color="primary" 
-                                            onClick={() => handleOpen(row)}
-                                            size="small"
-                                        >
+                                        <IconButton color="primary" onClick={() => handleOpen(row)} size="small">
                                             <Edit size={18} />
                                         </IconButton>
                                     </Tooltip>
@@ -301,22 +299,14 @@ const DefaultFeeManagement = () => {
 
             {/* EDIT DIALOG */}
             <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-                <DialogTitle>
-                    Sửa đơn giá phí
-                </DialogTitle>
+                <DialogTitle>Sửa đơn giá phí</DialogTitle>
                 <DialogContent>
                     <Stack spacing={2.5} sx={{ mt: 1 }}>
                         <Box>
                             <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
                                 Mô tả / Tên loại phí
                             </Typography>
-                            <TextField
-                                fullWidth
-                                value={formData.description}
-                                disabled
-                                size="small"
-                                sx={{ bgcolor: 'action.hover' }}
-                            />
+                            <TextField fullWidth value={formData.description} disabled size="small" sx={{ bgcolor: 'action.hover' }} />
                         </Box>
                         <Box>
                             <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
@@ -337,7 +327,9 @@ const DefaultFeeManagement = () => {
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ p: 2.5 }}>
-                    <Button onClick={handleClose} color="error">Hủy</Button>
+                    <Button onClick={handleClose} color="error">
+                        Hủy
+                    </Button>
                     <Button onClick={handleSave} variant="contained" color="primary">
                         Cập nhật
                     </Button>
@@ -345,17 +337,17 @@ const DefaultFeeManagement = () => {
             </Dialog>
 
             {/* SNACKBAR */}
-            <Snackbar 
-                open={snackbar.open} 
-                autoHideDuration={4000} 
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
                 onClose={handleCloseSnackbar}
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
-                <Alert 
-                    onClose={handleCloseSnackbar} 
-                    severity={snackbar.severity} 
+                <Alert
+                    onClose={handleCloseSnackbar}
+                    severity={snackbar.severity}
                     variant="filled"
-                    sx={{ 
+                    sx={{
                         width: '100%',
                         alignItems: 'center',
                         '& .MuiAlert-action': {

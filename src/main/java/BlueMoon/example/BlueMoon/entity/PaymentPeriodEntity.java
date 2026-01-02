@@ -21,7 +21,7 @@ public class PaymentPeriodEntity {
     private Long paymentPeriodId;
 
     @Column(name = "count")
-    private Long count;
+    private Integer count;
 
     @Column(name = "start_date")
     private LocalDate startDate;
@@ -35,9 +35,9 @@ public class PaymentPeriodEntity {
     @Column(name = "description")
     private String description;
 
-    @OneToMany(mappedBy = "paymentPeriod", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "paymentPeriod", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<FeesEntity> fees;
 
-    @OneToMany(mappedBy = "paymentPeriod", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "paymentPeriod", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<PayEntity> pays;
 }

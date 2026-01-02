@@ -142,10 +142,10 @@ const HouseholdManagement = () => {
                 status: statusFilter === 'ALL' ? null : parseInt(statusFilter)
             };
 
-            const response = await fetch('http://localhost:8081/household/search', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/household/search`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(requestBody)
             });
@@ -162,7 +162,6 @@ const HouseholdManagement = () => {
             const result = await response.json();
             const householdsData = result.result;
 
-
             // Map backend response to frontend format
             const mappedData = householdsData.map((item) => ({
                 household_id: item.householdId,
@@ -170,16 +169,18 @@ const HouseholdManagement = () => {
                 head_of_household: item.headOfHouseholdName,
                 status: parseInt(item.status),
                 start_day: item.startDay,
-                members: item.members ? item.members.map(member => ({
-                    id: member.residentId,
-                    full_name: member.fullName,
-                    id_number: member.idNumber,
-                    role: member.familyRole,
-                    date_of_birth: member.dateOfBirth,
-                    gender: member.gender,
-                    phone_number: member.phoneNumber,
-                    job: member.job
-                })) : []
+                members: item.members
+                    ? item.members.map((member) => ({
+                          id: member.residentId,
+                          full_name: member.fullName,
+                          id_number: member.idNumber,
+                          role: member.familyRole,
+                          date_of_birth: member.dateOfBirth,
+                          gender: member.gender,
+                          phone_number: member.phoneNumber,
+                          job: member.job
+                      }))
+                    : []
             }));
 
             setHouseholds(mappedData);
@@ -195,7 +196,7 @@ const HouseholdManagement = () => {
     // Fetch available apartments
     const fetchAvailableApartments = async () => {
         try {
-            const response = await fetch('http://localhost:8081/household/available-apartments');
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/household/available-apartments`);
             if (!response.ok) throw new Error('Failed to fetch apartments');
 
             const result = await response.json();
@@ -282,10 +283,10 @@ const HouseholdManagement = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:8081/resident/search', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/resident/search`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     searchKeyword: searchQuery,
@@ -309,14 +310,14 @@ const HouseholdManagement = () => {
     const handleAddMemberToList = async (resident) => {
         // Check if already added
         const existingList = editingRecord ? currentMembers : tempMembers;
-        if (existingList.find(m => (m.residentId || m.id) === resident.residentId)) {
+        if (existingList.find((m) => (m.residentId || m.id) === resident.residentId)) {
             setSnackbar({ open: true, message: 'Cư dân đã có trong danh sách!', severity: 'warning' });
             return;
         }
 
         // Check if trying to add a second head of household
         if (resident.familyRole === 'Chủ hộ') {
-            const hasHead = existingList.some(m => (m.familyRole || m.role) === 'Chủ hộ');
+            const hasHead = existingList.some((m) => (m.familyRole || m.role) === 'Chủ hộ');
             if (hasHead) {
                 setSnackbar({ open: true, message: 'Hộ khẩu đã có Chủ hộ! Không thể thêm Chủ hộ thứ 2.', severity: 'error' });
                 return;
@@ -327,10 +328,10 @@ const HouseholdManagement = () => {
             // EDIT MODE: Call API to add resident to household
             try {
                 setLoading(true);
-                const response = await fetch(`http://localhost:8081/resident/update/${resident.residentId}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/resident/update/${resident.residentId}`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         fullName: resident.fullName,
@@ -361,12 +362,15 @@ const HouseholdManagement = () => {
             }
         } else {
             // CREATE MODE: Add to temp list
-            setTempMembers([...tempMembers, {
-                residentId: resident.residentId,
-                fullName: resident.fullName,
-                idNumber: resident.idNumber,
-                familyRole: resident.familyRole || '' // Use existing role from resident
-            }]);
+            setTempMembers([
+                ...tempMembers,
+                {
+                    residentId: resident.residentId,
+                    fullName: resident.fullName,
+                    idNumber: resident.idNumber,
+                    familyRole: resident.familyRole || '' // Use existing role from resident
+                }
+            ]);
             setSearchQuery('');
             setSearchResults([]);
         }
@@ -374,16 +378,13 @@ const HouseholdManagement = () => {
 
     // Remove member from temp list
     const handleRemoveTempMember = (residentId) => {
-        setTempMembers(tempMembers.filter(m => m.residentId !== residentId));
+        setTempMembers(tempMembers.filter((m) => m.residentId !== residentId));
     };
 
     // Update member role in temp list
     const handleUpdateMemberRole = (residentId, role) => {
-        setTempMembers(tempMembers.map(m =>
-            m.residentId === residentId ? { ...m, familyRole: role } : m
-        ));
+        setTempMembers(tempMembers.map((m) => (m.residentId === residentId ? { ...m, familyRole: role } : m)));
     };
-
 
     const handleSave = async () => {
         // Validate required fields
@@ -425,10 +426,10 @@ const HouseholdManagement = () => {
 
             try {
                 setLoading(true);
-                const response = await fetch(`http://localhost:8081/household/update/${editingRecord.household_id}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/household/update/${editingRecord.household_id}`, {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         apartment: formData.apartment_id, // Send room number as string
@@ -461,7 +462,7 @@ const HouseholdManagement = () => {
             }
 
             // Check if all members have roles
-            const membersWithoutRole = tempMembers.filter(m => !m.familyRole);
+            const membersWithoutRole = tempMembers.filter((m) => !m.familyRole);
             if (membersWithoutRole.length > 0) {
                 setSnackbar({ open: true, message: 'Vui lòng chọn vai trò cho tất cả thành viên!', severity: 'warning' });
                 setTabValue(1);
@@ -469,7 +470,7 @@ const HouseholdManagement = () => {
             }
 
             // Check if there's at least one "Chủ hộ"
-            const headCount = tempMembers.filter(m => m.familyRole === 'Chủ hộ').length;
+            const headCount = tempMembers.filter((m) => m.familyRole === 'Chủ hộ').length;
             if (headCount === 0) {
                 setSnackbar({ open: true, message: 'Phải có ít nhất 1 Chủ hộ!', severity: 'warning' });
                 setTabValue(1);
@@ -485,16 +486,16 @@ const HouseholdManagement = () => {
 
             try {
                 setLoading(true);
-                const response = await fetch('http://localhost:8081/household/create', {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/household/create`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         apartment: formData.apartment_id,
                         startDay: formData.start_day,
                         status: formData.status.toString(),
-                        members: tempMembers.map(m => ({
+                        members: tempMembers.map((m) => ({
                             residentId: m.residentId,
                             familyRole: m.familyRole
                         }))
@@ -518,7 +519,6 @@ const HouseholdManagement = () => {
             }
         }
     };
-
 
     const handleDelete = (record) => {
         setDeletingRecord(record);
@@ -565,10 +565,10 @@ const HouseholdManagement = () => {
 
         try {
             setLoading(true);
-            const response = await fetch(`http://localhost:8081/resident/delete1`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/resident/delete1`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     residentId: deletingMember.id,
@@ -620,10 +620,10 @@ const HouseholdManagement = () => {
 
         try {
             setLoading(true);
-            const response = await fetch(`http://localhost:8081/resident/update/${editingMember.id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/resident/update/${editingMember.id}`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     fullName: memberFormData.fullName,
@@ -659,7 +659,6 @@ const HouseholdManagement = () => {
     // --- HELPER ---
     const getApartmentName = (apartment) => apartment || '---'; // Display apartment (room_number) directly
     const getHeadName = (name) => name || '---'; // Now receiving name directly from backend
-
 
     const getStatusChip = (status) => {
         if (status === 1) {
@@ -756,10 +755,10 @@ const HouseholdManagement = () => {
                 </Tooltip>
 
                 <Tooltip title="Lọc theo trạng thái">
-                    <IconButton 
+                    <IconButton
                         onClick={handleFilterClick}
                         color={statusFilter !== 'ALL' ? 'primary' : 'inherit'}
-                        sx={{ 
+                        sx={{
                             border: '1px solid',
                             borderColor: statusFilter !== 'ALL' ? 'primary.main' : 'divider',
                             borderRadius: '12px',
@@ -781,7 +780,7 @@ const HouseholdManagement = () => {
                     }
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    sx={{ 
+                    sx={{
                         minWidth: 340,
                         borderRadius: '12px',
                         height: 40
@@ -819,18 +818,22 @@ const HouseholdManagement = () => {
             {/* TABLE */}
             <TableContainer>
                 <Table sx={{ '& .MuiTableCell-root': { borderColor: 'divider' } }}>
-                    <TableHead sx={{ 
-                        bgcolor: 'action.hover',
-                        '& .MuiTableCell-root': { 
-                            color: 'text.primary', 
-                            fontWeight: 700,
-                            fontSize: '0.875rem',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px'
-                        }
-                    }}>
+                    <TableHead
+                        sx={{
+                            bgcolor: 'action.hover',
+                            '& .MuiTableCell-root': {
+                                color: 'text.primary',
+                                fontWeight: 700,
+                                fontSize: '0.875rem',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                            }
+                        }}
+                    >
                         <TableRow>
-                            <TableCell align="center" sx={{ width: 60 }}>STT</TableCell>
+                            <TableCell align="center" sx={{ width: 60 }}>
+                                STT
+                            </TableCell>
                             <TableCell>Phòng</TableCell>
                             <TableCell>Chủ hộ</TableCell>
                             <TableCell align="center">Số thành viên</TableCell>
@@ -853,26 +856,16 @@ const HouseholdManagement = () => {
                                 </TableCell>
                                 <TableCell>{getHeadName(row.head_of_household)}</TableCell>
                                 <TableCell align="center">{getMemberCountChip(row.members.length)}</TableCell>
-                                <TableCell>
-                                    {new Date(row.start_day).toLocaleDateString('vi-VN')}
-                                </TableCell>
+                                <TableCell>{new Date(row.start_day).toLocaleDateString('vi-VN')}</TableCell>
                                 <TableCell align="center">{getStatusChip(row.status)}</TableCell>
                                 <TableCell align="center">
                                     <Tooltip title="Sửa">
-                                        <IconButton 
-                                            color="primary" 
-                                            onClick={() => handleOpen(row)}
-                                            size="small"
-                                        >
+                                        <IconButton color="primary" onClick={() => handleOpen(row)} size="small">
                                             <Edit size={18} />
                                         </IconButton>
                                     </Tooltip>
                                     <Tooltip title="Xóa">
-                                        <IconButton 
-                                            color="error" 
-                                            onClick={() => handleDelete(row)}
-                                            size="small"
-                                        >
+                                        <IconButton color="error" onClick={() => handleDelete(row)} size="small">
                                             <Trash2 size={18} />
                                         </IconButton>
                                     </Tooltip>
@@ -965,17 +958,15 @@ const HouseholdManagement = () => {
 
             {/* DIALOG (MODAL) */}
             <Dialog open={open} onClose={handleClose} fullWidth maxWidth="lg">
-                <DialogTitle>
-                    {editingRecord ? 'Cập nhật Hộ khẩu' : 'Tạo Hộ khẩu mới'}
-                </DialogTitle>
+                <DialogTitle>{editingRecord ? 'Cập nhật Hộ khẩu' : 'Tạo Hộ khẩu mới'}</DialogTitle>
                 <DialogContent>
-                    <Tabs 
-                        value={tabValue} 
+                    <Tabs
+                        value={tabValue}
                         onChange={(e, newValue) => setTabValue(newValue)}
                         centered
-                        sx={{ 
-                            borderBottom: 1, 
-                            borderColor: 'divider', 
+                        sx={{
+                            borderBottom: 1,
+                            borderColor: 'divider',
                             mb: 2
                         }}
                     >
@@ -991,9 +982,7 @@ const HouseholdManagement = () => {
                                 getOptionLabel={(option) => `${option.roomNumber} (${option.area}m²)`}
                                 filterOptions={(options, { inputValue }) => {
                                     const searchTerm = inputValue.toLowerCase();
-                                    return options.filter((option) =>
-                                        option.roomNumber.toString().toLowerCase().includes(searchTerm)
-                                    );
+                                    return options.filter((option) => option.roomNumber.toString().toLowerCase().includes(searchTerm));
                                 }}
                                 value={availableApartments.find((a) => a.roomNumber.toString() === formData.apartment_id) || null}
                                 onChange={(event, newValue) => {
@@ -1011,13 +1000,7 @@ const HouseholdManagement = () => {
                                         </Stack>
                                     </Box>
                                 )}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Số phòng"
-                                        placeholder="Chọn số phòng..."
-                                    />
-                                )}
+                                renderInput={(params) => <TextField {...params} label="Số phòng" placeholder="Chọn số phòng..." />}
                                 noOptionsText="Không có phòng trống"
                             />
 
@@ -1033,12 +1016,7 @@ const HouseholdManagement = () => {
                                 />
                                 <FormControl fullWidth>
                                     <InputLabel>Trạng thái</InputLabel>
-                                    <Select
-                                        name="status"
-                                        value={formData.status}
-                                        onChange={handleChange}
-                                        label="Trạng thái"
-                                    >
+                                    <Select name="status" value={formData.status} onChange={handleChange} label="Trạng thái">
                                         <MenuItem value={1}>Đang sinh sống</MenuItem>
                                         <MenuItem value={0}>Đã chuyển đi</MenuItem>
                                     </Select>
@@ -1094,8 +1072,19 @@ const HouseholdManagement = () => {
 
                                     {/* Search results */}
                                     {searchResults.length > 0 && (
-                                        <Box sx={{ mb: 2, p: 2, bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
-                                            <Typography variant="subtitle2" sx={{ mb: 1 }}>Kết quả tìm kiếm:</Typography>
+                                        <Box
+                                            sx={{
+                                                mb: 2,
+                                                p: 2,
+                                                bgcolor: 'background.paper',
+                                                borderRadius: 2,
+                                                border: '1px solid',
+                                                borderColor: 'divider'
+                                            }}
+                                        >
+                                            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                                Kết quả tìm kiếm:
+                                            </Typography>
                                             <Stack spacing={1}>
                                                 {searchResults.map((resident) => (
                                                     <Stack
@@ -1155,12 +1144,11 @@ const HouseholdManagement = () => {
                                                                         label={member.familyRole}
                                                                         size="small"
                                                                         sx={{
-                                                                            bgcolor: member.familyRole === 'Chủ hộ'
-                                                                                ? 'rgba(234, 179, 8, 0.15)'
-                                                                                : 'rgba(100, 116, 139, 0.15)',
-                                                                            color: member.familyRole === 'Chủ hộ'
-                                                                                ? '#fbbf24'
-                                                                                : '#94a3b8',
+                                                                            bgcolor:
+                                                                                member.familyRole === 'Chủ hộ'
+                                                                                    ? 'rgba(234, 179, 8, 0.15)'
+                                                                                    : 'rgba(100, 116, 139, 0.15)',
+                                                                            color: member.familyRole === 'Chủ hộ' ? '#fbbf24' : '#94a3b8',
                                                                             fontWeight: 500,
                                                                             minWidth: 80,
                                                                             justifyContent: 'center'
@@ -1237,8 +1225,19 @@ const HouseholdManagement = () => {
 
                                     {/* Search results */}
                                     {searchResults.length > 0 && (
-                                        <Box sx={{ mb: 2, p: 2, bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
-                                            <Typography variant="subtitle2" sx={{ mb: 1 }}>Kết quả tìm kiếm:</Typography>
+                                        <Box
+                                            sx={{
+                                                mb: 2,
+                                                p: 2,
+                                                bgcolor: 'background.paper',
+                                                borderRadius: 2,
+                                                border: '1px solid',
+                                                borderColor: 'divider'
+                                            }}
+                                        >
+                                            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                                Kết quả tìm kiếm:
+                                            </Typography>
                                             <Stack spacing={1}>
                                                 {searchResults.map((resident) => (
                                                     <Stack
@@ -1329,14 +1328,23 @@ const HouseholdManagement = () => {
                                                                         <Edit size={18} />
                                                                     </IconButton>
                                                                 </Tooltip>
-                                                                <Tooltip title={member.id === formData.head_of_household ? "Không thể xóa chủ hộ" : "Xóa khỏi hộ"}>
+                                                                <Tooltip
+                                                                    title={
+                                                                        member.id === formData.head_of_household
+                                                                            ? 'Không thể xóa chủ hộ'
+                                                                            : 'Xóa khỏi hộ'
+                                                                    }
+                                                                >
                                                                     <span>
                                                                         <IconButton
                                                                             size="small"
                                                                             onClick={() => handleRemoveMember(member)}
                                                                             disabled={member.id === formData.head_of_household}
                                                                             sx={{
-                                                                                color: member.id === formData.head_of_household ? 'text.disabled' : '#ef4444',
+                                                                                color:
+                                                                                    member.id === formData.head_of_household
+                                                                                        ? 'text.disabled'
+                                                                                        : '#ef4444',
                                                                                 '&:hover': {
                                                                                     bgcolor: 'rgba(239, 68, 68, 0.1)',
                                                                                     color: '#dc2626'
@@ -1369,7 +1377,9 @@ const HouseholdManagement = () => {
                     )}
                 </DialogContent>
                 <DialogActions sx={{ p: 2.5 }}>
-                    <Button onClick={handleClose} color="error">Hủy</Button>
+                    <Button onClick={handleClose} color="error">
+                        Hủy
+                    </Button>
                     <Button onClick={handleSave} variant="contained" color="primary">
                         {editingRecord ? 'Cập nhật' : 'Tạo mới'}
                     </Button>
@@ -1377,19 +1387,12 @@ const HouseholdManagement = () => {
             </Dialog>
 
             {/* DELETE CONFIRMATION DIALOG */}
-            <Dialog
-                open={deleteDialogOpen}
-                onClose={handleCancelDelete}
-                maxWidth="xs"
-                fullWidth
-            >
-                <DialogTitle sx={{ pb: 1 }}>
-                    Xác nhận xóa hộ khẩu
-                </DialogTitle>
+            <Dialog open={deleteDialogOpen} onClose={handleCancelDelete} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ pb: 1 }}>Xác nhận xóa hộ khẩu</DialogTitle>
                 <DialogContent>
                     <Typography variant="body1">
-                        Bạn có chắc chắn muốn xóa hộ khẩu{' '}
-                        <strong>H{deletingRecord?.household_id}</strong> (Phòng {getApartmentName(deletingRecord?.apartment_id)})?
+                        Bạn có chắc chắn muốn xóa hộ khẩu <strong>H{deletingRecord?.household_id}</strong> (Phòng{' '}
+                        {getApartmentName(deletingRecord?.apartment_id)})?
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                         Hành động này không thể hoàn tác.
@@ -1399,11 +1402,7 @@ const HouseholdManagement = () => {
                     <Button onClick={handleCancelDelete} variant="outlined">
                         Hủy
                     </Button>
-                    <Button
-                        onClick={handleConfirmDelete}
-                        variant="contained"
-                        color="error"
-                    >
+                    <Button onClick={handleConfirmDelete} variant="contained" color="error">
                         Xóa hộ khẩu
                     </Button>
                 </DialogActions>
@@ -1434,15 +1433,8 @@ const HouseholdManagement = () => {
             </Snackbar>
 
             {/* Delete Member Confirmation Dialog */}
-            <Dialog
-                open={deleteMemberDialogOpen}
-                onClose={() => setDeleteMemberDialogOpen(false)}
-                maxWidth="xs"
-                fullWidth
-            >
-                <DialogTitle sx={{ pb: 2 }}>
-                    Xác nhận xóa thành viên
-                </DialogTitle>
+            <Dialog open={deleteMemberDialogOpen} onClose={() => setDeleteMemberDialogOpen(false)} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ pb: 2 }}>Xác nhận xóa thành viên</DialogTitle>
                 <DialogContent>
                     <Typography variant="body1" gutterBottom>
                         Bạn có chắc chắn muốn xóa thành viên này khỏi hệ thống?
@@ -1462,30 +1454,17 @@ const HouseholdManagement = () => {
                     </Typography>
                 </DialogContent>
                 <DialogActions sx={{ px: 3, pb: 2 }}>
-                    <Button
-                        onClick={() => setDeleteMemberDialogOpen(false)}
-                        variant="outlined"
-                    >
+                    <Button onClick={() => setDeleteMemberDialogOpen(false)} variant="outlined">
                         Hủy
                     </Button>
-                    <Button
-                        onClick={confirmDeleteMember}
-                        variant="contained"
-                        color="error"
-                        disabled={loading}
-                    >
+                    <Button onClick={confirmDeleteMember} variant="contained" color="error" disabled={loading}>
                         {loading ? 'Đang xóa...' : 'Xóa'}
                     </Button>
                 </DialogActions>
             </Dialog>
 
             {/* Edit Member Dialog */}
-            <Dialog
-                open={editMemberDialogOpen}
-                onClose={() => setEditMemberDialogOpen(false)}
-                maxWidth="md"
-                fullWidth
-            >
+            <Dialog open={editMemberDialogOpen} onClose={() => setEditMemberDialogOpen(false)} maxWidth="md" fullWidth>
                 <DialogTitle>Cập nhật thông tin cư dân</DialogTitle>
                 <DialogContent>
                     <Stack spacing={2.5} sx={{ mt: 1 }}>
@@ -1616,17 +1595,10 @@ const HouseholdManagement = () => {
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ px: 3, pb: 2 }}>
-                    <Button
-                        onClick={() => setEditMemberDialogOpen(false)}
-                        variant="outlined"
-                    >
+                    <Button onClick={() => setEditMemberDialogOpen(false)} variant="outlined">
                         Hủy
                     </Button>
-                    <Button
-                        onClick={handleSaveMember}
-                        variant="contained"
-                        disabled={loading}
-                    >
+                    <Button onClick={handleSaveMember} variant="contained" disabled={loading}>
                         {loading ? 'Đang lưu...' : 'Cập Nhật'}
                     </Button>
                 </DialogActions>

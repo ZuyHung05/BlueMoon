@@ -1,14 +1,11 @@
 package BlueMoon.example.BlueMoon.entity;
 
-import BlueMoon.example.BlueMoon.enums.FeeType;
-import BlueMoon.example.BlueMoon.enums.FeeTypeConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "default_fee")
@@ -20,12 +17,12 @@ public class DefaultFee {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
 
-    @Convert(converter = FeeTypeConverter.class)
-    @Column(unique = true, nullable = false)
-    private FeeType description;
+    @Column(name = "description", nullable = false)
+    private String description;
 
     @Column(name = "unit_price", nullable = false)
-    private Double unitPrice;
+    private BigDecimal unitPrice;
 }

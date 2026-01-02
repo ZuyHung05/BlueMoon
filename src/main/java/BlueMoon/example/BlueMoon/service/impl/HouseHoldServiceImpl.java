@@ -317,4 +317,9 @@ public class HouseHoldServiceImpl implements HouseHoldService {
         HouseholdEntity savedHousehold = houseHoldRepository.save(household);
         return householdMapper.toHouseholdResponse(savedHousehold);
     }
+    @Override
+    public List<HouseholdResponse> getAllHouseholds() {
+        List<HouseholdEntity> households = houseHoldRepository.findAll(Sort.by(Sort.Direction.ASC, "householdId"));
+        return householdMapper.toHouseholdResponses(households);
+    }
 }

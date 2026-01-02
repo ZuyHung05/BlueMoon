@@ -20,4 +20,6 @@ public interface HouseHoldService {
     HouseholdResponse createHousehold(HouseholdCreateRequest request);
     
     HouseholdResponse updateHousehold(Long householdId, HouseholdUpdateRequest request);
+    
+    List<HouseholdResponse> getAllHouseholds();
 }

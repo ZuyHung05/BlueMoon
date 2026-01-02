@@ -7,4 +7,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PayRepository extends JpaRepository<PayEntity, PayId> {
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM PayEntity p WHERE p.paymentPeriod.paymentPeriodId = :paymentPeriodId")
+    void deleteByPaymentPeriodId(@org.springframework.data.repository.query.Param("paymentPeriodId") Long paymentPeriodId);
 }
