@@ -11,23 +11,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddVehicleRequest {
-    
+
     @NotNull(message = "Household ID không được để trống")
     private Long householdId;
-    
+
     @NotBlank(message = "Biển số xe không được để trống")
-    @Pattern(regexp = "^[0-9]{2}[A-Z]{1,2}-[0-9]{4,5}$", 
-             message = "Biển số xe không đúng định dạng (VD: 30A-12345)")
     private String plateNumber;
-    
+
     @NotBlank(message = "Loại xe không được để trống")
-    @Pattern(regexp = "^(car|bike|Car|Bike)$", 
-             message = "Loại xe phải là 'car' hoặc 'bike'")
+    @Pattern(regexp = "^(car|bike|Car|Bike)$", message = "Loại xe phải là 'car' hoặc 'bike'")
     private String type;
-    
+
     private Long basementFloor;
-    
+
     @NotBlank(message = "Vị trí không được để trống")
     private String location;
 }
-
