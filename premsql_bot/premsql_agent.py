@@ -132,6 +132,21 @@ SQL: SELECT * FROM residents WHERE EXTRACT(YEAR FROM AGE(date_of_birth)) < 18;
 Q: Liet ke cac cu dan sinh nam 1990
 SQL: SELECT * FROM residents WHERE EXTRACT(YEAR FROM date_of_birth) = 1990;
 
+Q: Ho gia dinh nao co xe o to?
+SQL: SELECT r.full_name FROM residents r JOIN household h ON r.resident_id = h.head_of_household WHERE h.household_id IN (SELECT household_id FROM vehicle WHERE type = 'car');
+
+Q: Ho gia dinh nao co nhieu hon 3 thanh vien?
+SQL: SELECT r.full_name FROM household h JOIN residents r ON h.head_of_household = r.resident_id JOIN residents res ON h.household_id = res.household_id GROUP BY h.household_id, r.full_name HAVING COUNT(res.resident_id) > 3;
+
+Q: Ho gia dinh nao chua dong phi thang 12?
+SQL: SELECT r.full_name FROM residents r JOIN household h ON r.resident_id = h.head_of_household WHERE h.household_id NOT IN (SELECT household_id FROM pay WHERE EXTRACT(MONTH FROM payment_date) = 12);
+
+Q: Ho gia dinh nao song o tang 5?
+SQL: SELECT r.full_name FROM residents r JOIN household h ON r.resident_id = h.head_of_household JOIN apartment a ON h.apartment_id = a.apartment_id WHERE a.floor = 5;
+
+Q: Ho gia dinh nao co xe may?
+SQL: SELECT r.full_name FROM residents r JOIN household h ON r.resident_id = h.head_of_household WHERE h.household_id IN (SELECT household_id FROM vehicle WHERE type = 'bike');
+
 """
 
     prompt = f"""### Instructions:

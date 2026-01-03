@@ -6,6 +6,7 @@ import BlueMoon.example.BlueMoon.dto.request.HouseholdCreateRequest;
 import BlueMoon.example.BlueMoon.dto.request.HouseholdUpdateRequest;
 import BlueMoon.example.BlueMoon.dto.response.ApartmentSimpleResponse;
 import BlueMoon.example.BlueMoon.dto.response.HouseholdResponse;
+import BlueMoon.example.BlueMoon.dto.response.ResidenceHistoryResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,4 +23,6 @@ public interface HouseHoldService {
     HouseholdResponse updateHousehold(Long householdId, HouseholdUpdateRequest request);
     
     List<HouseholdResponse> getAllHouseholds();
+    
+    List<ResidenceHistoryResponse> getResidenceHistory(Long householdId);
 }

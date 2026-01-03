@@ -41,7 +41,11 @@ import {
 import MainCard from 'ui-component/cards/MainCard';
 
 // assets
-import { Edit, Trash2, Plus, Search, Filter, Home, Users, UserPlus } from 'lucide-react';
+import { Edit, Trash2, Plus, Search, Filter, Home, Users, UserPlus, History, Clock } from 'lucide-react';
+
+// Custom dialogs
+import ResidenceHistoryDialog from './ResidenceHistoryDialog';
+import TemporaryResidenceDialog from './TemporaryResidenceDialog';
 
 const HouseholdManagement = () => {
     // --- 1. MOCK DATA ---
@@ -133,6 +137,26 @@ const HouseholdManagement = () => {
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
     const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
+    // History dialog state
+    const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+    const [selectedHouseholdForHistory, setSelectedHouseholdForHistory] = useState(null);
+
+    // Temporary residence dialog state
+    const [temporaryResidenceDialogOpen, setTemporaryResidenceDialogOpen] = useState(false);
+    const [selectedHouseholdForTemp, setSelectedHouseholdForTemp] = useState(null);
+
+    // Handler for opening history dialog
+    const handleOpenHistory = (household) => {
+        setSelectedHouseholdForHistory(household);
+        setHistoryDialogOpen(true);
+    };
+
+    // Handler for opening temporary residence dialog
+    const handleOpenTemporaryResidence = (household) => {
+        setSelectedHouseholdForTemp(household);
+        setTemporaryResidenceDialogOpen(true);
+    };
+
     // --- 3. FETCH DATA FROM BACKEND ---
     const fetchHouseholds = async () => {
         setLoading(true);
@@ -171,15 +195,15 @@ const HouseholdManagement = () => {
                 start_day: item.startDay,
                 members: item.members
                     ? item.members.map((member) => ({
-                          id: member.residentId,
-                          full_name: member.fullName,
-                          id_number: member.idNumber,
-                          role: member.familyRole,
-                          date_of_birth: member.dateOfBirth,
-                          gender: member.gender,
-                          phone_number: member.phoneNumber,
-                          job: member.job
-                      }))
+                        id: member.residentId,
+                        full_name: member.fullName,
+                        id_number: member.idNumber,
+                        role: member.familyRole,
+                        date_of_birth: member.dateOfBirth,
+                        gender: member.gender,
+                        phone_number: member.phoneNumber,
+                        job: member.job
+                    }))
                     : []
             }));
 
@@ -325,41 +349,24 @@ const HouseholdManagement = () => {
         }
 
         if (editingRecord) {
-            // EDIT MODE: Call API to add resident to household
-            try {
-                setLoading(true);
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/resident/update/${resident.residentId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        fullName: resident.fullName,
-                        idNumber: resident.idNumber,
-                        dateOfBirth: resident.dateOfBirth,
-                        gender: resident.gender,
-                        familyRole: resident.familyRole,
-                        phoneNumber: resident.phoneNumber,
-                        job: resident.job,
-                        householdId: editingRecord.household_id // Add to current household
-                    })
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || 'Failed to add resident to household');
-                }
-
-                setSnackbar({ open: true, message: 'Thêm thành viên thành công!', severity: 'success' });
-                setSearchQuery('');
-                setSearchResults([]);
-                fetchHouseholds(); // Reload to get updated members
-            } catch (error) {
-                console.error('Error adding resident to household:', error);
-                setSnackbar({ open: true, message: error.message || 'Lỗi khi thêm thành viên!', severity: 'error' });
-            } finally {
-                setLoading(false);
-            }
+            // EDIT MODE: Add to currentMembers list (will save when clicking "Cập Nhật")
+            const newMember = {
+                id: resident.residentId,
+                residentId: resident.residentId,
+                full_name: resident.fullName,
+                id_number: resident.idNumber,
+                role: resident.familyRole,
+                familyRole: resident.familyRole,
+                date_of_birth: resident.dateOfBirth,
+                gender: resident.gender,
+                phone_number: resident.phoneNumber,
+                job: resident.job,
+                _isNew: true // Mark as new member to be added
+            };
+            setCurrentMembers([...currentMembers, newMember]);
+            setSnackbar({ open: true, message: 'Đã thêm vào danh sách! Nhấn "Cập Nhật" để lưu.', severity: 'info' });
+            setSearchQuery('');
+            setSearchResults([]);
         } else {
             // CREATE MODE: Add to temp list
             setTempMembers([
@@ -393,11 +400,6 @@ const HouseholdManagement = () => {
             setTabValue(0); // Switch to general info tab
             return;
         }
-        if (!formData.head_of_household) {
-            setSnackbar({ open: true, message: 'Vui lòng chọn chủ hộ!', severity: 'warning' });
-            setTabValue(0);
-            return;
-        }
         if (!formData.start_day) {
             setSnackbar({ open: true, message: 'Vui lòng chọn ngày chuyển đến!', severity: 'warning' });
             setTabValue(0);
@@ -419,28 +421,62 @@ const HouseholdManagement = () => {
                 formData.start_day !== editingRecord.start_day ||
                 formData.status !== editingRecord.status;
 
-            if (!hasChanges) {
+            // Check if there are new members to add
+            const newMembers = currentMembers.filter(m => m._isNew);
+
+            if (!hasChanges && newMembers.length === 0) {
                 setSnackbar({ open: true, message: 'Chưa có thay đổi nào!', severity: 'warning' });
                 return;
             }
 
             try {
                 setLoading(true);
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/household/update/${editingRecord.household_id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        apartment: formData.apartment_id, // Send room number as string
-                        startDay: formData.start_day,
-                        status: formData.status.toString() // Convert to string
-                    })
-                });
 
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || 'Failed to update household');
+                // Update household info if changed
+                if (hasChanges) {
+                    const response = await fetch(`${import.meta.env.VITE_API_URL}/household/update/${editingRecord.household_id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            apartment: formData.apartment_id,
+                            startDay: formData.start_day,
+                            status: formData.status.toString()
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.message || 'Failed to update household');
+                    }
+                }
+
+                // Add new members if any
+                if (newMembers.length > 0) {
+                    for (const member of newMembers) {
+                        const response = await fetch(`${import.meta.env.VITE_API_URL}/resident/update/${member.residentId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                fullName: member.full_name,
+                                idNumber: member.id_number,
+                                dateOfBirth: member.date_of_birth,
+                                gender: member.gender,
+                                familyRole: member.familyRole,
+                                phoneNumber: member.phone_number,
+                                job: member.job,
+                                householdId: editingRecord.household_id
+                            })
+                        });
+
+                        if (!response.ok) {
+                            const error = await response.json();
+                            throw new Error(error.message || `Failed to add member ${member.full_name}`);
+                        }
+                    }
                 }
 
                 setSnackbar({ open: true, message: 'Cập nhật hộ khẩu thành công!', severity: 'success' });
@@ -565,27 +601,30 @@ const HouseholdManagement = () => {
 
         try {
             setLoading(true);
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/resident/delete1`, {
+            // Remove from household by setting householdId to null
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/resident/update/${deletingMember.id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    residentId: deletingMember.id,
                     fullName: deletingMember.full_name,
                     idNumber: deletingMember.id_number,
-                    familyRole: deletingMember.role,
                     dateOfBirth: deletingMember.date_of_birth,
-                    gender: deletingMember.gender
+                    gender: deletingMember.gender,
+                    familyRole: deletingMember.role,
+                    phoneNumber: deletingMember.phone_number,
+                    job: deletingMember.job,
+                    householdId: null // Remove from household
                 })
             });
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.message || 'Failed to delete resident');
+                throw new Error(error.message || 'Failed to remove member from household');
             }
 
-            setSnackbar({ open: true, message: 'Xóa thành viên thành công!', severity: 'success' });
+            setSnackbar({ open: true, message: 'Xóa thành viên khỏi hộ thành công!', severity: 'success' });
             setDeleteMemberDialogOpen(false);
             setDeletingMember(null);
 
@@ -859,6 +898,16 @@ const HouseholdManagement = () => {
                                 <TableCell>{new Date(row.start_day).toLocaleDateString('vi-VN')}</TableCell>
                                 <TableCell align="center">{getStatusChip(row.status)}</TableCell>
                                 <TableCell align="center">
+                                    <Tooltip title="Lịch sử nhân khẩu">
+                                        <IconButton color="info" onClick={() => handleOpenHistory(row)} size="small">
+                                            <History size={18} />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Tạm trú/Tạm vắng">
+                                        <IconButton sx={{ color: '#f59e0b' }} onClick={() => handleOpenTemporaryResidence(row)} size="small">
+                                            <Clock size={18} />
+                                        </IconButton>
+                                    </Tooltip>
                                     <Tooltip title="Sửa">
                                         <IconButton color="primary" onClick={() => handleOpen(row)} size="small">
                                             <Edit size={18} />
@@ -1603,6 +1652,20 @@ const HouseholdManagement = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* History Dialog */}
+            <ResidenceHistoryDialog
+                open={historyDialogOpen}
+                onClose={() => setHistoryDialogOpen(false)}
+                household={selectedHouseholdForHistory}
+            />
+
+            {/* Temporary Residence Dialog */}
+            <TemporaryResidenceDialog
+                open={temporaryResidenceDialogOpen}
+                onClose={() => setTemporaryResidenceDialogOpen(false)}
+                household={selectedHouseholdForTemp}
+            />
         </MainCard>
     );
 };

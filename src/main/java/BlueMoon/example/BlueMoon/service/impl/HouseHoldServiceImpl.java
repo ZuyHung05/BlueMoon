@@ -5,11 +5,15 @@ import BlueMoon.example.BlueMoon.dto.request.HouseholdCreateRequest;
 import BlueMoon.example.BlueMoon.dto.request.HouseholdUpdateRequest;
 import BlueMoon.example.BlueMoon.dto.response.ApartmentSimpleResponse;
 import BlueMoon.example.BlueMoon.dto.response.HouseholdResponse;
+import BlueMoon.example.BlueMoon.dto.response.ResidenceHistoryResponse;
 import BlueMoon.example.BlueMoon.entity.ApartmentEntity;
+import BlueMoon.example.BlueMoon.entity.ChangeHistoryEntity;
 import BlueMoon.example.BlueMoon.entity.HouseholdEntity;
 import BlueMoon.example.BlueMoon.entity.ResidentsEntity;
+import BlueMoon.example.BlueMoon.serializable.ChangeHistoryId;
 import BlueMoon.example.BlueMoon.mapper.HouseholdMapper;
 import BlueMoon.example.BlueMoon.repository.resident.ApartmentRepository;
+import BlueMoon.example.BlueMoon.repository.resident.ChangeHistoryRepository;
 import BlueMoon.example.BlueMoon.repository.resident.HouseHoldRepository;
 import BlueMoon.example.BlueMoon.repository.resident.ResidentRepository;
 import BlueMoon.example.BlueMoon.service.HouseHoldService;
@@ -41,6 +45,9 @@ public class HouseHoldServiceImpl implements HouseHoldService {
     
     @Autowired
     private ApartmentRepository apartmentRepository;
+    
+    @Autowired
+    private ChangeHistoryRepository changeHistoryRepository;
     
     @Override
     public List<HouseholdResponse> searchHouseHolds(HouseHoldSelectRequest request) {
@@ -104,8 +111,10 @@ public class HouseHoldServiceImpl implements HouseHoldService {
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
         
-        // Sort by householdId ascending to maintain consistent order
-        List<HouseholdEntity> entities = houseHoldRepository.findAll(spec, Sort.by(Sort.Direction.ASC, "householdId"));
+        // Sort by status DESC (1 first, then 0), then by householdId ASC
+        List<HouseholdEntity> entities = houseHoldRepository.findAll(spec, 
+            Sort.by(Sort.Direction.DESC, "status")
+                .and(Sort.by(Sort.Direction.ASC, "householdId")));
 
         
         // Kiểm tra nếu không tìm thấy kết quả
@@ -224,6 +233,9 @@ public class HouseHoldServiceImpl implements HouseHoldService {
             resident.setHousehold(savedHousehold);
             resident.setFamilyRole(memberReq.getFamilyRole());
             residentRepository.save(resident);
+            
+            // Save history: THÊM_THÀNH_VIÊN (change_type = 1)
+            saveResidenceHistory(resident.getResidentId(), savedHousehold.getHouseholdId(), 1L);
         }
         
         // Update apartment status = "0" (không còn trống)
@@ -319,7 +331,46 @@ public class HouseHoldServiceImpl implements HouseHoldService {
     }
     @Override
     public List<HouseholdResponse> getAllHouseholds() {
-        List<HouseholdEntity> households = houseHoldRepository.findAll(Sort.by(Sort.Direction.ASC, "householdId"));
+        List<HouseholdEntity> households = houseHoldRepository.findAll(
+            Sort.by(Sort.Direction.DESC, "status")
+                .and(Sort.by(Sort.Direction.ASC, "householdId")));
         return householdMapper.toHouseholdResponses(households);
+    }
+    
+    @Override
+    public List<ResidenceHistoryResponse> getResidenceHistory(Long householdId) {
+        List<ChangeHistoryEntity> histories = changeHistoryRepository.findByHouseholdId(householdId);
+        
+        return histories.stream()
+            .map(history -> {
+                ResidentsEntity resident = history.getResident();
+                return ResidenceHistoryResponse.builder()
+                    .residentId(resident.getResidentId())
+                    .householdId(householdId)
+                    .memberName(resident.getFullName())
+                    .memberIdNumber(resident.getIdNumber())
+                    .actionType(history.getChangeType() == 1L ? "THÊM_THÀNH_VIÊN" : "XÓA_THÀNH_VIÊN")
+                    .actionDate(history.getDate())
+                    .performedBy("Admin")
+                    .note(history.getChangeType() == 1L ? "Thêm vào hộ khẩu" : "Rời khỏi hộ khẩu")
+                    .build();
+            })
+            .collect(Collectors.toList());
+    }
+    
+    // Helper method to save residence history
+    private void saveResidenceHistory(Long residentId, Long householdId, Long changeType) {
+        ResidentsEntity resident = residentRepository.findById(residentId).orElse(null);
+        HouseholdEntity household = houseHoldRepository.findById(householdId).orElse(null);
+        
+        if (resident != null && household != null) {
+            ChangeHistoryEntity history = new ChangeHistoryEntity();
+            // id is auto-generated
+            history.setResident(resident);
+            history.setHousehold(household);
+            history.setChangeType(changeType);
+            history.setDate(java.time.LocalDate.now());
+            changeHistoryRepository.save(history);
+        }
     }
 }
