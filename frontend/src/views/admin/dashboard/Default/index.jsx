@@ -158,10 +158,24 @@ const headerActions = (
 
 export default function Dashboard() {
     const isDark = useTheme().palette.mode === 'dark';
-    const [activeTab, setActiveTab] = useState('fee'); // 'fee' hoặc 'resident'
+
+    // Get user role from localStorage
+    const userRole = localStorage.getItem('role')?.toLowerCase();
+
+    // Determine initial tab based on role
+    const getInitialTab = () => {
+        if (userRole === 'accountant') return 'fee';
+        if (userRole === 'manager') return 'resident';
+        return 'fee'; // default for admin
+    };
+
+    const [activeTab, setActiveTab] = useState(getInitialTab());
     const [feeStats, setFeeStats] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    // Check if user should see tabs (only admin)
+    const shouldShowTabs = userRole === 'admin';
 
     // Fetch fee stats from backend
     useEffect(() => {
@@ -188,54 +202,57 @@ export default function Dashboard() {
 
     return (
         <MainCard
-            title="Tổng quan"
+            title={shouldShowTabs ? "Tổng quan" : (activeTab === 'fee' ? "Dashboard Thu Phí" : "Dashboard Cư Dân")}
             darkTitle
             secondary={headerActions}
             contentSX={{ pt: 0 }}
         >
-            {/* SUBTITLE */}
-            <Typography
-                variant="body2"
-                sx={{
-                    mb: 3,
-                    mt: 1,
-                    color: isDark ? '#94a3b8' : 'text.secondary'
-                }}
-            >
-                Tổng quan về hoạt động thu phí và quản lý chung cư
-            </Typography>
+            {/* SUBTITLE - Only for admin */}
+            {shouldShowTabs && (
+                <Typography
+                    variant="body2"
+                    sx={{
+                        mb: 3,
+                        mt: 1,
+                        color: isDark ? '#94a3b8' : 'text.secondary'
+                    }}
+                >
+                    Tổng quan về hoạt động thu phí và quản lý chung cư
+                </Typography>
+            )}
 
-            {/* TAB BUTTONS - ALWAYS VISIBLE */}
-            <Stack
-                direction={{ xs: 'column', md: 'row' }}
-                spacing={3}
-                sx={{ mb: 4 }}
-            >
+            {/* TAB BUTTONS - Only visible for admin */}
+            {shouldShowTabs && (
+                <Stack
+                    direction={{ xs: 'column', md: 'row' }}
+                    spacing={3}
+                    sx={{ mb: 4 }}
+                >
+                    <Box sx={{ width: { xs: '100%', md: '50%' } }}>
+                        <TabButton
+                            title="Quản lý thu phí"
+                            description="Quản lý các khoản phí, hóa đơn và trạng thái thanh toán"
+                            icon={CreditCard}
+                            color="#3b82f6"
+                            isActive={activeTab === 'fee'}
+                            onClick={() => setActiveTab('fee')}
+                            isDark={isDark}
+                        />
+                    </Box>
 
-                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                    <TabButton
-                        title="Quản lý thu phí"
-                        description="Quản lý các khoản phí, hóa đơn và trạng thái thanh toán"
-                        icon={CreditCard}
-                        color="#3b82f6"
-                        isActive={activeTab === 'fee'}
-                        onClick={() => setActiveTab('fee')}
-                        isDark={isDark}
-                    />
-                </Box>
-
-                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                    <TabButton
-                        title="Quản lý cư dân"
-                        description="Quản lý thông tin cư dân, hộ gia đình và cư trú"
-                        icon={Home}
-                        color="#22c55e"
-                        isActive={activeTab === 'resident'}
-                        onClick={() => setActiveTab('resident')}
-                        isDark={isDark}
-                    />
-                </Box>
-            </Stack>
+                    <Box sx={{ width: { xs: '100%', md: '50%' } }}>
+                        <TabButton
+                            title="Quản lý cư dân"
+                            description="Quản lý thông tin cư dân, hộ gia đình và cư trú"
+                            icon={Home}
+                            color="#22c55e"
+                            isActive={activeTab === 'resident'}
+                            onClick={() => setActiveTab('resident')}
+                            isDark={isDark}
+                        />
+                    </Box>
+                </Stack>
+            )}
 
             {/* CONDITIONAL CONTENT BASED ON ACTIVE TAB */}
             {activeTab === 'fee' ? (
