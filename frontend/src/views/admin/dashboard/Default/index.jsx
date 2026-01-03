@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, Card, CardContent, Stack, Chip, useTheme } from '@mui/material';
 import { TrendingUp, TrendingDown, Users, Wallet, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
@@ -10,6 +11,68 @@ import FeeByCategoryChart from './charts/FeeByCategoryChart';
 import CollectionPerformanceChart from './charts/CollectionPerformanceChart';
 import PaymentStatusBarChart from './charts/PaymentStatusBarChart';
 import RevenueOverTimeChart from './charts/RevenueOverTimeChart';
+import { Home, CreditCard } from 'lucide-react';
+
+const ActionCard = ({ title, description, icon: Icon, color, to, isDark }) => {
+    const navigate = useNavigate();
+
+    return (
+        <Card
+            onClick={() => navigate(to)}
+            sx={{
+                cursor: 'pointer',
+                height: '100%',
+                borderRadius: 3,
+                border: '1px solid',
+                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'divider',
+                bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'background.paper',
+                backdropFilter: isDark ? 'blur(10px)' : 'none',
+                transition: 'all 0.25s ease',
+                '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: isDark
+                        ? '0 10px 30px rgba(0,0,0,0.4)'
+                        : '0 10px 30px rgba(0,0,0,0.15)'
+                }
+            }}
+        >
+            <CardContent sx={{ p: 3 }}>
+                <Stack direction="row" spacing={2} alignItems="center">
+                    <Box
+                        sx={{
+                            p: 2,
+                            borderRadius: 2,
+                            bgcolor: `${color}20`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <Icon size={28} color={color} />
+                    </Box>
+
+                    <Box>
+                        <Typography
+                            variant="h6"
+                            sx={{ fontWeight: 700, color: isDark ? '#fff' : 'text.primary' }}
+                        >
+                            {title}
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            sx={{ color: isDark ? '#94a3b8' : 'text.secondary' }}
+                        >
+                            {description}
+                        </Typography>
+                    </Box>
+                </Stack>
+            </CardContent>
+        </Card>
+    );
+};
+
+
+
 
 // Stat Card Component (same as Report page)
 const StatCard = ({ title, value, subtitle, change, changeType, icon: Icon, color, isDark }) => (
@@ -110,6 +173,36 @@ export default function Dashboard() {
             >
                 Tổng quan về hoạt động thu phí và quản lý chung cư
             </Typography>
+
+            {/* ACTION CARDS */}
+            <Stack
+                direction={{ xs: 'column', md: 'row' }}
+                spacing={3}
+                sx={{ mb: 4 }}
+            >   
+            
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
+                    <ActionCard
+                        title="Quản lý thu phí"
+                        description="Quản lý các khoản phí, hóa đơn và trạng thái thanh toán"
+                        icon={CreditCard}
+                        color="#3b82f6"
+                        to="/default-fee"
+                        isDark={isDark}
+                    />
+                </Box>
+
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
+                    <ActionCard
+                        title="Quản lý cư dân"
+                        description="Quản lý thông tin cư dân, hộ gia đình và cư trú"
+                        icon={Home}
+                        color="#22c55e"
+                        to="/resident"
+                        isDark={isDark}
+                    />
+                </Box>
+            </Stack>
 
             {/* STAT CARDS */}
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ mb: 3 }} flexWrap="wrap" useFlexGap>
