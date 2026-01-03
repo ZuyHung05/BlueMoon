@@ -187,7 +187,7 @@ export default function Dashboard() {
                         description="Quản lý các khoản phí, hóa đơn và trạng thái thanh toán"
                         icon={CreditCard}
                         color="#3b82f6"
-                        to="/default-fee"
+                        to="/fee_dashboard"
                         isDark={isDark}
                     />
                 </Box>
@@ -198,7 +198,7 @@ export default function Dashboard() {
                         description="Quản lý thông tin cư dân, hộ gia đình và cư trú"
                         icon={Home}
                         color="#22c55e"
-                        to="/resident"
+                        to="/resident_dashboard"
                         isDark={isDark}
                     />
                 </Box>

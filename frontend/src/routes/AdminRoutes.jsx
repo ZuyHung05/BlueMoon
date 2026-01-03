@@ -19,6 +19,9 @@ const VehicleManagement = Loadable(lazy(() => import('views/admin/vehicle/Vehicl
 const PaymentPeriodManagement = Loadable(lazy(() => import('views/admin/feemanager/PaymentPeriodManagement')));
 
 const HouseholdManagement = Loadable(lazy(() => import('views/admin/household/HouseholdManagement')));
+
+const FeeDashboard = Loadable(lazy(() => import('views/admin/dashboard/Default/FeeDashboard')));
+const ResidentDashboard = Loadable(lazy(() => import('views/admin/dashboard/Default/ResidentDashboard')));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const AdminRoutes = {
@@ -34,6 +37,22 @@ const AdminRoutes = {
             // Dashboard is allowed for everyone in the layout (ADMIN, MANAGER, ACCOUNTANT)
             // So no extra wrapper needed, or wrap with all 3 if preferred for consistency.
             element: <DashboardDefault />
+        },
+        {
+            path: 'fee_dashboard',
+            element: (
+                <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
+                    <FeeDashboard />
+                </ProtectedRoute>
+            )
+        },
+        {
+            path: 'resident_dashboard',
+            element: (
+                <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
+                    <ResidentDashboard />
+                </ProtectedRoute>
+            )
         },
         {
             path: 'resident',
