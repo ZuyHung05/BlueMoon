@@ -11,21 +11,20 @@ import java.time.LocalDate;
 
 @Entity
 @Data
-@Table(name = "change_history")
+@Table(name = "residence_history")
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChangeHistoryEntity {
-    @EmbeddedId
-    private ChangeHistoryId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @ToString.Exclude
-    @MapsId("residentId")
     @JoinColumn(name = "resident_id")
+    @ToString.Exclude
     private ResidentsEntity resident;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("householdId")
     @JoinColumn(name = "household_id")
     private HouseholdEntity household;
 

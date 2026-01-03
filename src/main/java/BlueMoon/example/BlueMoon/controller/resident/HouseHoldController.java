@@ -6,6 +6,7 @@ import BlueMoon.example.BlueMoon.dto.request.HouseholdCreateRequest;
 import BlueMoon.example.BlueMoon.dto.request.HouseholdUpdateRequest;
 import BlueMoon.example.BlueMoon.dto.response.ApartmentSimpleResponse;
 import BlueMoon.example.BlueMoon.dto.response.HouseholdResponse;
+import BlueMoon.example.BlueMoon.dto.response.ResidenceHistoryResponse;
 import BlueMoon.example.BlueMoon.service.HouseHoldService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -60,5 +61,15 @@ public class HouseHoldController {
                 .result(result)
                 .build();
     }
+    
+    @GetMapping("/{householdId}/history")
+    ApiResponse<List<ResidenceHistoryResponse>> getResidenceHistory(@PathVariable Long householdId) {
+        List<ResidenceHistoryResponse> history = houseHoldService.getResidenceHistory(householdId);
+        return ApiResponse.<List<ResidenceHistoryResponse>>builder()
+                .result(history)
+                .build();
+    }
 
+
+    
 }

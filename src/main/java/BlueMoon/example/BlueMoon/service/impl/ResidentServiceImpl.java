@@ -7,6 +7,8 @@ import BlueMoon.example.BlueMoon.dto.response.PageResponse;
 
 import BlueMoon.example.BlueMoon.entity.HouseholdEntity;
 import BlueMoon.example.BlueMoon.entity.ResidentsEntity;
+import BlueMoon.example.BlueMoon.entity.ChangeHistoryEntity;
+import BlueMoon.example.BlueMoon.serializable.ChangeHistoryId;
 import BlueMoon.example.BlueMoon.mapper.ResidentMapper;
 import BlueMoon.example.BlueMoon.repository.resident.ChangeHistoryRepository;
 import BlueMoon.example.BlueMoon.repository.resident.HouseHoldRepository;
@@ -123,7 +125,15 @@ public class ResidentServiceImpl implements ResidentService {
     @Transactional
     public Void deleteResident(ResidentResponse request) {
         Long id = request.getResidentId();
+        
+        // Get resident info before deletion for history
+        ResidentsEntity resident = residentRepository.findById(id).orElse(null);
+        if (resident != null && resident.getHousehold() != null) {
+            // Save history: XÓA_THÀNH_VIÊN (change_type = 2) BEFORE deleting
+            saveResidenceHistory(id, resident.getHousehold().getHouseholdId(), 2L);
+        }
 
+        // Delete change_history records for this resident
         int rows = changeHistoryRepository.deleteHistory(id);
         System.out.println("Deleted change_history rows = " + rows);
 
@@ -139,10 +149,12 @@ public class ResidentServiceImpl implements ResidentService {
     @Override
     @Transactional
     public ResidentResponse updateResident(Long residentId, ResidentAddRequest request) {
-        if (residentRepository.existsByPhoneNumberAndResidentIdNot(request.getPhoneNumber(), residentId)) {
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty() && 
+            residentRepository.existsByPhoneNumberAndResidentIdNot(request.getPhoneNumber(), residentId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Số điện thoại " + request.getPhoneNumber() + " đã được sử dụng bởi cư dân khác.");
         }
-        if (residentRepository.existsByIdNumberAndResidentIdNot(request.getIdNumber(), residentId)) {
+        if (request.getIdNumber() != null && !request.getIdNumber().trim().isEmpty() && 
+            residentRepository.existsByIdNumberAndResidentIdNot(request.getIdNumber(), residentId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Số CCCD " + request.getIdNumber() + " đã được sử dụng bởi cư dân khác.");
         }
 
@@ -171,6 +183,7 @@ public class ResidentServiceImpl implements ResidentService {
         // Handle household change first
         Long newHouseholdId = request.getHouseholdId();
         HouseholdEntity newHousehold = null;
+        Long oldHouseholdId = entity.getHousehold() != null ? entity.getHousehold().getHouseholdId() : null;
         
         if (newHouseholdId != null) {
              newHousehold = householdRepository.findById(newHouseholdId)
@@ -180,6 +193,22 @@ public class ResidentServiceImpl implements ResidentService {
                 ));
         }
         entity.setHousehold(newHousehold);
+        
+        // Track history for household changes
+        if (oldHouseholdId == null && newHouseholdId != null) {
+            // Case 1: Adding resident to a household (from no household)
+            saveResidenceHistory(residentId, newHouseholdId, 1L);
+        } else if (oldHouseholdId != null && newHouseholdId != null && !oldHouseholdId.equals(newHouseholdId)) {
+            // Case 2: Transferring resident from one household to another
+            // Save XÓA for old household
+            saveResidenceHistory(residentId, oldHouseholdId, 2L);
+            // Save THÊM for new household
+            saveResidenceHistory(residentId, newHouseholdId, 1L);
+        } else if (oldHouseholdId != null && newHouseholdId == null) {
+            // Case 3: Removing resident from household
+            saveResidenceHistory(residentId, oldHouseholdId, 2L);
+        }
+
         
         // Now handle head of household change AFTER setting the household
         if ("Head of Household".equalsIgnoreCase(newRole) && entity.getHousehold() != null) {
@@ -205,6 +234,22 @@ public class ResidentServiceImpl implements ResidentService {
         residentMapper.updateResidentFromRequest(request, entity);
         ResidentsEntity savedEntity = residentRepository.save(entity);
         return residentMapper.toResidentSelectResponse(savedEntity);
+    }
+    
+    // Helper method to save residence history
+    private void saveResidenceHistory(Long residentId, Long householdId, Long changeType) {
+        ResidentsEntity resident = residentRepository.findById(residentId).orElse(null);
+        HouseholdEntity household = householdRepository.findById(householdId).orElse(null);
+        
+        if (resident != null && household != null) {
+            ChangeHistoryEntity history = new ChangeHistoryEntity();
+            // id is auto-generated
+            history.setResident(resident);
+            history.setHousehold(household);
+            history.setChangeType(changeType);
+            history.setDate(java.time.LocalDate.now());
+            changeHistoryRepository.save(history);
+        }
     }
 
 }
