@@ -4,10 +4,11 @@ import BlueMoon.example.BlueMoon.dto.request.vehicle.AddVehicleRequest;
 import BlueMoon.example.BlueMoon.dto.request.vehicle.SearchVehicleRequest;
 import BlueMoon.example.BlueMoon.dto.request.vehicle.UpdateVehicleRequest;
 import BlueMoon.example.BlueMoon.dto.response.VehicleResponse;
+import BlueMoon.example.BlueMoon.entity.ApartmentEntity;
 import BlueMoon.example.BlueMoon.entity.HouseholdEntity;
 import BlueMoon.example.BlueMoon.entity.VehicleEntity;
-import BlueMoon.example.BlueMoon.repository.HouseholdRepository;
 import BlueMoon.example.BlueMoon.repository.VehicleRepository;
+import BlueMoon.example.BlueMoon.repository.resident.ApartmentRepository;
 import BlueMoon.example.BlueMoon.service.VehicleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 public class VehicleServiceImpl implements VehicleService {
 
     private final VehicleRepository vehicleRepository;
-    private final HouseholdRepository householdRepository;
+    private final ApartmentRepository apartmentRepository;
 
     /**
      * Kiểm tra vị trí đỗ xe hợp lệ theo loại xe
@@ -76,18 +77,25 @@ public class VehicleServiceImpl implements VehicleService {
     @Transactional
     public VehicleResponse addVehicle(AddVehicleRequest request) {
 
-        if (request.getHouseholdId() == null) {
-            throw new IllegalArgumentException("Household ID không được để trống");
+        if (request.getRoomNumber() == null) {
+            throw new IllegalArgumentException("Số phòng không được để trống");
         }
 
         if (request.getPlateNumber() == null || request.getPlateNumber().trim().isEmpty()) {
             throw new IllegalArgumentException("Biển số xe không được để trống");
         }
 
-        // Kiểm tra household có tồn tại không
-        HouseholdEntity household = householdRepository.findById(request.getHouseholdId())
+        // Tìm apartment theo room number
+        ApartmentEntity apartment = apartmentRepository.findByRoomNumber(request.getRoomNumber())
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Không tìm thấy hộ gia đình với ID: " + request.getHouseholdId()));
+                        "Không tìm thấy phòng số: " + request.getRoomNumber()));
+
+        // Tìm household đang ở apartment này (status = "1" - đang ở)
+        HouseholdEntity household = apartment.getHouseHold().stream()
+                .filter(h -> "1".equals(h.getStatus()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Không tìm thấy hộ gia đình đang ở phòng " + request.getRoomNumber()));
 
         // Kiểm tra vị trí đỗ xe hợp lệ
         validateParkingLocation(request.getLocation(), request.getType());
@@ -102,7 +110,7 @@ public class VehicleServiceImpl implements VehicleService {
 
         VehicleEntity savedVehicle = vehicleRepository.save(vehicle);
 
-        // Bước 7: Thông báo tạo khoản thu thành công
+        // Thông báo tạo thành công
         return VehicleResponse.fromEntity(savedVehicle);
     }
 

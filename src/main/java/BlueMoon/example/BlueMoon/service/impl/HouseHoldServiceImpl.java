@@ -75,7 +75,7 @@ public class HouseHoldServiceImpl implements HouseHoldService {
 
                 List<Predicate> keywordPredicates = new ArrayList<>();
 
-                // 1. Tìm theo số phòng (householdId) - EXACT MATCH
+                // 1. Tìm theo household ID - EXACT MATCH
                 try {
                     Long householdId = Long.parseLong(keyword);
                     keywordPredicates.add(criteriaBuilder.equal(root.get("householdId"), householdId));
@@ -83,7 +83,16 @@ public class HouseHoldServiceImpl implements HouseHoldService {
                     // Không phải số, bỏ qua điều kiện này
                 }
 
-                // 2. Tìm theo tên chủ hộ (không tìm theo CCCD nữa)
+                // 2. Tìm theo số phòng (room_number) - EXACT MATCH
+                try {
+                    Long roomNumber = Long.parseLong(keyword);
+                    // Tìm theo roomNumber của apartment
+                    keywordPredicates.add(criteriaBuilder.equal(root.get("apartment").get("roomNumber"), roomNumber));
+                } catch (NumberFormatException e) {
+                    // Không phải số, bỏ qua điều kiện này
+                }
+
+                // 3. Tìm theo tên chủ hộ
                 // Tìm các resident có tên khớp với keyword
                 String keywordPattern = "%" + keyword.toLowerCase() + "%";
                 List<ResidentsEntity> matchingResidents = residentRepository.findAll(

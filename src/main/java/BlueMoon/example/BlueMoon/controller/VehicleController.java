@@ -30,6 +30,11 @@ public class VehicleController {
     @PostMapping
     public ResponseEntity<ApiResponse<VehicleResponse>> addVehicle(@Valid @RequestBody AddVehicleRequest request) {
         try {
+            System.out.println("Received request: roomNumber=" + request.getRoomNumber() + 
+                             ", plateNumber=" + request.getPlateNumber() + 
+                             ", type=" + request.getType() + 
+                             ", basementFloor=" + request.getBasementFloor() + 
+                             ", location=" + request.getLocation());
             VehicleResponse response = vehicleService.addVehicle(request);
             return ResponseEntity
                     .status(HttpStatus.CREATED)

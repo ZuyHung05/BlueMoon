@@ -12,12 +12,17 @@ import {
     Tooltip,
     Divider,
     useTheme,
-    Grid
+    Grid,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions
 } from '@mui/material';
 
 import { X, Car, Bike, Wrench, ArrowRight, ArrowDown, ArrowUp, ArrowLeft } from 'lucide-react';
 import MainCard from 'ui-component/cards/MainCard';
 import { getAllVehicles } from 'api/vehicleService';
+import AddVehicleFormInline from './AddVehicleFormInline';
 
 const STATUS_COLORS = {
     empty: '#22c55e',
@@ -124,7 +129,7 @@ const generateEmptyFloorData = () => ({
     3: generateParkingData(3, [])
 });
 
-const ParkingSlot = ({ slot, size = 'small' }) => {
+const ParkingSlot = ({ slot, size = 'small', onClick }) => {
     const isSmall = size === 'small';
     const width = isSmall ? 60 : 90;
     const height = isSmall ? 44 : 68;
@@ -134,7 +139,7 @@ const ParkingSlot = ({ slot, size = 'small' }) => {
     // Tạo tooltip text với thông tin xe nếu có
     const getTooltipText = () => {
         if (slot.status === 'empty') {
-            return `${slot.slotId} - Trống`;
+            return `${slot.slotId} - Trống (Click để thêm xe)`;
         } else if (slot.status === 'registered' && slot.vehicleInfo) {
             return `${slot.slotId} - ${slot.vehicleInfo.plateNumber} (Hộ ${slot.vehicleInfo.householdId})`;
         } else if (slot.status === 'maintenance') {
@@ -143,9 +148,16 @@ const ParkingSlot = ({ slot, size = 'small' }) => {
         return `${slot.slotId} - Đã đăng ký`;
     };
 
+    const handleClick = () => {
+        if (onClick) {
+            onClick(slot);
+        }
+    };
+
     return (
         <Tooltip title={getTooltipText()}>
             <Box
+                onClick={handleClick}
                 sx={{
                     width: width,
                     height: height,
@@ -155,14 +167,15 @@ const ParkingSlot = ({ slot, size = 'small' }) => {
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    cursor: 'pointer',
+                    cursor: slot.status === 'empty' ? 'pointer' : 'default',
                     transition: 'all 0.2s ease',
                     border: '2px solid rgba(255,255,255,0.3)',
-                    '&:hover': {
+                    '&:hover': slot.status === 'empty' ? {
                         transform: 'scale(1.08)',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                        zIndex: 10
-                    }
+                        zIndex: 10,
+                        border: '2px solid rgba(255,255,255,0.8)'
+                    } : {}
                 }}
             >
                 {slot.status === 'maintenance' ? (
@@ -241,10 +254,10 @@ const Road = ({ direction = 'horizontal', width = '100%', height = 40, showArrow
     );
 };
 
-const ParkingRow = ({ slots, slotSize }) => (
+const ParkingRow = ({ slots, slotSize, onSlotClick }) => (
     <Stack direction="row" spacing={0.25} justifyContent="center">
         {slots.map((slot) => (
-            <ParkingSlot key={slot.id} slot={slot} size={slotSize} />
+            <ParkingSlot key={slot.id} slot={slot} size={slotSize} onClick={onSlotClick} />
         ))}
     </Stack>
 );
@@ -542,11 +555,11 @@ const getCarZoneRows = (slots) => {
     };
 };
 
-const ZoneBlock = ({ rows, slotSize }) => (
+const ZoneBlock = ({ rows, slotSize, onSlotClick }) => (
     <Box sx={{ bgcolor: 'background.paper', p: 0.5 }}>
         <Stack spacing={0.25}>
             {rows.map((row, idx) => (
-                <ParkingRow key={idx} slots={row} slotSize={slotSize} />
+                <ParkingRow key={idx} slots={row} slotSize={slotSize} onSlotClick={onSlotClick} />
             ))}
         </Stack>
     </Box>
@@ -634,10 +647,6 @@ const Legend = ({ direction = 'row', ...stackProps }) => {
                 <Typography variant="caption" fontWeight={600} color="text.secondary">ĐÃ ĐĂNG KÝ</Typography>
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center">
-                <Box sx={{ width: 16, height: 16, bgcolor: STATUS_COLORS.maintenance, borderRadius: '3px' }} />
-                <Typography variant="caption" fontWeight={600} color="text.secondary">BẢO TRÌ</Typography>
-            </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
                 <Box sx={{ width: 16, height: 16, bgcolor: roadColor, borderRadius: '3px' }} />
                 <Typography variant="caption" fontWeight={600} color="text.secondary">ĐƯỜNG ĐI</Typography>
             </Stack>
@@ -661,27 +670,46 @@ const ParkingMap = ({ onBack }) => {
     const containerRef = useRef(null);
     const mapRef = useRef(null);
 
-    // Fetch vehicles từ API khi component mount
-    useEffect(() => {
-        const fetchVehicles = async () => {
-            try {
-                setLoading(true);
-                const response = await getAllVehicles();
-                if (response.success && response.data) {
-                    // Tạo dữ liệu parking cho từng tầng dựa trên vehicles
-                    const newFloorsData = {
-                        1: generateParkingData(1, response.data),
-                        2: generateParkingData(2, response.data),
-                        3: generateParkingData(3, response.data)
-                    };
-                    setFloorsData(newFloorsData);
-                }
-            } catch (error) {
-                console.error('Error fetching vehicles for parking map:', error);
-            } finally {
-                setLoading(false);
+    // State for add vehicle dialog
+    const [selectedSlot, setSelectedSlot] = useState(null);
+    const [addVehicleDialogOpen, setAddVehicleDialogOpen] = useState(false);
+
+    // Handle slot click
+    const handleSlotClick = (slot) => {
+        if (slot.status === 'empty') {
+            setSelectedSlot(slot);
+            setAddVehicleDialogOpen(true);
+        }
+    };
+
+    const handleCloseAddVehicleDialog = () => {
+        setAddVehicleDialogOpen(false);
+        setSelectedSlot(null);
+    };
+
+    // Fetch vehicles từ API
+    const fetchVehicles = async () => {
+        try {
+            setLoading(true);
+            const response = await getAllVehicles();
+            if (response.success && response.data) {
+                // Tạo dữ liệu parking cho từng tầng dựa trên vehicles
+                const newFloorsData = {
+                    1: generateParkingData(1, response.data),
+                    2: generateParkingData(2, response.data),
+                    3: generateParkingData(3, response.data)
+                };
+                setFloorsData(newFloorsData);
             }
-        };
+        } catch (error) {
+            console.error('Error fetching vehicles for parking map:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch vehicles khi component mount
+    useEffect(() => {
         fetchVehicles();
     }, []);
 
@@ -870,9 +898,9 @@ const ParkingMap = ({ onBack }) => {
                                             {/* Zone A row */}
                                             <Stack direction="row" spacing={0} alignItems="stretch">
                                                 <VerticalRoad />
-                                                <ZoneBlock rows={bikeZones.zoneA} slotSize="small" />
+                                                <ZoneBlock rows={bikeZones.zoneA} slotSize="small" onSlotClick={handleSlotClick} />
                                                 <VerticalRoad />
-                                                <ZoneBlock rows={carZones.zoneD} slotSize="large" />
+                                                <ZoneBlock rows={carZones.zoneD} slotSize="large" onSlotClick={handleSlotClick} />
                                                 <VerticalRoad />
                                             </Stack>
 
@@ -888,9 +916,9 @@ const ParkingMap = ({ onBack }) => {
                                             {/* Zone B row */}
                                             <Stack direction="row" spacing={0} alignItems="stretch">
                                                 <VerticalRoad />
-                                                <ZoneBlock rows={bikeZones.zoneB} slotSize="small" />
+                                                <ZoneBlock rows={bikeZones.zoneB} slotSize="small" onSlotClick={handleSlotClick} />
                                                 <VerticalRoad />
-                                                <ZoneBlock rows={carZones.zoneE} slotSize="large" />
+                                                <ZoneBlock rows={carZones.zoneE} slotSize="large" onSlotClick={handleSlotClick} />
                                                 <VerticalRoad />
                                             </Stack>
 
@@ -906,9 +934,9 @@ const ParkingMap = ({ onBack }) => {
                                             {/* Zone C and F row */}
                                             <Stack direction="row" spacing={0} alignItems="stretch">
                                                 <VerticalRoad />
-                                                <ZoneBlock rows={bikeZones.zoneC} slotSize="small" />
+                                                <ZoneBlock rows={bikeZones.zoneC} slotSize="small" onSlotClick={handleSlotClick} />
                                                 <VerticalRoad />
-                                                <ZoneBlock rows={carZones.zoneF} slotSize="large" />
+                                                <ZoneBlock rows={carZones.zoneF} slotSize="large" onSlotClick={handleSlotClick} />
                                                 <VerticalRoad />
                                             </Stack>
 
@@ -928,6 +956,53 @@ const ParkingMap = ({ onBack }) => {
                     </Box>
                 </Box>
             </MainCard>
+
+            {/* Add Vehicle Dialog */}
+            <Dialog
+                open={addVehicleDialogOpen}
+                onClose={handleCloseAddVehicleDialog}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle>
+                    <Stack direction="row" alignItems="center" spacing={2}>
+                        {selectedSlot?.type === 'bike' ? (
+                            <Bike size={24} color="#22c55e" />
+                        ) : (
+                            <Car size={24} color="#22c55e" />
+                        )}
+                        <Typography variant="h5" fontWeight={700}>
+                            Thêm xe vào vị trí {selectedSlot?.slotId}
+                        </Typography>
+                    </Stack>
+                </DialogTitle>
+<DialogContent>
+    <AddVehicleFormInline 
+        selectedSlot={selectedSlot}
+        currentFloor={currentFloor + 1}
+        onSuccess={() => {
+            handleCloseAddVehicleDialog();
+            // Refresh parking map để hiển thị xe mới thêm
+            fetchVehicles();
+        }}
+        onCancel={handleCloseAddVehicleDialog}
+    />
+</DialogContent>
+                <DialogActions sx={{ p: 2.5, pt: 0 }}>
+                    <Button onClick={handleCloseAddVehicleDialog} variant="outlined">
+                        Đóng
+                    </Button>
+                    <Button
+                        variant="contained"
+                        onClick={() => {
+                            handleCloseAddVehicleDialog();
+                            onBack(); // Go back to vehicle list
+                        }}
+                    >
+                        Đến trang Quản lý Phương tiện
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </ParkingThemeContext.Provider>
     );
 };

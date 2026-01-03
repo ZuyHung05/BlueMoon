@@ -64,7 +64,7 @@ const VehicleManagement = () => {
 
     // Form state
     const [formData, setFormData] = useState({
-        householdId: '',
+        roomNumber: '',
         plateNumber: '',
         type: 'bike',
         basementFloor: 1,
@@ -96,6 +96,7 @@ const VehicleManagement = () => {
                 const mappedData = response.data.map(item => ({
                     vehicleId: item.vehicleId,
                     householdId: item.householdId,
+                    roomNumber: item.roomNumber,  // Thêm room number
                     plateNumber: item.plateNumber,
                     type: item.type,
                     basementFloor: item.basementFloor,
@@ -158,7 +159,7 @@ const VehicleManagement = () => {
         if (record) {
             setEditingRecord(record);
             setFormData({
-                householdId: record.householdId,
+                roomNumber: record.roomNumber,
                 plateNumber: record.plateNumber,
                 type: record.type,
                 basementFloor: record.basementFloor,
@@ -167,7 +168,7 @@ const VehicleManagement = () => {
         } else {
             setEditingRecord(null);
             setFormData({
-                householdId: '',
+                roomNumber: '',
                 plateNumber: '',
                 type: 'bike',
                 basementFloor: 1,
@@ -188,8 +189,8 @@ const VehicleManagement = () => {
     };
 
     const handleSave = async () => {
-        if (!formData.householdId) {
-            setSnackbar({ open: true, message: 'Vui lòng chọn hộ gia đình!', severity: 'warning' });
+        if (!formData.roomNumber) {
+            setSnackbar({ open: true, message: 'Vui lòng nhập số phòng!', severity: 'warning' });
             return;
         }
         if (!formData.plateNumber) {
@@ -202,6 +203,15 @@ const VehicleManagement = () => {
         }
 
         try {
+            // Đảm bảo roomNumber và basementFloor là số
+            const dataToSend = {
+                ...formData,
+                roomNumber: parseInt(formData.roomNumber),
+                basementFloor: parseInt(formData.basementFloor)
+            };
+            
+            console.log('Data being sent:', dataToSend); // Debug log
+            
             if (editingRecord) {
                 // Update existing vehicle
                 const response = await updateVehicle(editingRecord.vehicleId, formData);
@@ -213,7 +223,7 @@ const VehicleManagement = () => {
                 }
             } else {
                 // Add new vehicle
-                const response = await addVehicle(formData);
+                const response = await addVehicle(dataToSend);
                 if (response.success) {
                     setSnackbar({ open: true, message: 'Thêm phương tiện mới thành công!', severity: 'success' });
                     fetchVehicles(); // Refresh data
@@ -388,7 +398,7 @@ const VehicleManagement = () => {
                 </Tooltip>
 
                 <OutlinedInput
-                    placeholder="Tìm theo biển số, tên chủ hộ..."
+                    placeholder="Tìm theo biển số, số phòng..."
                     startAdornment={
                         <InputAdornment position="start">
                             <Search size={18} />
@@ -445,7 +455,7 @@ const VehicleManagement = () => {
                     }}>
                         <TableRow>
                             <TableCell>STT</TableCell>
-                            <TableCell>Chủ hộ</TableCell>
+                            <TableCell>Phòng</TableCell>
                             <TableCell>Biển số xe</TableCell>
                             <TableCell align="center">Loại xe</TableCell>
                             <TableCell>Vị trí đỗ</TableCell>
@@ -458,7 +468,7 @@ const VehicleManagement = () => {
                                 <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                                 <TableCell>
                                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                                        {getHouseholdName(row.householdId)}
+                                        Phòng {row.roomNumber}
                                     </Typography>
                                 </TableCell>
                                 <TableCell>
@@ -597,16 +607,16 @@ const VehicleManagement = () => {
                     <Stack spacing={2.5} sx={{ mt: 1 }}>
                         <Box>
                             <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
-                                Mã hộ gia đình <span style={{ color: '#ef4444' }}>*</span>
+                                Số phòng <span style={{ color: '#ef4444' }}>*</span>
                             </Typography>
                             <TextField
                                 fullWidth
                                 type="number"
-                                name="householdId"
-                                value={formData.householdId}
+                                name="roomNumber"
+                                value={formData.roomNumber}
                                 onChange={handleChange}
                                 size="small"
-                                placeholder="Nhập mã hộ gia đình"
+                                placeholder="Nhập số phòng"
                             />
                         </Box>
 

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ApartmentRepository extends JpaRepository<ApartmentEntity, Long>, JpaSpecificationExecutor<ApartmentEntity> {
@@ -14,4 +15,7 @@ public interface ApartmentRepository extends JpaRepository<ApartmentEntity, Long
     // Lấy danh sách apartments có status = "1" (có phòng trống)
     @Query("SELECT a FROM ApartmentEntity a WHERE a.status = '1'")
     List<ApartmentEntity> findAvailableApartments();
+    
+    // Tìm apartment theo room number
+    Optional<ApartmentEntity> findByRoomNumber(Long roomNumber);
 }

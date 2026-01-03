@@ -1,6 +1,6 @@
 package BlueMoon.example.BlueMoon.controller.dashboard;
 
-import BlueMoon.example.BlueMoon.dto.BaseResponse;
+import BlueMoon.example.BlueMoon.dto.response.ApiResponse;
 import BlueMoon.example.BlueMoon.dto.dashboard.DashboardStatsResponse;
 import BlueMoon.example.BlueMoon.service.dashboard.DashboardService;
 import lombok.RequiredArgsConstructor;
@@ -16,12 +16,12 @@ public class DashboardController {
     private final DashboardService dashboardService;
 
     @GetMapping("/fee-stats")
-    public BaseResponse getFeeStats() {
-        return BaseResponse.success(dashboardService.getFeeStats());
+    public ApiResponse<DashboardStatsResponse.FeeStats> getFeeStats() {
+        return ApiResponse.success("Lấy thống kê thu phí thành công", dashboardService.getFeeStats());
     }
 
     @GetMapping("/resident-stats")
-    public BaseResponse getResidentStats() {
-        return BaseResponse.success(dashboardService.getResidentStats());
+    public ApiResponse<DashboardStatsResponse.ResidentStats> getResidentStats() {
+        return ApiResponse.success("Lấy thống kê cư dân thành công", dashboardService.getResidentStats());
     }
 }

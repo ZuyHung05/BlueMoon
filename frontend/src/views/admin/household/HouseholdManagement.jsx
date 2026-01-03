@@ -210,7 +210,7 @@ const HouseholdManagement = () => {
             setHouseholds(mappedData);
         } catch (error) {
             console.error('Error fetching households:', error);
-            setSnackbar({ open: true, message: 'Lỗi khi tải dữ liệu hộ khẩu!', severity: 'error' });
+            setSnackbar({ open: true, message: 'Không tìm thấy hộ khớp yêu cầu!', severity: 'info' });
             setHouseholds([]);
         } finally {
             setLoading(false);
