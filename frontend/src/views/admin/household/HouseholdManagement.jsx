@@ -41,7 +41,11 @@ import {
 import MainCard from 'ui-component/cards/MainCard';
 
 // assets
-import { Edit, Trash2, Plus, Search, Filter, Home, Users, UserPlus } from 'lucide-react';
+import { Edit, Trash2, Plus, Search, Filter, Home, Users, UserPlus, History, Clock } from 'lucide-react';
+
+// Custom dialogs
+import ResidenceHistoryDialog from './ResidenceHistoryDialog';
+import TemporaryResidenceDialog from './TemporaryResidenceDialog';
 
 const HouseholdManagement = () => {
     // --- 1. MOCK DATA ---
@@ -133,6 +137,26 @@ const HouseholdManagement = () => {
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
     const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
+    // History dialog state
+    const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+    const [selectedHouseholdForHistory, setSelectedHouseholdForHistory] = useState(null);
+
+    // Temporary residence dialog state
+    const [temporaryResidenceDialogOpen, setTemporaryResidenceDialogOpen] = useState(false);
+    const [selectedHouseholdForTemp, setSelectedHouseholdForTemp] = useState(null);
+
+    // Handler for opening history dialog
+    const handleOpenHistory = (household) => {
+        setSelectedHouseholdForHistory(household);
+        setHistoryDialogOpen(true);
+    };
+
+    // Handler for opening temporary residence dialog
+    const handleOpenTemporaryResidence = (household) => {
+        setSelectedHouseholdForTemp(household);
+        setTemporaryResidenceDialogOpen(true);
+    };
+
     // --- 3. FETCH DATA FROM BACKEND ---
     const fetchHouseholds = async () => {
         setLoading(true);
@@ -171,15 +195,15 @@ const HouseholdManagement = () => {
                 start_day: item.startDay,
                 members: item.members
                     ? item.members.map((member) => ({
-                          id: member.residentId,
-                          full_name: member.fullName,
-                          id_number: member.idNumber,
-                          role: member.familyRole,
-                          date_of_birth: member.dateOfBirth,
-                          gender: member.gender,
-                          phone_number: member.phoneNumber,
-                          job: member.job
-                      }))
+                        id: member.residentId,
+                        full_name: member.fullName,
+                        id_number: member.idNumber,
+                        role: member.familyRole,
+                        date_of_birth: member.dateOfBirth,
+                        gender: member.gender,
+                        phone_number: member.phoneNumber,
+                        job: member.job
+                    }))
                     : []
             }));
 
@@ -859,6 +883,16 @@ const HouseholdManagement = () => {
                                 <TableCell>{new Date(row.start_day).toLocaleDateString('vi-VN')}</TableCell>
                                 <TableCell align="center">{getStatusChip(row.status)}</TableCell>
                                 <TableCell align="center">
+                                    <Tooltip title="Lịch sử nhân khẩu">
+                                        <IconButton color="info" onClick={() => handleOpenHistory(row)} size="small">
+                                            <History size={18} />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Tạm trú/Tạm vắng">
+                                        <IconButton sx={{ color: '#f59e0b' }} onClick={() => handleOpenTemporaryResidence(row)} size="small">
+                                            <Clock size={18} />
+                                        </IconButton>
+                                    </Tooltip>
                                     <Tooltip title="Sửa">
                                         <IconButton color="primary" onClick={() => handleOpen(row)} size="small">
                                             <Edit size={18} />
@@ -1603,6 +1637,20 @@ const HouseholdManagement = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* History Dialog */}
+            <ResidenceHistoryDialog
+                open={historyDialogOpen}
+                onClose={() => setHistoryDialogOpen(false)}
+                household={selectedHouseholdForHistory}
+            />
+
+            {/* Temporary Residence Dialog */}
+            <TemporaryResidenceDialog
+                open={temporaryResidenceDialogOpen}
+                onClose={() => setTemporaryResidenceDialogOpen(false)}
+                household={selectedHouseholdForTemp}
+            />
         </MainCard>
     );
 };
