@@ -1,38 +1,42 @@
-import React from 'react';
-import { Box, Typography, Card, CardContent, Stack, Chip, useTheme } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Card, CardContent, Stack, Chip, useTheme, Button, CircularProgress } from '@mui/material';
 import { TrendingUp, TrendingDown, Users, Wallet, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
+import { getFeeStats } from 'api/dashboardService';
 
 // Import chart components
 import FeeByCategoryChart from './charts/FeeByCategoryChart';
 import CollectionPerformanceChart from './charts/CollectionPerformanceChart';
 import PaymentStatusBarChart from './charts/PaymentStatusBarChart';
 import RevenueOverTimeChart from './charts/RevenueOverTimeChart';
+import ResidentDashboard from './ResidentDashboard';
 import { Home, CreditCard } from 'lucide-react';
 
-const ActionCard = ({ title, description, icon: Icon, color, to, isDark }) => {
-    const navigate = useNavigate();
-
+const TabButton = ({ title, description, icon: Icon, color, isActive, onClick, isDark }) => {
     return (
         <Card
-            onClick={() => navigate(to)}
+            onClick={onClick}
             sx={{
                 cursor: 'pointer',
                 height: '100%',
                 borderRadius: 3,
-                border: '1px solid',
-                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'divider',
-                bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'background.paper',
+                border: '2px solid',
+                borderColor: isActive
+                    ? color
+                    : (isDark ? 'rgba(255,255,255,0.1)' : 'divider'),
+                bgcolor: isActive
+                    ? (isDark ? `${color}20` : `${color}10`)
+                    : (isDark ? 'rgba(30, 41, 59, 0.7)' : 'background.paper'),
                 backdropFilter: isDark ? 'blur(10px)' : 'none',
                 transition: 'all 0.25s ease',
                 '&:hover': {
                     transform: 'translateY(-4px)',
                     boxShadow: isDark
                         ? '0 10px 30px rgba(0,0,0,0.4)'
-                        : '0 10px 30px rgba(0,0,0,0.15)'
+                        : '0 10px 30px rgba(0,0,0,0.15)',
+                    borderColor: color
                 }
             }}
         >
@@ -76,8 +80,8 @@ const ActionCard = ({ title, description, icon: Icon, color, to, isDark }) => {
 
 // Stat Card Component (same as Report page)
 const StatCard = ({ title, value, subtitle, change, changeType, icon: Icon, color, isDark }) => (
-    <Card sx={{ 
-        bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'background.paper', 
+    <Card sx={{
+        bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'background.paper',
         borderRadius: 3,
         border: '1px solid',
         borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'divider',
@@ -87,11 +91,11 @@ const StatCard = ({ title, value, subtitle, change, changeType, icon: Icon, colo
         <CardContent sx={{ p: 2.5 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                 <Box>
-                    <Typography 
-                        variant="body1" 
-                        sx={{ 
-                            mb: 0.5, 
-                            fontWeight: 600, 
+                    <Typography
+                        variant="body1"
+                        sx={{
+                            mb: 0.5,
+                            fontWeight: 600,
                             color: isDark ? '#ffffff' : 'text.secondary',
                             opacity: isDark ? 0.9 : 1
                         }}
@@ -102,10 +106,10 @@ const StatCard = ({ title, value, subtitle, change, changeType, icon: Icon, colo
                         {value}
                     </Typography>
                     {subtitle && (
-                        <Typography 
-                            variant="body2" 
-                            sx={{ 
-                                mt: 0.5, 
+                        <Typography
+                            variant="body2"
+                            sx={{
+                                mt: 0.5,
                                 color: isDark ? '#cbd5e1' : 'text.secondary',
                                 fontWeight: 400
                             }}
@@ -126,9 +130,9 @@ const StatCard = ({ title, value, subtitle, change, changeType, icon: Icon, colo
                         </Stack>
                     )}
                 </Box>
-                <Box sx={{ 
-                    p: 2, 
-                    borderRadius: 2, 
+                <Box sx={{
+                    p: 2,
+                    borderRadius: 2,
                     bgcolor: isDark ? `${color}30` : `${color}15`,
                     display: 'flex',
                     alignItems: 'center',
@@ -143,7 +147,7 @@ const StatCard = ({ title, value, subtitle, change, changeType, icon: Icon, colo
 
 // Header actions
 const headerActions = (
-    <Chip 
+    <Chip
         label="Cập nhật: Tháng 12/2025"
         size="small"
         sx={{ bgcolor: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa' }}
@@ -154,128 +158,187 @@ const headerActions = (
 
 export default function Dashboard() {
     const isDark = useTheme().palette.mode === 'dark';
+    const [activeTab, setActiveTab] = useState('fee'); // 'fee' hoặc 'resident'
+    const [feeStats, setFeeStats] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    // Fetch fee stats from backend
+    useEffect(() => {
+        if (activeTab === 'fee') {
+            fetchFeeStats();
+        }
+    }, [activeTab]);
+
+    const fetchFeeStats = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await getFeeStats();
+            if (response.data) {
+                setFeeStats(response.data);
+            }
+        } catch (err) {
+            console.error('Error fetching fee stats:', err);
+            setError('Không thể tải dữ liệu. Vui lòng thử lại sau.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
-        <MainCard 
+        <MainCard
             title="Tổng quan"
             darkTitle
             secondary={headerActions}
             contentSX={{ pt: 0 }}
         >
             {/* SUBTITLE */}
-            <Typography 
-                variant="body2" 
-                sx={{ 
-                    mb: 3, 
-                    mt: 1, 
-                    color: isDark ? '#94a3b8' : 'text.secondary' 
+            <Typography
+                variant="body2"
+                sx={{
+                    mb: 3,
+                    mt: 1,
+                    color: isDark ? '#94a3b8' : 'text.secondary'
                 }}
             >
                 Tổng quan về hoạt động thu phí và quản lý chung cư
             </Typography>
 
-            {/* ACTION CARDS */}
+            {/* TAB BUTTONS - ALWAYS VISIBLE */}
             <Stack
                 direction={{ xs: 'column', md: 'row' }}
                 spacing={3}
                 sx={{ mb: 4 }}
-            >   
-            
+            >
+
                 <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                    <ActionCard
+                    <TabButton
                         title="Quản lý thu phí"
                         description="Quản lý các khoản phí, hóa đơn và trạng thái thanh toán"
                         icon={CreditCard}
                         color="#3b82f6"
-                        to="/fee_dashboard"
+                        isActive={activeTab === 'fee'}
+                        onClick={() => setActiveTab('fee')}
                         isDark={isDark}
                     />
                 </Box>
 
                 <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                    <ActionCard
+                    <TabButton
                         title="Quản lý cư dân"
                         description="Quản lý thông tin cư dân, hộ gia đình và cư trú"
                         icon={Home}
                         color="#22c55e"
-                        to="/resident_dashboard"
+                        isActive={activeTab === 'resident'}
+                        onClick={() => setActiveTab('resident')}
                         isDark={isDark}
                     />
                 </Box>
             </Stack>
 
-            {/* STAT CARDS */}
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ mb: 3 }} flexWrap="wrap" useFlexGap>
-                <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(25% - 18px)' } }}>
-                    <StatCard 
-                        title="Tổng số hộ gia đình"
-                        value="342"
-                        subtitle="Hộ đang sinh sống tại chung cư"
-                        change="+5 hộ mới"
-                        changeType="up"
-                        icon={Users}
-                        color="#3b82f6"
-                        isDark={isDark}
-                    />
-                </Box>
-                <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(25% - 18px)' } }}>
-                    <StatCard 
-                        title="Hộ đã thanh toán"
-                        value="224"
-                        subtitle="Hộ đã hoàn tất thanh toán trong kỳ này"
-                        change="+10 hôm nay"
-                        changeType="up"
-                        icon={CheckCircle2}
-                        color="#22c55e"
-                        isDark={isDark}
-                    />
-                </Box>
-                <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(25% - 18px)' } }}>
-                    <StatCard 
-                        title="Hộ còn nợ phí"
-                        value="12"
-                        subtitle="Hộ chưa thanh toán trong kỳ hiện tại"
-                        change="+2 hôm nay"
-                        changeType="down"
-                        icon={AlertTriangle}
-                        color="#ef4444"
-                        isDark={isDark}
-                    />
-                </Box>
-                <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(25% - 18px)' } }}>
-                    <StatCard 
-                        title="Hộ chưa thanh toán"
-                        value="32"
-                        subtitle="Hộ còn nợ phí kỳ hiện tại"
-                        change="+3 hôm nay"
-                        changeType="down"
-                        icon={Wallet}
-                        color="#f59e0b"
-                        isDark={isDark}
-                    />
-                </Box>
-            </Stack>
+            {/* CONDITIONAL CONTENT BASED ON ACTIVE TAB */}
+            {activeTab === 'fee' ? (
+                <>
+                    {/* FEE DASHBOARD CONTENT */}
+                    {loading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : error ? (
+                        <Box sx={{
+                            p: 4,
+                            textAlign: 'center',
+                            bgcolor: isDark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)',
+                            borderRadius: 3,
+                            border: '1px solid',
+                            borderColor: '#ef4444'
+                        }}>
+                            <AlertTriangle size={48} color="#ef4444" style={{ marginBottom: 16 }} />
+                            <Typography variant="h5" sx={{ mb: 1, color: '#ef4444' }}>
+                                {error}
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : 'text.secondary', mb: 2 }}>
+                                Vui lòng thử lại sau hoặc liên hệ quản trị viên
+                            </Typography>
+                            <Button variant="contained" onClick={fetchFeeStats}>
+                                Thử lại
+                            </Button>
+                        </Box>
+                    ) : feeStats ? (
+                        <>
+                            {/* STAT CARDS */}
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ mb: 3 }} flexWrap="wrap" useFlexGap>
+                                <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(25% - 18px)' } }}>
+                                    <StatCard
+                                        title="Tổng số hộ gia đình"
+                                        value={feeStats.totalHouseholds?.toString() || '0'}
+                                        subtitle="Hộ đang sinh sống tại chung cư"
+                                        icon={Users}
+                                        color="#3b82f6"
+                                        isDark={isDark}
+                                    />
+                                </Box>
+                                <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(25% - 18px)' } }}>
+                                    <StatCard
+                                        title="Hộ đã thanh toán"
+                                        value={feeStats.paidHouseholds?.toString() || '0'}
+                                        subtitle="Hộ đã hoàn tất thanh toán trong kỳ này"
+                                        icon={CheckCircle2}
+                                        color="#22c55e"
+                                        isDark={isDark}
+                                    />
+                                </Box>
+                                <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(25% - 18px)' } }}>
+                                    <StatCard
+                                        title="Hộ còn nợ phí"
+                                        value={feeStats.overdueHouseholds?.toString() || '0'}
+                                        subtitle="Hộ quá hạn thanh toán"
+                                        icon={AlertTriangle}
+                                        color="#ef4444"
+                                        isDark={isDark}
+                                    />
+                                </Box>
+                                <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(25% - 18px)' } }}>
+                                    <StatCard
+                                        title="Hộ chưa thanh toán"
+                                        value={feeStats.unpaidHouseholds?.toString() || '0'}
+                                        subtitle="Hộ chưa thanh toán trong kỳ"
+                                        icon={Wallet}
+                                        color="#f59e0b"
+                                        isDark={isDark}
+                                    />
+                                </Box>
+                            </Stack>
 
-            {/* ROW 1 — CHARTS */}
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ mb: 3 }}>
-                <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
-                    <FeeByCategoryChart />
-                </Box>
-                <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
-                    <CollectionPerformanceChart />
-                </Box>
-            </Stack>
+                            {/* ROW 1 — CHARTS */}
+                            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ mb: 3 }}>
+                                <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
+                                    <FeeByCategoryChart />
+                                </Box>
+                                <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
+                                    <CollectionPerformanceChart />
+                                </Box>
+                            </Stack>
 
-            {/* ROW 2 — CHARTS */}
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
-                <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
-                    <PaymentStatusBarChart />
-                </Box>
-                <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
-                    <RevenueOverTimeChart />
-                </Box>
-            </Stack>
+                            {/* ROW 2 — CHARTS */}
+                            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+                                <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
+                                    <PaymentStatusBarChart />
+                                </Box>
+                                <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
+                                    <RevenueOverTimeChart />
+                                </Box>
+                            </Stack>
+                        </>
+                    ) : null}
+                </>
+            ) : (
+                <>
+                    {/* RESIDENT DASHBOARD CONTENT */}
+                    <ResidentDashboard />
+                </>
+            )}
         </MainCard>
     );
 }
-

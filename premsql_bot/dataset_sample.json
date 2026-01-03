@@ -1,0 +1,97 @@
+[
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Có bao nhiêu hộ gia đình đang ở trạng thái hoạt động?",
+        "sql": "SELECT COUNT(*) FROM household WHERE status = 'Active';"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Liệt kê tên các chủ hộ sinh năm 1980",
+        "sql": "SELECT r.full_name FROM residents r JOIN household h ON r.resident_id = h.head_of_household WHERE EXTRACT(YEAR FROM r.date_of_birth) = 1980;"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Tìm các căn hộ có diện tích lớn hơn 100m2",
+        "sql": "SELECT room_number FROM apartment WHERE area > 100;"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Tổng số tiền đã thu được từ các hộ gia đình trong tháng 12 năm 2024",
+        "sql": "SELECT SUM(amount) FROM pay WHERE EXTRACT(MONTH FROM paid_date) = 12 AND EXTRACT(YEAR FROM paid_date) = 2024;"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Cho tôi biết tên chủ hộ của phòng số 101",
+        "sql": "SELECT r.full_name FROM residents r JOIN household h ON r.resident_id = h.head_of_household JOIN apartment a ON h.apartment_id = a.apartment_id WHERE a.room_number = '101';"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Danh sách biển số xe ô tô của hộ gia đình do ông 'Nguyễn Văn A' làm chủ hộ",
+        "sql": "SELECT v.plate_number FROM vehicle v JOIN household h ON v.id_household = h.household_id JOIN residents r ON h.head_of_household = r.resident_id WHERE r.full_name = 'Nguyễn Văn A' AND v.type = 'Car';"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Ai là người đứng tên chủ hộ cho các căn hộ có diện tích dưới 50m2?",
+        "sql": "SELECT r.full_name FROM residents r JOIN household h ON r.resident_id = h.head_of_household JOIN apartment a ON h.apartment_id = a.apartment_id WHERE a.area < 50;"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Liệt kê tên những người đang đăng ký tạm vắng",
+        "sql": "SELECT r.full_name FROM residents r JOIN stay_absence_record s ON r.resident_id = s.resident_id WHERE s.record_type = 'Absence' AND s.end >= CURRENT_DATE;"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Hộ gia đình nào (tên chủ hộ) đã đóng khoản phí lớn nhất trong một lần thanh toán?",
+        "sql": "SELECT r.full_name FROM residents r JOIN household h ON r.resident_id = h.head_of_household JOIN pay p ON h.household_id = p.household_id ORDER BY p.amount DESC LIMIT 1;"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Có bao nhiêu xe máy đang được gửi dưới tầng hầm B1?",
+        "sql": "SELECT COUNT(*) FROM vehicle WHERE type = 'Motorbike' AND basement_floor = 'B1';"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Hiển thị lịch sử thay đổi nhân khẩu của hộ gia đình ông 'Trần Văn B'",
+        "sql": "SELECT ch.date, ch.change_type FROM change_history ch JOIN household h ON ch.id_household = h.household_id JOIN residents r ON h.head_of_household = r.resident_id WHERE r.full_name = 'Trần Văn B';"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Danh sách các khoản phí bắt buộc phải đóng trong kỳ thanh toán này",
+        "sql": "SELECT description FROM payment_period WHERE is_mandatory = TRUE AND end_date >= CURRENT_DATE;"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Tên các thành viên trong gia đình (không phải chủ hộ) của phòng 205",
+        "sql": "SELECT r.full_name FROM residents r JOIN household h ON r.household_id = h.household_id JOIN apartment a ON h.apartment_id = a.apartment_id WHERE a.room_number = '205' AND r.resident_id != h.head_of_household;"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Tổng số tiền mà hộ ông 'Lê Văn C' đã đóng từ trước đến nay",
+        "sql": "SELECT SUM(p.amount) FROM pay p JOIN household h ON p.household_id = h.household_id JOIN residents r ON h.head_of_household = r.resident_id WHERE r.full_name = 'Lê Văn C';"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Liệt kê số phòng và diện tích của các căn hộ chưa có người ở (trạng thái trống)",
+        "sql": "SELECT room_number, area FROM apartment WHERE status = 'Empty';"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Tìm thông tin liên lạc (số điện thoại) của chủ hộ phòng 303",
+        "sql": "SELECT r.phone_number FROM residents r JOIN household h ON r.resident_id = h.head_of_household JOIN apartment a ON h.apartment_id = a.apartment_id WHERE a.room_number = '303';"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Có bao nhiêu cư dân là Nam giới trong toàn bộ chung cư?",
+        "sql": "SELECT COUNT(*) FROM residents WHERE gender = 'Nam';"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Hiển thị tên các khoản phí mặc định có đơn giá trên 5000",
+        "sql": "SELECT description FROM defalut_fee WHERE unit_price > 5000;"
+    },
+    {
+        "dataset": "bluemoon_custom",
+        "question": "Những hộ nào đã thanh toán qua phương thức 'Chuyển khoản' vào ngày 01/01/2025?",
+        "sql": "SELECT r.full_name FROM residents r JOIN household h ON r.resident_id = h.head_of_household JOIN pay p ON h.household_id = p.household_id WHERE p.method = 'Chuyển khoản' AND p.paid_date = '2025-01-01';"
+    }
+]

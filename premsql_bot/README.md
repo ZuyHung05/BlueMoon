@@ -8,7 +8,7 @@ Chatbot sử dụng PremSQL với model `prem-1B-SQL` để truy vấn database 
 ### 1. Tạo môi trường ảo 
 ```bash
 cd premsql_bot
-python -m venv venv
+py -3.11 -m venv venv
 
 # Windows
 venv\Scripts\activate

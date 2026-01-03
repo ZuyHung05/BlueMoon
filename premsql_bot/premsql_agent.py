@@ -1,4 +1,5 @@
 import os
+import torch
 from dotenv import load_dotenv
 from premsql.generators import Text2SQLGeneratorHF
 from premsql.executors import ExecutorUsingLangChain
@@ -7,7 +8,18 @@ load_dotenv()
 
 DB_URI = os.getenv("DB_URI")
 MODEL_NAME = os.getenv("PREMSQL_MODEL", "premai-io/prem-1B-SQL")
-DEVICE = os.getenv("PREMSQL_DEVICE", "cpu")
+
+if torch.cuda.is_available():
+    default_device = "cuda"
+else:
+    default_device = "cpu"
+
+DEVICE = os.getenv("PREMSQL_DEVICE", default_device)
+
+print(f"Using device: {DEVICE}")
+if "cuda" in DEVICE and not torch.cuda.is_available():
+    print("WARNING: CUDA duoc cau hinh nhung PyTorch khong tim thay GPU. Chuyen ve CPU.")
+    DEVICE = "cpu"
 
 # Khoi tao generator voi model local
 text2sql_generator = Text2SQLGeneratorHF(
