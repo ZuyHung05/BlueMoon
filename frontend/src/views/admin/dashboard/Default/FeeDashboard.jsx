@@ -1,6 +1,6 @@
 import { Typography, Stack, useTheme } from '@mui/material';
 import MainCard from 'ui-component/cards/MainCard';
-import { Box, Card, CardContent, Chip } from '@mui/material';
+import { Box, Card, CardContent, Chip, CircularProgress, Button } from '@mui/material';
 
 import React from 'react';
 
@@ -17,54 +17,6 @@ import {
   AlertTriangle,
   CheckCircle
 } from 'lucide-react';
-
-const overdueHouseholds = [
-  { id: 'A120', name: 'Hộ A120', amount: '₫12.5M', days: 45 },
-  { id: 'B304', name: 'Hộ B304', amount: '₫9.8M', days: 32 },
-  { id: 'C210', name: 'Hộ C210', amount: '₫7.4M', days: 28 },
-  { id: 'A512', name: 'Hộ A512', amount: '₫6.2M', days: 21 },
-  { id: 'B118', name: 'Hộ B118', amount: '₫5.1M', days: 19 }
-];
-
-const badDebtTrend = [
-  { month: 'Aug', value: 180 },
-  { month: 'Sep', value: 210 },
-  { month: 'Oct', value: 235 },
-  { month: 'Nov', value: 260 },
-  { month: 'Dec', value: 270 }
-];
-
-
-const recentPayments = [
-  {
-    household: 'A203',
-    fee: 'Phí quản lý',
-    amount: '₫1.2M',
-    status: 'Đã thanh toán',
-    date: '10/12/2025'
-  },
-  {
-    household: 'B115',
-    fee: 'Phí gửi xe',
-    amount: '₫450K',
-    status: 'Quá hạn',
-    date: '08/12/2025'
-  },
-  {
-    household: 'C308',
-    fee: 'Phí bảo trì',
-    amount: '₫2.5M',
-    status: 'Đã thanh toán',
-    date: '07/12/2025'
-  },
-  {
-    household: 'A410',
-    fee: 'Phí quản lý',
-    amount: '₫1.2M',
-    status: 'Chờ xử lý',
-    date: '06/12/2025'
-  }
-];
 
 
 const StatCard = ({ title, value, subtitle, change, changeType, icon: Icon, color, isDark }) => (
@@ -135,6 +87,77 @@ const StatCard = ({ title, value, subtitle, change, changeType, icon: Icon, colo
 
 export default function FeeDashboard() {
   const isDark = useTheme().palette.mode === 'dark';
+  const [feeStats, setFeeStats] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState(null);
+
+  // Fetch fee stats from backend
+  React.useEffect(() => {
+    fetchFeeStats();
+  }, []);
+
+  const fetchFeeStats = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { getFeeStats } = await import('api/dashboardService');
+      const response = await getFeeStats();
+      if (response.data) {
+        setFeeStats(response.data);
+      }
+    } catch (err) {
+      console.error('Error fetching fee stats:', err);
+      setError('Không thể tải dữ liệu thu phí. Vui lòng thử lại sau.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <MainCard contentSX={{ p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+          <CircularProgress />
+        </Box>
+      </MainCard>
+    );
+  }
+
+  if (error) {
+    return (
+      <MainCard contentSX={{ p: 3 }}>
+        <Box sx={{
+          p: 4,
+          textAlign: 'center',
+          bgcolor: isDark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)',
+          borderRadius: 3,
+          border: '1px solid',
+          borderColor: '#ef4444'
+        }}>
+          <AlertTriangle size={48} color="#ef4444" style={{ marginBottom: 16 }} />
+          <Typography variant="h5" sx={{ mb: 1, color: '#ef4444' }}>
+            {error}
+          </Typography>
+          <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : 'text.secondary', mb: 2 }}>
+            Vui lòng thử lại sau hoặc liên hệ quản trị viên
+          </Typography>
+          <Button variant="contained" onClick={fetchFeeStats}>
+            Thử lại
+          </Button>
+        </Box>
+      </MainCard>
+    );
+  }
+
+  if (!feeStats) {
+    return null;
+  }
+
+  // Format currency
+  const formatCurrency = (value) => {
+    if (!value) return '₫0';
+    return `₫${(value / 1000000).toFixed(1)}M`;
+  };
 
   return (
     <MainCard contentSX={{ p: 3 }}>
@@ -167,7 +190,7 @@ export default function FeeDashboard() {
   <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(20% - 19px)' } }}>
     <StatCard
       title="Tổng phải thu"
-      value="₫1.25B"
+      value={formatCurrency(feeStats.totalAmount)}
       subtitle="Toàn bộ kỳ hiện tại"
       icon={Wallet}
       color="#3b82f6"
@@ -178,10 +201,10 @@ export default function FeeDashboard() {
   <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(20% - 19px)' } }}>
     <StatCard
       title="Đã thu"
-      value="₫980M"
+      value={formatCurrency(feeStats.paidAmount)}
       subtitle="Đã thanh toán"
-      change="+4.2%"
-      changeType="up"
+      change={feeStats.paidAmountChange ? `${feeStats.paidAmountChange > 0 ? '+' : ''}${feeStats.paidAmountChange.toFixed(1)}%` : undefined}
+      changeType={feeStats.paidAmountChange > 0 ? "up" : "down"}
       icon={CheckCircle}
       color="#22c55e"
       isDark={isDark}
@@ -191,10 +214,10 @@ export default function FeeDashboard() {
   <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(20% - 19px)' } }}>
     <StatCard
       title="Còn nợ"
-      value="₫270M"
+      value={formatCurrency(feeStats.unpaidAmount)}
       subtitle="Chưa thanh toán"
-      change="+2.1%"
-      changeType="down"
+      change={feeStats.unpaidAmountChange ? `${feeStats.unpaidAmountChange > 0 ? '+' : ''}${feeStats.unpaidAmountChange.toFixed(1)}%` : undefined}
+      changeType={feeStats.unpaidAmountChange > 0 ? "down" : "up"}
       icon={AlertTriangle}
       color="#ef4444"
       isDark={isDark}
@@ -204,7 +227,7 @@ export default function FeeDashboard() {
   <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(20% - 19px)' } }}>
     <StatCard
       title="Tỷ lệ thu"
-      value="78.4%"
+      value={`${(feeStats.collectionRate || 0).toFixed(1)}%`}
       subtitle="So với tổng phải thu"
       icon={TrendingUp}
       color="#f59e0b"
@@ -233,59 +256,71 @@ export default function FeeDashboard() {
   {/* Overdue households */}
   <MainCard title="Hộ quá hạn nghiêm trọng" sx={{ flex: 1 }}>
     <Stack spacing={2}>
-      {overdueHouseholds.map((h) => (
-        <Box key={h.id}>
-          <Stack direction="row" justifyContent="space-between">
-            <Typography fontWeight={600}>{h.name}</Typography>
-            <Typography color="error.main" fontWeight={700}>
-              {h.amount}
-            </Typography>
-          </Stack>
+      {feeStats.overdueHouseholds && feeStats.overdueHouseholds.length > 0 ? (
+        feeStats.overdueHouseholds.map((h) => (
+          <Box key={h.id}>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography fontWeight={600}>{h.name || h.householdName}</Typography>
+              <Typography color="error.main" fontWeight={700}>
+                {formatCurrency(h.amount)}
+              </Typography>
+            </Stack>
 
-          <Stack direction="row" justifyContent="space-between">
-            <Typography variant="body2" color="text.secondary">
-              Quá hạn {h.days} ngày
-            </Typography>
-            <Chip
-              size="small"
-              label="Nguy cơ cao"
-              color="error"
-              variant="outlined"
-            />
-          </Stack>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography variant="body2" color="text.secondary">
+                Quá hạn {h.days || h.overdueDays} ngày
+              </Typography>
+              <Chip
+                size="small"
+                label="Nguy cơ cao"
+                color="error"
+                variant="outlined"
+              />
+            </Stack>
 
-          {/* risk bar */}
-          <Box
-            sx={{
-              height: 6,
-              borderRadius: 3,
-              bgcolor: 'rgba(239,68,68,0.15)',
-              mt: 1
-            }}
-          >
+            {/* risk bar */}
             <Box
               sx={{
-                width: `${Math.min(h.days, 60)}%`,
-                height: '100%',
+                height: 6,
                 borderRadius: 3,
-                bgcolor: '#ef4444'
+                bgcolor: 'rgba(239,68,68,0.15)',
+                mt: 1
               }}
-            />
+            >
+              <Box
+                sx={{
+                  width: `${Math.min((h.days || h.overdueDays), 60)}%`,
+                  height: '100%',
+                  borderRadius: 3,
+                  bgcolor: '#ef4444'
+                }}
+              />
+            </Box>
           </Box>
-        </Box>
-      ))}
+        ))
+      ) : (
+        <Typography variant="body2" color="text.secondary" textAlign="center" py={3}>
+          Không có hộ quá hạn
+        </Typography>
+      )}
     </Stack>
   </MainCard>
 
   {/* Bad debt trend */}
   <MainCard title="Xu hướng nợ xấu" sx={{ flex: 1 }}>
     <Stack spacing={2}>
-      {badDebtTrend.map((d, i) => (
-        <Stack key={d.month} direction="row" justifyContent="space-between">
-          <Typography variant="body2">{d.month}</Typography>
-          <Typography fontWeight={600}>₫{d.value}M</Typography>
-        </Stack>
-      ))}
+      {feeStats.badDebtTrend && feeStats.badDebtTrend.length > 0 ? (
+        feeStats.badDebtTrend.map((d, i) => (
+          <Stack key={i} direction="row" justifyContent="space-between">
+            <Typography variant="body2">{d.month}</Typography>
+            <Typography fontWeight={600}>₫{d.value}M</Typography>
+          </Stack>
+        ))
+      ) : (
+        <Typography variant="body2" color="text.secondary" textAlign="center" py={3}>
+          Chưa có dữ liệu xu hướng
+        </Typography>
+      )}
 
       {/* mini area chart placeholder */}
       <Box
@@ -320,36 +355,42 @@ export default function FeeDashboard() {
       <Box sx={{ flex: 1 }}>Ngày</Box>
     </Stack>
 
-    {recentPayments.map((row, idx) => (
-      <Stack
-        key={idx}
-        direction="row"
-        alignItems="center"
-        sx={{
-          py: 1,
-          borderTop: '1px solid',
-          borderColor: 'divider'
-        }}
-      >
-        <Box sx={{ flex: 1 }}>{row.household}</Box>
-        <Box sx={{ flex: 1.5 }}>{row.fee}</Box>
-        <Box sx={{ flex: 1, fontWeight: 600 }}>{row.amount}</Box>
-        <Box sx={{ flex: 1 }}>
-          <Chip
-            size="small"
-            label={row.status}
-            color={
-              row.status === 'Đã thanh toán'
-                ? 'success'
-                : row.status === 'Quá hạn'
-                ? 'error'
-                : 'warning'
-            }
-          />
-        </Box>
-        <Box sx={{ flex: 1 }}>{row.date}</Box>
-      </Stack>
-    ))}
+    {feeStats.recentPayments && feeStats.recentPayments.length > 0 ? (
+      feeStats.recentPayments.map((row, idx) => (
+        <Stack
+          key={idx}
+          direction="row"
+          alignItems="center"
+          sx={{
+            py: 1,
+            borderTop: '1px solid',
+            borderColor: 'divider'
+          }}
+        >
+          <Box sx={{ flex: 1 }}>{row.household || row.householdName}</Box>
+          <Box sx={{ flex: 1.5 }}>{row.fee || row.feeType}</Box>
+          <Box sx={{ flex: 1, fontWeight: 600 }}>{formatCurrency(row.amount)}</Box>
+          <Box sx={{ flex: 1 }}>
+            <Chip
+              size="small"
+              label={row.status}
+              color={
+                row.status === 'Đã thanh toán' || row.status === 'PAID'
+                  ? 'success'
+                  : row.status === 'Quá hạn' || row.status === 'OVERDUE'
+                  ? 'error'
+                  : 'warning'
+              }
+            />
+          </Box>
+          <Box sx={{ flex: 1 }}>{row.date || new Date(row.paymentDate).toLocaleDateString('vi-VN')}</Box>
+        </Stack>
+      ))
+    ) : (
+      <Typography variant="body2" color="text.secondary" textAlign="center" py={3}>
+        Chưa có hoạt động thu phí gần đây
+      </Typography>
+    )}
   </Stack>
 </MainCard>
 

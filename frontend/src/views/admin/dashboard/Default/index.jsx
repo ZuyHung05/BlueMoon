@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Card, CardContent, Stack, Chip, useTheme, Button, CircularProgress } from '@mui/material';
+import { Box, Typography, Card, CardContent, Stack, Chip, useTheme, Button } from '@mui/material';
 import { TrendingUp, TrendingDown, Users, Wallet, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 // project imports
@@ -12,6 +12,7 @@ import CollectionPerformanceChart from './charts/CollectionPerformanceChart';
 import PaymentStatusBarChart from './charts/PaymentStatusBarChart';
 import RevenueOverTimeChart from './charts/RevenueOverTimeChart';
 import ResidentDashboard from './ResidentDashboard';
+import DashboardSkeleton from './DashboardSkeleton';
 import { Home, CreditCard } from 'lucide-react';
 
 const TabButton = ({ title, description, icon: Icon, color, isActive, onClick, isDark }) => {
@@ -259,9 +260,7 @@ export default function Dashboard() {
                 <>
                     {/* FEE DASHBOARD CONTENT */}
                     {loading ? (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-                            <CircularProgress />
-                        </Box>
+                        <DashboardSkeleton />
                     ) : error ? (
                         <Box sx={{
                             p: 4,
@@ -309,7 +308,7 @@ export default function Dashboard() {
                                 <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(25% - 18px)' } }}>
                                     <StatCard
                                         title="Hộ còn nợ phí"
-                                        value={feeStats.overdueHouseholds?.toString() || '0'}
+                                        value={feeStats.overdueHouseholdCount?.toString() || '0'}
                                         subtitle="Hộ quá hạn thanh toán"
                                         icon={AlertTriangle}
                                         color="#ef4444"
@@ -341,7 +340,7 @@ export default function Dashboard() {
                             {/* ROW 2 — CHARTS */}
                             <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
                                 <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
-                                    <PaymentStatusBarChart />
+                                    <PaymentStatusBarChart data={feeStats} />
                                 </Box>
                                 <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
                                     <RevenueOverTimeChart />

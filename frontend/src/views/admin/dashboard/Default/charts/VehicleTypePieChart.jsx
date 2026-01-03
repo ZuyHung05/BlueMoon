@@ -46,8 +46,6 @@ export default function VehicleTypePieChart({ data }) {
         return null;
     };
 
-    const totalVehicles = chartData.reduce((sum, item) => sum + item.value, 0);
-
     return (
         <MainCard
             title="Thống kê phương tiện"
@@ -84,22 +82,6 @@ export default function VehicleTypePieChart({ data }) {
                     />
                 </PieChart>
             </ResponsiveContainer>
-
-            {/* Summary */}
-            <Box sx={{
-                mt: 2,
-                p: 2,
-                bgcolor: isDark ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.05)',
-                borderRadius: 2,
-                textAlign: 'center'
-            }}>
-                <Typography variant="body2" fontWeight={600}>
-                    Tổng số phương tiện
-                </Typography>
-                <Typography variant="h4" fontWeight={800} color="#3b82f6">
-                    {totalVehicles}
-                </Typography>
-            </Box>
         </MainCard>
     );
 }

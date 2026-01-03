@@ -28,6 +28,9 @@ public class StayAbsenceRecordEntity {
     @Column(name = "\"end\"")
     private LocalDateTime end;
 
+    @Column(name = "reason")
+    private String reason;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resident_id", nullable = false)
     private ResidentsEntity resident;

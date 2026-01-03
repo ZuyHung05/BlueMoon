@@ -1,6 +1,5 @@
 package BlueMoon.example.BlueMoon.entity;
 
-import BlueMoon.example.BlueMoon.serializable.ChangeHistoryId;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +10,7 @@ import java.time.LocalDate;
 
 @Entity
 @Data
-@Table(name = "residence_history")
+@Table(name = "change_history")
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChangeHistoryEntity {

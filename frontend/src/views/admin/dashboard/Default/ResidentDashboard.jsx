@@ -37,63 +37,6 @@ import {
 import MainCard from 'ui-component/cards/MainCard';
 import VehicleTypePieChart from './charts/VehicleTypePieChart';
 
-const apartmentComposition = [
-  {
-    label: 'Gia đình nhỏ',
-    percent: 52,
-    color: '#3b82f6',
-    hint: '1–2 người / căn'
-  },
-  {
-    label: 'Gia đình lớn',
-    percent: 31,
-    color: '#22c55e',
-    hint: '3–5 người / căn'
-  },
-  {
-    label: 'Cá nhân',
-    percent: 17,
-    color: '#f59e0b',
-    hint: '1 người / căn'
-  }
-];
-
-
-const householdData = [
-  { name: 'Gia đình nhỏ', value: 52 },
-  { name: 'Gia đình lớn', value: 31 },
-  { name: 'Cá nhân', value: 17 }
-];
-
-const vehicleData = [
-  { type: 'Xe máy', value: 62 },
-  { type: 'Ô tô', value: 28 },
-  { type: 'Khác', value: 10 }
-];
-
-const carParkByFloor = [
-  { name: 'Tầng B1', value: 68 }, // 68 cars
-  { name: 'Tầng B2', value: 52 },
-  { name: 'Tầng B3', value: 28 }
-];
-
-const floorOccupancy = [
-  { range: 'Tầng 1–5', used: 95 },
-  { range: 'Tầng 6–10', used: 88 },
-  { range: 'Tầng 11–15', used: 72 },
-  { range: 'Tầng 16–20', used: 60 }
-];
-
-const parkingSummary = [
-  { label: 'Ô tô', used: 148, total: 180 },
-  { label: 'Xe máy', used: 338, total: 420 }
-];
-
-const apartmentTypeUsage = [
-  { type: '1PN', used: 110, total: 120 },
-  { type: '2PN', used: 145, total: 160 },
-  { type: '3PN', used: 72, total: 80 }
-];
 
 /* ====================== KPI CARD ====================== */
 const StatCard = ({ title, value, icon: Icon, color }) => (
@@ -140,11 +83,16 @@ export default function ResidentDashboard() {
       setError(null);
       const { getResidentStats } = await import('api/dashboardService');
       const response = await getResidentStats();
+      console.log('🔍 Resident Stats API Response:', response);
+      console.log('📊 Response Data:', response.data);
       if (response.data) {
+        console.log('✅ Setting resident stats:', response.data);
         setResidentStats(response.data);
+      } else {
+        console.warn('⚠️ No data in response');
       }
     } catch (err) {
-      console.error('Error fetching resident stats:', err);
+      console.error('❌ Error fetching resident stats:', err);
       setError('Không thể tải dữ liệu cư dân. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);
@@ -243,43 +191,65 @@ export default function ResidentDashboard() {
 
       <MainCard title="Cơ cấu căn hộ" sx={{ flex: 1 }}>
         <Stack spacing={3}>
-          {apartmentComposition.map((item) => (
-            <Box key={item.label}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Box>
-                  <Typography fontWeight={600}>{item.label}</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {item.hint}
+          {(() => {
+            // Sử dụng dữ liệu từ API hoặc tính toán từ dữ liệu hiện có
+            const apartmentData = residentStats.apartmentComposition || [
+              {
+                label: 'Gia đình nhỏ',
+                percent: 52,
+                color: '#3b82f6',
+                hint: '1–3 người / căn'
+              },
+              {
+                label: 'Gia đình lớn',
+                percent: 31,
+                color: '#22c55e',
+                hint: '>4 người / căn'
+              },
+              {
+                label: 'Cá nhân',
+                percent: 17,
+                color: '#f59e0b',
+                hint: '1 người / căn'
+              }
+            ];
+
+            return apartmentData.map((item) => (
+              <Box key={item.label}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Box>
+                    <Typography fontWeight={600}>{item.label}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {item.hint}
+                    </Typography>
+                  </Box>
+
+                  <Typography fontWeight={700}>
+                    {item.percent}%
                   </Typography>
-                </Box>
+                </Stack>
 
-                <Typography fontWeight={700}>
-                  {item.percent}%
-                </Typography>
-              </Stack>
-
-              {/* Progress bar */}
-              <Box
-                sx={{
-                  mt: 1,
-                  height: 10,
-                  borderRadius: 5,
-                  bgcolor: 'rgba(255,255,255,0.12)'
-                }}
-              >
+                {/* Progress bar */}
                 <Box
                   sx={{
-                    width: `${item.percent}%`,
-                    height: '100%',
+                    mt: 1,
+                    height: 10,
                     borderRadius: 5,
-                    bgcolor: item.color
+                    bgcolor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'
                   }}
-                />
+                >
+                  <Box
+                    sx={{
+                      width: `${item.percent}%`,
+                      height: '100%',
+                      borderRadius: 5,
+                      bgcolor: item.color
+                    }}
+                  />
+                </Box>
               </Box>
-            </Box>
-          ))}
-
-
+            ));
+          })()}
         </Stack>
       </MainCard>
 

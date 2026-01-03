@@ -42,7 +42,7 @@ export default function RevenueOverTimeChart() {
     >
       <CardContent>
         <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
-          Tổng thu theo thời gian
+          Tổng thu 12 tháng gần nhất
         </Typography>
 
         <Box sx={{ width: '100%', height: 350 }}>

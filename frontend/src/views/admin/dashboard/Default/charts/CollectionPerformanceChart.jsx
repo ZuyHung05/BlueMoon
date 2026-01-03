@@ -8,20 +8,18 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend
+  Legend,
+  Cell
 } from 'recharts';
 
+// Mock data - Replace with API later
 const data = [
-  { cycle: 'Tháng 1', paid: 85, avgDays: 3.2 },
-  { cycle: 'Tháng 2', paid: 78, avgDays: 4.1 },
-  { cycle: 'Tháng 3', paid: 92, avgDays: 2.5 },
-  { cycle: 'Tháng 4', paid: 88, avgDays: 3.7 }
+  { feeType: 'Phí quản lý', amount: 450, color: '#3b82f6' },
+  { feeType: 'Phí gửi xe', amount: 285, color: '#22c55e' },
+  { feeType: 'Phí dịch vụ', amount: 198, color: '#f59e0b' },
+  { feeType: 'Phí bảo trì', amount: 142, color: '#8b5cf6' },
+  { feeType: 'Phí điện nước', amount: 125, color: '#ef4444' }
 ];
-
-const COLORS = {
-  paid: '#42A5F5',
-  avgDays: '#66BB6A'
-};
 
 export default function CollectionPerformanceChart() {
   const theme = useTheme();
@@ -29,10 +27,6 @@ export default function CollectionPerformanceChart() {
   const axisTextStyle = {
     fontSize: 12,
     fill: theme.palette.text.secondary
-  };
-
-  const axisLineStyle = {
-    stroke: theme.palette.divider
   };
 
   return (
@@ -47,7 +41,10 @@ export default function CollectionPerformanceChart() {
     >
       <CardContent>
         <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
-          Hiệu suất đợt thu
+          Top 5 loại phí thu nhiều nhất
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Tổng thu theo từng loại phí (triệu đồng)
         </Typography>
 
         <Box sx={{ width: '100%', height: 350 }}>
@@ -70,18 +67,25 @@ export default function CollectionPerformanceChart() {
                 tick={axisTextStyle} 
                 axisLine={axisTextStyle}
                 tickLine={axisTextStyle}
+                label={{ 
+                  value: 'Triệu đồng', 
+                  position: 'insideBottom', 
+                  offset: -5,
+                  style: { fill: theme.palette.text.secondary, fontSize: 12 }
+                }}
               />
 
               <YAxis
-                dataKey="cycle"
+                dataKey="feeType"
                 type="category"
                 tick={axisTextStyle} 
                 axisLine={axisTextStyle}
                 tickLine={axisTextStyle}
-                width={90}
+                width={110}
               />
 
               <Tooltip
+                formatter={(value) => [`${value}M ₫`, 'Tổng thu']}
                 contentStyle={{ 
                   backgroundColor: theme.palette.background.paper, 
                   borderRadius: '8px',
@@ -92,29 +96,16 @@ export default function CollectionPerformanceChart() {
                 cursor={{ fill: theme.palette.action.hover }}
               />
 
-              <Legend 
-                verticalAlign="bottom" 
-                height={36}
-                wrapperStyle={{
-                  paddingTop: '10px',
-                  color: theme.palette.text.secondary 
-                }}
-              />
-
               <Bar
-                dataKey="paid"
-                name="Tỷ lệ thanh toán (%)"
-                fill={COLORS.paid}
-                barSize={15}
-                radius={[0, 5, 5, 0]}
-              />
-              <Bar
-                dataKey="avgDays"
-                name="Số ngày thanh toán TB"
-                fill={COLORS.avgDays}
-                barSize={15}
-                radius={[0, 5, 5, 0]}
-              />
+                dataKey="amount"
+                name="Tổng thu (triệu đồng)"
+                barSize={25}
+                radius={[0, 8, 8, 0]}
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </Box>

@@ -1,6 +1,6 @@
 // frontend/src/views/admin/household/TemporaryResidenceDialog.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -34,39 +34,42 @@ import {
 } from '@mui/material';
 import { X, Clock, Plus, MapPin, Trash2 } from 'lucide-react';
 
-// Mock data cho danh sách tạm trú/tạm vắng hiện có
-const MOCK_TEMPORARY_RECORDS = [
-    {
-        absence_id: 1,
-        resident_id: 1,
-        residentName: 'Nguyễn Văn A',
-        record_type: 'TAM_VANG',
-        start: '2026-01-05',
-        end: '2026-02-05',
-        reason: 'Công tác nước ngoài'
-    },
-    {
-        absence_id: 2,
-        resident_id: 2,
-        residentName: 'Trần Thị B',
-        record_type: 'TAM_TRU',
-        start: '2025-12-20',
-        end: '2026-06-20',
-        reason: 'Thuê phòng tạm thời'
-    }
-];
-
 const TemporaryResidenceDialog = ({ open, onClose, household }) => {
     const [tabValue, setTabValue] = useState(0);
     const [formData, setFormData] = useState({
         resident_id: '',
-        record_type: 'TAM_TRU',
+        record_type: 'temporary_residence',
         start: '',
-        end: '',
-        reason: ''
+        end: ''
     });
-    const [records, setRecords] = useState(MOCK_TEMPORARY_RECORDS);
+    const [records, setRecords] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+    const fetchStayAbsenceRecords = React.useCallback(async () => {
+        if (!household) return;
+
+        setLoading(true);
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/household/${household.household_id}/stay-absence`);
+            if (!response.ok) throw new Error('Failed to fetch stay/absence records');
+
+            const result = await response.json();
+            setRecords(result.result || []);
+        } catch (error) {
+            console.error('Error fetching stay/absence records:', error);
+            setRecords([]);
+        } finally {
+            setLoading(false);
+        }
+    }, [household]);
+
+    // Fetch stay/absence records when dialog opens
+    useEffect(() => {
+        if (open && household) {
+            fetchStayAbsenceRecords();
+        }
+    }, [open, household, fetchStayAbsenceRecords]);
 
     // Lấy danh sách thành viên từ household
     const members = household?.members || [];
@@ -76,7 +79,7 @@ const TemporaryResidenceDialog = ({ open, onClose, household }) => {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         // Validate
         if (!formData.resident_id) {
             setSnackbar({ open: true, message: 'Vui lòng chọn thành viên!', severity: 'warning' });
@@ -91,43 +94,91 @@ const TemporaryResidenceDialog = ({ open, onClose, household }) => {
             return;
         }
 
-        // Mock submit - add to local list
-        const selectedMember = members.find((m) => m.id === parseInt(formData.resident_id));
-        const newRecord = {
-            absence_id: records.length + 1,
-            resident_id: parseInt(formData.resident_id),
-            residentName: selectedMember?.full_name || 'Unknown',
-            record_type: formData.record_type,
-            start: formData.start,
-            end: formData.end,
-            reason: formData.reason
-        };
+        try {
+            const response = await fetch(
+                `${import.meta.env.VITE_API_URL}/household/${household.household_id}/stay-absence`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        residentId: parseInt(formData.resident_id),
+                        recordType: formData.record_type,
+                        start: formData.start + 'T00:00:00',
+                        end: formData.end + 'T23:59:59'
+                    })
+                }
+            );
 
-        setRecords([...records, newRecord]);
-        setSnackbar({
-            open: true,
-            message: `Đăng ký ${formData.record_type === 'TAM_TRU' ? 'tạm trú' : 'tạm vắng'} thành công!`,
-            severity: 'success'
-        });
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Đăng ký thất bại');
+            }
 
-        // Reset form
-        setFormData({
-            resident_id: '',
-            record_type: 'TAM_TRU',
-            start: '',
-            end: '',
-            reason: ''
-        });
-        setTabValue(1); // Switch to list tab
+            const result = await response.json();
+            setSnackbar({
+                open: true,
+                message: `Đăng ký ${formData.record_type === 'temporary_residence' ? 'tạm trú' : 'tạm vắng'} thành công!`,
+                severity: 'success'
+            });
+
+            // Reset form
+            setFormData({
+                resident_id: '',
+                record_type: 'temporary_residence',
+                start: '',
+                end: ''
+            });
+
+            // Refresh list
+            fetchStayAbsenceRecords();
+            setTabValue(1); // Switch to list tab
+        } catch (error) {
+            console.error('Error creating stay/absence record:', error);
+            setSnackbar({
+                open: true,
+                message: error.message || 'Có lỗi xảy ra khi đăng ký!',
+                severity: 'error'
+            });
+        }
     };
 
-    const handleDelete = (absenceId) => {
-        setRecords(records.filter((r) => r.absence_id !== absenceId));
-        setSnackbar({ open: true, message: 'Đã xóa đăng ký!', severity: 'success' });
+    const handleDelete = async (absenceId) => {
+        if (!window.confirm('Bạn có chắc chắn muốn xóa bản ghi này?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `${import.meta.env.VITE_API_URL}/household/stay-absence/${absenceId}`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Xóa bản ghi thất bại');
+            }
+
+            setSnackbar({ open: true, message: 'Đã xóa đăng ký!', severity: 'success' });
+            fetchStayAbsenceRecords();
+        } catch (error) {
+            console.error('Error deleting stay/absence record:', error);
+            setSnackbar({
+                open: true,
+                message: 'Có lỗi xảy ra khi xóa!',
+                severity: 'error'
+            });
+        }
     };
 
     const getRecordTypeChip = (type) => {
-        if (type === 'TAM_TRU') {
+        if (type === 'temporary_residence') {
             return (
                 <Chip
                     icon={<MapPin size={14} />}
@@ -230,7 +281,7 @@ const TemporaryResidenceDialog = ({ open, onClose, household }) => {
                                 </Typography>
                                 <RadioGroup row name="record_type" value={formData.record_type} onChange={handleChange}>
                                     <FormControlLabel
-                                        value="TAM_TRU"
+                                        value="temporary_residence"
                                         control={<Radio />}
                                         label={
                                             <Stack direction="row" spacing={1} alignItems="center">
@@ -240,7 +291,7 @@ const TemporaryResidenceDialog = ({ open, onClose, household }) => {
                                         }
                                     />
                                     <FormControlLabel
-                                        value="TAM_VANG"
+                                        value="temporary_absence"
                                         control={<Radio />}
                                         label={
                                             <Stack direction="row" spacing={1} alignItems="center">
@@ -274,18 +325,6 @@ const TemporaryResidenceDialog = ({ open, onClose, household }) => {
                                 />
                             </Stack>
 
-                            {/* Lý do */}
-                            <TextField
-                                fullWidth
-                                label="Lý do (tùy chọn)"
-                                name="reason"
-                                value={formData.reason}
-                                onChange={handleChange}
-                                multiline
-                                rows={2}
-                                placeholder="Nhập lý do tạm trú/tạm vắng..."
-                            />
-
                             {/* Nút đăng ký */}
                             <Button
                                 variant="contained"
@@ -298,7 +337,7 @@ const TemporaryResidenceDialog = ({ open, onClose, household }) => {
                                     textTransform: 'none'
                                 }}
                             >
-                                Đăng ký {formData.record_type === 'TAM_TRU' ? 'Tạm trú' : 'Tạm vắng'}
+                                Đăng ký {formData.record_type === 'temporary_residence' ? 'Tạm trú' : 'Tạm vắng'}
                             </Button>
                         </Stack>
                     </Box>
@@ -314,29 +353,36 @@ const TemporaryResidenceDialog = ({ open, onClose, household }) => {
                                     <TableCell>Loại</TableCell>
                                     <TableCell>Từ ngày</TableCell>
                                     <TableCell>Đến ngày</TableCell>
-                                    <TableCell>Lý do</TableCell>
                                     <TableCell align="center">Hành động</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {records.length > 0 ? (
+                                {loading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Đang tải dữ liệu...
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : records.length > 0 ? (
                                     records.map((record) => (
-                                        <TableRow key={record.absence_id} hover>
+                                        <TableRow key={record.absenceId} hover>
                                             <TableCell>
-                                                <Typography variant="body2" fontWeight={500}>
-                                                    {record.residentName}
-                                                </Typography>
+                                                <Stack>
+                                                    <Typography variant="body2" fontWeight={500}>
+                                                        {record.residentName}
+                                                    </Typography>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        CCCD: {record.idNumber}
+                                                    </Typography>
+                                                </Stack>
                                             </TableCell>
-                                            <TableCell>{getRecordTypeChip(record.record_type)}</TableCell>
+                                            <TableCell>{getRecordTypeChip(record.recordType)}</TableCell>
                                             <TableCell>{formatDate(record.start)}</TableCell>
                                             <TableCell>{formatDate(record.end)}</TableCell>
-                                            <TableCell>
-                                                <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 150 }} noWrap>
-                                                    {record.reason || '---'}
-                                                </Typography>
-                                            </TableCell>
                                             <TableCell align="center">
-                                                <IconButton size="small" color="error" onClick={() => handleDelete(record.absence_id)}>
+                                                <IconButton size="small" color="error" onClick={() => handleDelete(record.absenceId)}>
                                                     <Trash2 size={16} />
                                                 </IconButton>
                                             </TableCell>
@@ -344,7 +390,7 @@ const TemporaryResidenceDialog = ({ open, onClose, household }) => {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                                        <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                                             <Typography variant="body2" color="text.secondary">
                                                 Chưa có đăng ký tạm trú/tạm vắng nào
                                             </Typography>

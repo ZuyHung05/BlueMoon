@@ -63,12 +63,13 @@ public class DashboardRepository {
     /**
      * Lấy cơ cấu hộ gia đình (cá nhân, gia đình nhỏ, gia đình lớn)
      */
+    @SuppressWarnings("unchecked")
     public Map<String, Long> getHouseholdComposition() {
         String sql = """
                 SELECT
                     CASE
                         WHEN member_count = 1 THEN 'Cá nhân'
-                        WHEN member_count <= 2 THEN 'Gia đình nhỏ'
+                        WHEN member_count <= 3 THEN 'Gia đình nhỏ'
                         ELSE 'Gia đình lớn'
                     END as category,
                     COUNT(*) as count
@@ -94,5 +95,111 @@ public class DashboardRepository {
         }
 
         return composition;
+    }
+
+    /**
+     * Lấy thống kê tổng hợp cho Fee Dashboard
+     * Returns: [totalAmount, paidAmount, unpaidAmount]
+     */
+    public Object[] getFeeDashboardStats() {
+        String sql = """
+                SELECT
+                    COALESCE(SUM(p.amount), 0) as totalAmount,
+                    COALESCE(SUM(CASE WHEN p.pay_date IS NOT NULL THEN p.amount ELSE 0 END), 0) as paidAmount,
+                    COALESCE(SUM(CASE WHEN p.pay_date IS NULL THEN p.amount ELSE 0 END), 0) as unpaidAmount
+                FROM pay p
+                """;
+
+        Query query = entityManager.createNativeQuery(sql);
+        return (Object[]) query.getSingleResult();
+    }
+
+    /**
+     * Lấy danh sách hộ quá hạn nghiêm trọng (top 5)
+     * Returns: List of [householdId, roomNumber, totalDebt, overdueDays]
+     */
+    @SuppressWarnings("unchecked")
+    public java.util.List<Object[]> getOverdueHouseholds(int limit) {
+        String sql = """
+                SELECT 
+                    h.household_id,
+                    a.room_number,
+                    COALESCE(SUM(p.amount), 0) as total_debt,
+                    COALESCE(MAX(CURRENT_DATE - pp.end_date::date), 0) as overdue_days
+                FROM household h
+                JOIN apartment a ON h.apartment_id = a.apartment_id
+                LEFT JOIN pay p ON h.household_id = p.household_id
+                LEFT JOIN payment_period pp ON p.payment_period_id = pp.payment_period_id
+                WHERE (p.pay_date IS NULL OR p.pay_date::date > pp.end_date::date)
+                    AND pp.end_date::date < CURRENT_DATE
+                GROUP BY h.household_id, a.room_number
+                HAVING COALESCE(SUM(p.amount), 0) > 0
+                ORDER BY overdue_days DESC, total_debt DESC
+                LIMIT :limit
+                """;
+
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter("limit", limit);
+        return query.getResultList();
+    }
+
+    /**
+     * Lấy xu hướng nợ xấu 6 tháng gần nhất
+     * Returns: List of [month, totalDebt]
+     */
+    @SuppressWarnings("unchecked")
+    public java.util.List<Object[]> getBadDebtTrend(int months) {
+        String sql = """
+                WITH RECURSIVE month_series AS (
+                    SELECT CURRENT_DATE - INTERVAL '5 months' as month_date
+                    UNION ALL
+                    SELECT month_date + INTERVAL '1 month'
+                    FROM month_series
+                    WHERE month_date < CURRENT_DATE
+                )
+                SELECT 
+                    TO_CHAR(ms.month_date, 'Mon') as month_name,
+                    COALESCE(SUM(p.amount), 0) / 1000000.0 as debt_millions
+                FROM month_series ms
+                LEFT JOIN payment_period pp ON DATE_TRUNC('month', pp.end_date::date) = DATE_TRUNC('month', ms.month_date)
+                LEFT JOIN pay p ON pp.payment_period_id = p.payment_period_id
+                WHERE pp.end_date::date < CURRENT_DATE
+                    AND (p.pay_date IS NULL OR p.pay_date::date > pp.end_date::date)
+                GROUP BY ms.month_date, month_name
+                ORDER BY ms.month_date
+                """;
+
+        Query query = entityManager.createNativeQuery(sql);
+        return query.getResultList();
+    }
+
+    /**
+     * Lấy hoạt động thanh toán gần đây (top 10)
+     * Returns: List of [roomNumber, description, amount, status, paymentDate]
+     */
+    @SuppressWarnings("unchecked")
+    public java.util.List<Object[]> getRecentPayments(int limit) {
+        String sql = """
+                SELECT 
+                    a.room_number,
+                    COALESCE(pp.description, 'Phí quản lý') as fee_description,
+                    p.amount,
+                    CASE 
+                        WHEN p.pay_date IS NOT NULL THEN 'Đã thanh toán'
+                        WHEN pp.end_date::date < CURRENT_DATE THEN 'Trễ hạn'
+                        ELSE 'Chưa thanh toán'
+                    END as status,
+                    COALESCE(p.pay_date, pp.end_date::date) as payment_date
+                FROM pay p
+                JOIN household h ON p.household_id = h.household_id
+                JOIN apartment a ON h.apartment_id = a.apartment_id
+                JOIN payment_period pp ON p.payment_period_id = pp.payment_period_id
+                ORDER BY COALESCE(p.pay_date, pp.end_date::date) DESC
+                LIMIT :limit
+                """;
+
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter("limit", limit);
+        return query.getResultList();
     }
 }

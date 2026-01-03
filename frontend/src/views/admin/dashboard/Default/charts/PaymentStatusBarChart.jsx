@@ -12,18 +12,21 @@ import {
   Cell
 } from 'recharts';
 
-// Replace with API later
-const data = [
-  { status: 'Chưa thanh toán', count: 32 },
-  { status: 'Đang chờ xác nhận', count: 18 },
-  { status: 'Đã thanh toán', count: 224 },
-  { status: 'Trễ hạn', count: 6 }
-];
+const COLORS = ['#43A047', '#E53935', '#8E24AA'];
 
-const COLORS = ['#E53935', '#FB8C00', '#43A047', '#8E24AA'];
-
-export default function PaymentStatusBarChart() {
+export default function PaymentStatusBarChart({ data }) {
   const theme = useTheme();
+
+  // Use data from props or default mock data
+  const chartData = data && data.paymentStatus ? [
+    { status: 'Đã thanh toán', count: data.paymentStatus.paid || 0 },
+    { status: 'Chưa thanh toán', count: data.paymentStatus.unpaid || 0 },
+    { status: 'Trễ hạn', count: data.paymentStatus.overdue || 0 }
+  ] : [
+    { status: 'Đã thanh toán', count: 224 },
+    { status: 'Chưa thanh toán', count: 32 },
+    { status: 'Trễ hạn', count: 6 }
+  ];
 
   return (
     <Card
@@ -43,7 +46,7 @@ export default function PaymentStatusBarChart() {
         <Box sx={{ width: '100%', height: 350 }}>
           <ResponsiveContainer key={theme.palette.mode}>
             <BarChart
-              data={data}
+              data={chartData}
               margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
             >
               <CartesianGrid 
@@ -77,7 +80,7 @@ export default function PaymentStatusBarChart() {
                 }}
               />
               <Bar dataKey="count" name="Số hộ">
-                {data.map((entry, index) => (
+                {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Bar>
