@@ -124,8 +124,8 @@ public class ResidentServiceImpl implements ResidentService {
         // Get resident info before deletion for history
         ResidentsEntity resident = residentRepository.findById(id).orElse(null);
         if (resident != null && resident.getHousehold() != null) {
-            // Save history: XÓA_THÀNH_VIÊN (change_type = 2) BEFORE deleting
-            saveResidenceHistory(id, resident.getHousehold().getHouseholdId(), 2L);
+            // Save history: XÓA_THÀNH_VIÊN (change_type = 0) BEFORE deleting
+            saveResidenceHistory(id, resident.getHousehold().getHouseholdId(), 0L);
         }
 
         // Delete change_history records for this resident
@@ -205,13 +205,13 @@ public class ResidentServiceImpl implements ResidentService {
             saveResidenceHistory(residentId, newHouseholdId, 1L);
         } else if (oldHouseholdId != null && newHouseholdId != null && !oldHouseholdId.equals(newHouseholdId)) {
             // Case 2: Transferring resident from one household to another
-            // Save XÓA for old household
-            saveResidenceHistory(residentId, oldHouseholdId, 2L);
+            // Save XÓA for old household (change_type = 0)
+            saveResidenceHistory(residentId, oldHouseholdId, 0L);
             // Save THÊM for new household
             saveResidenceHistory(residentId, newHouseholdId, 1L);
         } else if (oldHouseholdId != null && newHouseholdId == null) {
-            // Case 3: Removing resident from household
-            saveResidenceHistory(residentId, oldHouseholdId, 2L);
+            // Case 3: Removing resident from household (change_type = 0)
+            saveResidenceHistory(residentId, oldHouseholdId, 0L);
         }
 
         // Now handle head of household change AFTER setting the household

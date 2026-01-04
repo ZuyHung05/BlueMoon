@@ -37,10 +37,11 @@ public class DashboardService {
                 Double paidAmountChange = 4.2;
                 Double unpaidAmountChange = 2.1;
 
-                // Calculate household counts
-                long paidHouseholds = (long) (totalHouseholds * 0.65);
-                long unpaidHouseholds = (long) (totalHouseholds * 0.25);
-                long overdueHouseholds = totalHouseholds - paidHouseholds - unpaidHouseholds;
+                // Get household payment statistics from database
+                Object[] householdStats = dashboardRepository.getHouseholdPaymentStats();
+                long paidHouseholds = ((Number) householdStats[0]).longValue();
+                long unpaidHouseholds = ((Number) householdStats[1]).longValue();
+                long overdueHouseholds = ((Number) householdStats[2]).longValue();
 
                 // Get overdue households (top 5)
                 List<DashboardStatsResponse.OverdueHousehold> overdueHouseholdsList = new ArrayList<>();
@@ -91,8 +92,12 @@ public class DashboardService {
                         recentPayments.add(payment);
                 }
 
-                // Fee categories - fetched from database
-                List<DashboardStatsResponse.CategoryFee> feesByCategory = fetchRevenueByCategory();
+                // Fee statistics - Updated mapping:
+                // - feesByCategory (pie chart left): Payment method
+                // - topPaymentPeriods (bar chart right): All fee types
+                List<DashboardStatsResponse.CategoryFee> feesByMandatoryType = fetchFeesByMandatoryType();
+                List<DashboardStatsResponse.CategoryFee> feesByPaymentMethod = fetchFeesByPaymentMethod();
+                List<DashboardStatsResponse.CategoryFee> topPaymentPeriods = fetchAllFeeTypeRevenue();
 
                 // Monthly revenue
                 List<DashboardStatsResponse.MonthlyRevenue> revenueOverTime = generateMonthlyRevenue();
@@ -114,7 +119,9 @@ public class DashboardService {
                                 .overdueHouseholds(overdueHouseholdsList)
                                 .badDebtTrend(badDebtTrend)
                                 .recentPayments(recentPayments)
-                                .feesByCategory(feesByCategory)
+                                .feesByCategory(feesByPaymentMethod)
+                                .feesByPaymentMethod(feesByMandatoryType)
+                                .topPaymentPeriods(topPaymentPeriods)
                                 .revenueOverTime(revenueOverTime)
                                 .paymentStatus(paymentStatus)
                                 .build();
@@ -242,6 +249,55 @@ public class DashboardService {
                         categories.add(new DashboardStatsResponse.CategoryFee(description, amount, color));
                 }
 
+                return categories;
+        }
+
+        private List<DashboardStatsResponse.CategoryFee> fetchFeesByMandatoryType() {
+                String[] colors = { "#3b82f6", "#f59e0b" };
+                List<DashboardStatsResponse.CategoryFee> categories = new ArrayList<>();
+                List<Object[]> data = dashboardRepository.getFeeByMandatoryType();
+                for (int i = 0; i < data.size(); i++) {
+                        Object[] row = data.get(i);
+                        categories.add(new DashboardStatsResponse.CategoryFee((String) row[0],
+                                        ((Number) row[1]).doubleValue(), colors[i % colors.length]));
+                }
+                return categories;
+        }
+
+        private List<DashboardStatsResponse.CategoryFee> fetchFeesByPaymentMethod() {
+                String[] colors = { "#22c55e", "#8b5cf6", "#ef4444" };
+                List<DashboardStatsResponse.CategoryFee> categories = new ArrayList<>();
+                List<Object[]> data = dashboardRepository.getFeeByPaymentMethod();
+                for (int i = 0; i < data.size(); i++) {
+                        Object[] row = data.get(i);
+                        categories.add(new DashboardStatsResponse.CategoryFee((String) row[0],
+                                        ((Number) row[1]).doubleValue(), colors[i % colors.length]));
+                }
+                return categories;
+        }
+
+        private List<DashboardStatsResponse.CategoryFee> fetchTopPaymentPeriods() {
+                String[] colors = { "#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444" };
+                List<DashboardStatsResponse.CategoryFee> categories = new ArrayList<>();
+                List<Object[]> data = dashboardRepository.getTopPaymentPeriods(5);
+                for (int i = 0; i < data.size(); i++) {
+                        Object[] row = data.get(i);
+                        categories.add(new DashboardStatsResponse.CategoryFee((String) row[0],
+                                        ((Number) row[1]).doubleValue(), colors[i % colors.length]));
+                }
+                return categories;
+        }
+
+        private List<DashboardStatsResponse.CategoryFee> fetchAllFeeTypeRevenue() {
+                String[] colors = { "#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#ec4899", "#06b6d4",
+                                "#f97316" };
+                List<DashboardStatsResponse.CategoryFee> categories = new ArrayList<>();
+                List<Object[]> data = dashboardRepository.getAllFeeTypeRevenue();
+                for (int i = 0; i < data.size(); i++) {
+                        Object[] row = data.get(i);
+                        categories.add(new DashboardStatsResponse.CategoryFee((String) row[0],
+                                        ((Number) row[1]).doubleValue(), colors[i % colors.length]));
+                }
                 return categories;
         }
 }

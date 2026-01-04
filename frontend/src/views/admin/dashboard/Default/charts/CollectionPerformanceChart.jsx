@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts';
+import { translateFeeDescription } from 'utils/feeUtils';
 
 // Color palette for bars
 const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444'];
@@ -25,7 +26,7 @@ export default function CollectionPerformanceChart({ data = [] }) {
 
   // Transform data for horizontal bar chart (convert to millions)
   const chartData = data.map((item, index) => ({
-    feeType: item.name || item.category || 'N/A',
+    feeType: translateFeeDescription(item.name || item.category || 'N/A'),
     amount: (item.amount || 0) / 1000000, // Convert to millions
     color: item.color || COLORS[index % COLORS.length]
   }));
@@ -44,7 +45,7 @@ export default function CollectionPerformanceChart({ data = [] }) {
       >
         <CardContent>
           <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
-            Top 5 loại phí thu nhiều nhất
+            Tổng thu theo từng loại phí
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Tổng thu theo từng loại phí (triệu đồng)
@@ -69,7 +70,7 @@ export default function CollectionPerformanceChart({ data = [] }) {
     >
       <CardContent>
         <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
-          Top 5 loại phí thu nhiều nhất
+          Tổng thu theo từng loại phí
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Tổng thu theo từng loại phí (triệu đồng)

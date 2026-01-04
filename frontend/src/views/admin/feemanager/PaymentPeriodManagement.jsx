@@ -64,7 +64,9 @@ const PaymentPeriodManagement = () => {
     const [tabValue, setTabValue] = useState(0);
     const [filterStatus, setFilterStatus] = useState('all');
     const [periodFilter, setPeriodFilter] = useState('ALL'); // ALL, ONGOING, INCOMPLETE
-    const [searchTerm, setSearchTerm] = useState('');
+    // const [searchTerm, setSearchTerm] = useState(''); // REPLACED BY DATE
+    const [filterStart, setFilterStart] = useState('');
+    const [filterEnd, setFilterEnd] = useState('');
 
     // Pagination states for main table
     const [page, setPage] = useState(0);
@@ -111,7 +113,7 @@ const PaymentPeriodManagement = () => {
         fetchPaymentPeriods();
     }, []);
 
-    const fetchPaymentPeriods = async () => {
+    const fetchPaymentPeriods = async (start = null, end = null) => {
         // Only show loading if we really don't have data
         const hasCache = !!sessionStorage.getItem('PAYMENT_PERIODS_CACHE');
         if (!hasCache) {
@@ -119,7 +121,16 @@ const PaymentPeriodManagement = () => {
         }
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/payment-periods`);
+            let url = `${import.meta.env.VITE_API_URL}/payment-periods`;
+            const params = new URLSearchParams();
+            if (start) params.append('startDate', start);
+            if (end) params.append('endDate', end);
+
+            if (params.toString()) {
+                url += `?${params.toString()}`;
+            }
+
+            const response = await fetch(url);
             const result = await response.json();
             if (result.code === 1000) {
                 const mappedData = result.result.map((item) => ({
@@ -135,7 +146,10 @@ const PaymentPeriodManagement = () => {
                     return dateB - dateA; // Sort Descending (Newest End Date first)
                 });
                 setData(mappedData);
-                sessionStorage.setItem('PAYMENT_PERIODS_CACHE', JSON.stringify(mappedData));
+                // Only cache if no filter is applied
+                if (!start && !end) {
+                    sessionStorage.setItem('PAYMENT_PERIODS_CACHE', JSON.stringify(mappedData));
+                }
             }
         } catch (error) {
             console.error('Error fetching payment periods:', error);
@@ -188,8 +202,8 @@ const PaymentPeriodManagement = () => {
 
     // --- FILTERING ---
     const filteredData = data.filter((item) => {
-        // Search Term
-        if (!item.description.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+        // Search Term REMOVED - using server side filter
+        // if (!item.description.toLowerCase().includes(searchTerm.toLowerCase())) return false;
 
         const endDate = new Date(item.end_date);
         const today = new Date();
@@ -1345,22 +1359,34 @@ const PaymentPeriodManagement = () => {
                     <ToggleButton value="INCOMPLETE">Quá hạn & Còn nợ</ToggleButton>
                 </ToggleButtonGroup>
 
-                <OutlinedInput
-                    placeholder="Tìm theo tên đợt thu..."
-                    startAdornment={
-                        <InputAdornment position="start">
-                            <Search size={18} />
-                        </InputAdornment>
-                    }
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    sx={{
-                        minWidth: 280,
-                        borderRadius: '12px',
-                        height: 40
-                    }}
-                    size="small"
-                />
+                <Stack direction="row" spacing={1} alignItems="center">
+                    <TextField
+                        label="Từ ngày"
+                        type="date"
+                        value={filterStart}
+                        onChange={(e) => setFilterStart(e.target.value)}
+                        InputLabelProps={{ shrink: true }}
+                        size="small"
+                        sx={{ width: 140, bgcolor: 'background.paper', borderRadius: 1 }}
+                    />
+                    <TextField
+                        label="Đến ngày"
+                        type="date"
+                        value={filterEnd}
+                        onChange={(e) => setFilterEnd(e.target.value)}
+                        InputLabelProps={{ shrink: true }}
+                        size="small"
+                        sx={{ width: 140, bgcolor: 'background.paper', borderRadius: 1 }}
+                    />
+                    <Button
+                        variant="contained"
+                        onClick={() => fetchPaymentPeriods(filterStart, filterEnd)}
+                        startIcon={<Search size={18} />}
+                        sx={{ height: 40 }}
+                    >
+                        Lọc
+                    </Button>
+                </Stack>
             </Box>
             {/* MAIN TABLE */}
             <TableContainer>

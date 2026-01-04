@@ -115,6 +115,30 @@ public class DashboardRepository {
     }
 
     /**
+     * Lấy thống kê số hộ theo trạng thái thanh toán
+     * Returns: [paidHouseholds, unpaidHouseholds, overdueHouseholds]
+     */
+    public Object[] getHouseholdPaymentStats() {
+        String sql = """
+                SELECT
+                    COUNT(DISTINCT CASE
+                        WHEN p.pay_date IS NOT NULL THEN p.household_id
+                    END) as paid_households,
+                    COUNT(DISTINCT CASE
+                        WHEN p.pay_date IS NULL AND pp.end_date >= CURRENT_DATE THEN p.household_id
+                    END) as unpaid_households,
+                    COUNT(DISTINCT CASE
+                        WHEN p.pay_date IS NULL AND pp.end_date < CURRENT_DATE THEN p.household_id
+                    END) as overdue_households
+                FROM pay p
+                JOIN payment_period pp ON p.payment_period_id = pp.payment_period_id
+                """;
+
+        Query query = entityManager.createNativeQuery(sql);
+        return (Object[]) query.getSingleResult();
+    }
+
+    /**
      * Lấy danh sách hộ quá hạn nghiêm trọng (top 5)
      * Returns: List of [householdId, roomNumber, totalDebt, overdueDays]
      */
@@ -251,6 +275,95 @@ public class DashboardRepository {
                 GROUP BY ms.month_date
                 ORDER BY ms.month_date
                 """.formatted(months - 1);
+
+        Query query = entityManager.createNativeQuery(sql);
+        return query.getResultList();
+    }
+
+    /**
+     * Lấy thống kê theo loại phí (Bắt buộc vs Tự nguyện)
+     * Returns: List of [type, totalAmount]
+     */
+    @SuppressWarnings("unchecked")
+    public java.util.List<Object[]> getFeeByMandatoryType() {
+        String sql = """
+                SELECT
+                    CASE WHEN pp.is_mandatory = true THEN 'Bắt buộc' ELSE 'Tự nguyện' END as fee_type,
+                    COALESCE(SUM(p.amount), 0) as total_amount
+                FROM pay p
+                JOIN payment_period pp ON p.payment_period_id = pp.payment_period_id
+                WHERE p.pay_date IS NOT NULL
+                GROUP BY pp.is_mandatory
+                ORDER BY total_amount DESC
+                """;
+
+        Query query = entityManager.createNativeQuery(sql);
+        return query.getResultList();
+    }
+
+    /**
+     * Lấy thống kê theo phương thức thanh toán
+     * Returns: List of [method, totalAmount]
+     */
+    @SuppressWarnings("unchecked")
+    public java.util.List<Object[]> getFeeByPaymentMethod() {
+        String sql = """
+                SELECT
+                    CASE
+                        WHEN LOWER(p.method) LIKE '%chuyển%' OR LOWER(p.method) LIKE '%transfer%' THEN 'Chuyển khoản'
+                        WHEN LOWER(p.method) LIKE '%tiền mặt%' OR LOWER(p.method) LIKE '%cash%' THEN 'Tiền mặt'
+                        ELSE 'Khác'
+                    END as payment_method,
+                    COALESCE(SUM(p.amount), 0) as total_amount
+                FROM pay p
+                WHERE p.pay_date IS NOT NULL
+                GROUP BY payment_method
+                ORDER BY total_amount DESC
+                """;
+
+        Query query = entityManager.createNativeQuery(sql);
+        return query.getResultList();
+    }
+
+    /**
+     * Lấy top N đợt thu có doanh thu cao nhất
+     * Returns: List of [description, totalAmount]
+     */
+    @SuppressWarnings("unchecked")
+    public java.util.List<Object[]> getTopPaymentPeriods(int limit) {
+        String sql = """
+                SELECT
+                    pp.description,
+                    COALESCE(SUM(p.amount), 0) as total_amount
+                FROM pay p
+                JOIN payment_period pp ON p.payment_period_id = pp.payment_period_id
+                WHERE p.pay_date IS NOT NULL
+                GROUP BY pp.description
+                ORDER BY total_amount DESC
+                LIMIT :limit
+                """;
+
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter("limit", limit);
+        return query.getResultList();
+    }
+
+    /**
+     * Lấy tổng thu theo từng loại phí (tất cả, không giới hạn)
+     * Returns: List of [description, totalAmount]
+     */
+    @SuppressWarnings("unchecked")
+    public java.util.List<Object[]> getAllFeeTypeRevenue() {
+        String sql = """
+                SELECT
+                    pp.description,
+                    COALESCE(SUM(p.amount), 0) as total_amount
+                FROM pay p
+                JOIN payment_period pp ON p.payment_period_id = pp.payment_period_id
+                WHERE p.pay_date IS NOT NULL
+                GROUP BY pp.description
+                ORDER BY total_amount DESC
+                """;
 
         Query query = entityManager.createNativeQuery(sql);
         return query.getResultList();

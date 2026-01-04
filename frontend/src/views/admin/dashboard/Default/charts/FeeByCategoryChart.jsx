@@ -9,6 +9,7 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import { translateFeeDescription } from 'utils/feeUtils';
 
 // Color palette for categories
 const COLORS = ['#42A5F5', '#66BB6A', '#FFA726', '#EF5350', '#AB47BC'];
@@ -19,7 +20,7 @@ export default function FeeByCategoryChart({ data = [] }) {
   // Transform data for pie chart (convert amounts to percentages)
   const totalAmount = data.reduce((sum, item) => sum + (item.amount || 0), 0);
   const chartData = data.map((item, index) => ({
-    name: item.name || item.category || 'N/A',
+    name: translateFeeDescription(item.name || item.category || 'N/A'),
     value: totalAmount > 0 ? Math.round((item.amount / totalAmount) * 100) : 0,
     actualAmount: item.amount || 0,
     color: item.color || COLORS[index % COLORS.length]
@@ -39,7 +40,7 @@ export default function FeeByCategoryChart({ data = [] }) {
       >
         <CardContent>
           <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
-            Phân loại khoản thu
+            Phân loại theo Phương thức thanh toán
           </Typography>
           <Box sx={{ width: '100%', height: 350, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Typography color="text.secondary">Không có dữ liệu</Typography>
@@ -61,7 +62,7 @@ export default function FeeByCategoryChart({ data = [] }) {
     >
       <CardContent>
         <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
-          Phân loại khoản thu
+          Phân loại theo Phương thức thanh toán
         </Typography>
 
         <Box sx={{ width: '100%', height: 350 }}>
