@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+a {
+  font-weight: 500;
+  color:hsl(176, 68%, 64%);
+   text-decoration: inherit;
+}
+a:hover {
+  color: #fff;;
+}
+
+body {
+  margin: 0;
+  Padding:0;
+  font-size:14px!important;
+  line-height:1;
+  box-sizing: border-box;
+  font-family: 'Raleway', sans-serif;
+  background-color: #020617; /* Default to dark background */
+  color: #f1f5f9; /* Default to light text */
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+
+button:focus,
+button:focus-visible {
+  background-color:hsl(176, 68%, 64%);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #f1f5f9; /* Force dark mode text for now as app is dark */
+    background-color: #020617; /* Force dark mode bg */
+  }
+  a:hover {
+    color: #fff;;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}

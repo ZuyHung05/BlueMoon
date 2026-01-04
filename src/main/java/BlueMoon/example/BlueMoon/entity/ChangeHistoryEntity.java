@@ -1,10 +1,10 @@
 package BlueMoon.example.BlueMoon.entity;
 
-import BlueMoon.example.BlueMoon.serializable.ChangeHistoryId;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDate;
 
@@ -14,16 +14,16 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChangeHistoryEntity {
-    @EmbeddedId
-    private ChangeHistoryId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("residentId")
     @JoinColumn(name = "resident_id")
+    @ToString.Exclude
     private ResidentsEntity resident;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("householdId")
     @JoinColumn(name = "household_id")
     private HouseholdEntity household;
 

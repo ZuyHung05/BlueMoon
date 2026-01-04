@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    // Base options
+    "baseUrl": "./src",                          // ✅ root for imports
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "allowSyntheticDefaultImports": true,
+    "jsx": "react-jsx",                          // ✅ enable React JSX support
+    "target": "ESNext",                          // modern output
+    "resolveJsonModule": true,                   // allow importing .json files
+    "isolatedModules": true,                     // safe for Vite bundling
+    "composite": true,
+
+    // ✅ Path aliases (matches vite.config.mjs)
+    "paths": {
+      "@/*": ["*"],
+      "@components/*": ["ui-component/*"],
+      "@routes/*": ["routes/*"],
+      "@themes/*": ["themes/*"],
+      "@store/*": ["store/*"]
+    }
+  },
+  "include": [
+    "src",               // include all source code
+    "vite.config.mjs"    // include your Vite config file
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

@@ -1,0 +1,97 @@
+// import theme variables
+@use '../scss/themes-vars.module.scss' as theme;
+
+// Main chat window
+.chatbotify__chat-window {
+    background: theme.$paper;
+    // border-radius: 12px; // Removed to let container handle radius
+    border: none !important; // Removed border to avoid double borders
+    box-shadow: none !important; // Removed shadow
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+}
+
+// Chat header
+.chatbotify__header {
+    background: theme.$primaryMain;
+    color: white !important;
+    font-weight: 600;
+    font-size: 15px;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+// Bot message bubble
+.chatbotify__bot-message {
+    background: theme.$secondaryLight !important;
+    color: theme.$grey900 !important;
+    border: 1px solid theme.$secondary200 !important;
+    border-radius: 10px !important;
+}
+
+// User message bubble
+.chatbotify__user-message {
+    background: theme.$primaryMain !important;
+    color: white !important;
+    border-radius: 10px !important;
+}
+
+// Input area
+.chatbotify__input-box {
+    border-top: 1px solid theme.$grey200 !important;
+    background: theme.$paper !important;
+}
+
+.chatbotify__input {
+    background: theme.$grey100 !important;
+    border: 1px solid theme.$grey200 !important;
+    color: theme.$grey900 !important;
+    border-radius: 8px !important;
+}
+
+.chatbotify__send-button {
+    background: theme.$primaryMain !important;
+    color: white !important;
+    border-radius: 8px !important;
+
+    &:hover {
+        background: theme.$primaryDark !important;
+    }
+}
+
+// Floating button
+.chatbotify__launcher {
+    display: none !important;
+    background: theme.$primaryMain !important;
+    border: 2px solid theme.$primaryDark;
+    color: white !important;
+    padding: 14px !important;
+    border-radius: 50% !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+
+    &:hover {
+        background: theme.$primaryDark !important;
+    }
+}
+
+// Hide "Powered By React ChatBotify" branding
+a[href*="react-chatbotify"],
+.rcb-branding,
+.rcb-badge,
+div[class*="branding"],
+span[class*="branding"],
+div:has(> a[href*="react-chatbotify"]) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  pointer-events: none !important;
+}
+
+// Target specific branding footer if separate from input
+.rcb-change-log-view-container,
+.rcb-window-footer > div:nth-child(2) {
+    display: none !important;
+}

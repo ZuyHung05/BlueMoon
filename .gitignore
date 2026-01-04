@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+frontend_test/
+__pycache__/
+**/__pycache__/
+bot_engine/.env
+bot_engine/test.txt
+
+premsql_bot/venv/

@@ -1,0 +1,90 @@
+import PropTypes from 'prop-types';
+import { useMemo } from 'react';
+
+// material-ui
+import { createTheme, ThemeProvider, StyledEngineProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+
+// project imports
+import { CSS_VAR_PREFIX, DEFAULT_THEME_MODE } from 'config';
+import CustomShadows from './custom-shadows';
+import useConfig from 'hooks/useConfig';
+import { buildPalette } from './palette';
+import Typography from './typography';
+import componentsOverrides from './overrides';
+
+// ==============================|| DEFAULT THEME - MAIN ||============================== //
+
+export default function ThemeCustomization({ children }) {
+  const {
+    state: { borderRadius, fontFamily, outlinedFilled, presetColor }
+  } = useConfig();
+
+  const palette = useMemo(() => buildPalette(presetColor), [presetColor]);
+
+  const themeTypography = useMemo(() => Typography(fontFamily), [fontFamily]);
+
+  const themeOptions = useMemo(
+    () => ({
+      direction: 'ltr',
+      mixins: {
+        toolbar: {
+          minHeight: '48px',
+          padding: '16px',
+          '@media (min-width: 600px)': {
+            minHeight: '48px'
+          }
+        }
+      },
+      typography: themeTypography,
+      colorSchemes: {
+        dark: {
+          palette: palette,
+          customShadows: CustomShadows(palette, 'dark')
+        },
+        light: {
+          palette: {
+            ...palette,
+            mode: 'light',
+            text: {
+              primary: '#1e293b', // Slate 800 - dark text for readability
+              secondary: '#475569', // Slate 600
+              dark: '#0f172a', // Slate 900
+              hint: '#64748b', // Slate 500
+              heading: '#0f172a' // Slate 900
+            },
+            background: {
+              paper: '#ffffff',
+              default: '#f8fafc' // Slate 50
+            },
+            action: {
+              hover: 'rgba(0, 0, 0, 0.04)',
+              selected: 'rgba(0, 0, 0, 0.08)'
+            },
+            divider: 'rgba(0, 0, 0, 0.12)'
+          },
+          customShadows: CustomShadows(palette, 'light')
+        }
+      },
+      cssVariables: {
+        cssVarPrefix: CSS_VAR_PREFIX,
+        colorSchemeSelector: 'data-color-scheme'
+      }
+    }),
+    [themeTypography, palette]
+  );
+
+  const themes = createTheme(themeOptions);
+  themes.components = useMemo(() => componentsOverrides(themes, borderRadius, outlinedFilled), [themes, borderRadius, outlinedFilled]);
+
+  return (
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider disableTransitionOnChange theme={themes} modeStorageKey="theme-mode" defaultMode="dark">
+        <CssBaseline enableColorScheme />
+        {children}
+      </ThemeProvider>
+    </StyledEngineProvider>
+  );
+}
+
+ThemeCustomization.propTypes = { children: PropTypes.node };

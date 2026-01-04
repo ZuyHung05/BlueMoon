@@ -1,0 +1,145 @@
+// ==============================|| LIGHT THEME ||============================== //
+
+// Paper & background
+$paper: #FFFFFF;
+$background: #EEEEEE; // Light gray background
+
+// Primary (dark olive gray)
+$primaryLight: #B7B89F;   // lighter tone
+$primary200: #CBCBCB;     // mid tone
+$primaryMain: #777C6D;    // main brand color
+$primaryDark: #5F645A;    // deeper shade of main color
+$primary800: #4A4F46;     // darkest primary
+
+// Secondary (sage)
+$secondaryLight: #EEEEEE;
+$secondary200: #D9D9D9;
+$secondaryMain: #B7B89F;
+$secondaryDark: #9A9C83;
+$secondary800: #7C7E69;
+
+// Success (you can desaturate to match palette)
+$successLight: #CFE8D9;
+$success200: #A8D7BD;
+$successMain: #7FC4A1;
+$successDark: #5AA685;
+
+// Error (slightly softened red to match palette tone)
+$errorLight: #F4C7C7;
+$errorMain: #E69393;
+$errorDark: #C25F5F;
+
+// Orange / warning (neutralized warm tones)
+$orangeLight: #F3E5D8;
+$orangeMain: #E6C8AA;
+$orangeDark: #C7A98C;
+
+$warningLight: #F3EFD6;
+$warningMain: #E3DFA8;
+$warningDark: #C7C27E;
+
+// Grey scale (based on your palette)
+$grey50: #F8F8F8;
+$grey100: #F0F0F0;
+$grey200: #E0E0E0;
+$grey300: #CBCBCB; // from palette
+$grey500: #999999;
+$grey600: #777C6D; // primaryMain
+$grey700: #5F645A;
+$grey900: #3D4038;
+
+// ==============================|| DARK THEME ||============================== //
+
+// Background
+$darkBackground: #2F3230; 
+$darkPaper: #262826;
+
+// Levels
+$darkLevel1: #3A3D39;
+$darkLevel2: #333633;
+
+// Text
+$darkTextTitle: #EEEEEE;
+$darkTextPrimary: #D6D6D6;
+$darkTextSecondary: #AFAFAF;
+
+// Dark primary
+$darkPrimaryLight: #CBCBCB;
+$darkPrimaryMain: #B7B89F;
+$darkPrimaryDark: #777C6D;
+$darkPrimary200: #D5D6C0;
+$darkPrimary800: #5A5E52;
+
+// Dark secondary
+$darkSecondaryLight: #DADACC;
+$darkSecondaryMain: #B7B89F;
+$darkSecondaryDark: #9C9E82;
+$darkSecondary200: #C9C9BC;
+$darkSecondary800: #6A6B59;
+
+
+// ==============================|| JAVASCRIPT ||============================== //
+
+:export {
+  paper: $paper;
+
+  primaryLight: $primaryLight;
+  primary200: $primary200;
+  primaryMain: $primaryMain;
+  primaryDark: $primaryDark;
+  primary800: $primary800;
+
+  secondaryLight: $secondaryLight;
+  secondary200: $secondary200;
+  secondaryMain: $secondaryMain;
+  secondaryDark: $secondaryDark;
+  secondary800: $secondary800;
+
+  successLight: $successLight;
+  success200: $success200;
+  successMain: $successMain;
+  successDark: $successDark;
+
+  errorLight: $errorLight;
+  errorMain: $errorMain;
+  errorDark: $errorDark;
+
+  orangeLight: $orangeLight;
+  orangeMain: $orangeMain;
+  orangeDark: $orangeDark;
+
+  warningLight: $warningLight;
+  warningMain: $warningMain;
+  warningDark: $warningDark;
+
+  grey50: $grey50;
+  grey100: $grey100;
+  grey200: $grey200;
+  grey300: $grey300;
+  grey500: $grey500;
+  grey600: $grey600;
+  grey700: $grey700;
+  grey900: $grey900;
+
+  darkPaper: $darkPaper;
+  darkBackground: $darkBackground;
+
+  darkLevel1: $darkLevel1;
+  darkLevel2: $darkLevel2;
+
+  darkTextTitle: $darkTextTitle;
+  darkTextPrimary: $darkTextPrimary;
+  darkTextSecondary: $darkTextSecondary;
+
+  darkPrimaryLight: $darkPrimaryLight;
+  darkPrimaryMain: $darkPrimaryMain;
+  darkPrimaryDark: $darkPrimaryDark;
+  darkPrimary200: $darkPrimary200;
+  darkPrimary800: $darkPrimary800;
+
+  darkSecondaryLight: $darkSecondaryLight;
+  darkSecondaryMain: $darkSecondaryMain;
+  darkSecondaryDark: $darkSecondaryDark;
+  darkSecondary200: $darkSecondary200;
+  darkSecondary800: $darkSecondary800;
+}
