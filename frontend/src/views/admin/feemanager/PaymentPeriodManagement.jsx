@@ -485,9 +485,8 @@ const PaymentPeriodManagement = () => {
                         <span class="value">${paymentDate}</span>
                     </div>
                     
-                    ${
-                        !isVoluntary
-                            ? `
+                    ${!isVoluntary
+                ? `
                     <div class="checkbox-group">
                         <div class="checkbox-item">
                             <div class="box">${phiDichVu > 0 ? 'X' : ''}</div> 
@@ -533,8 +532,8 @@ const PaymentPeriodManagement = () => {
                             <span class="fee-amount">${formatMoney(phiKhac)}</span>
                         </div>
                     </div>`
-                            : '<div style="margin-bottom: 20px;"></div>'
-                    }
+                : '<div style="margin-bottom: 20px;"></div>'
+            }
                     
                     <div class="row">
                         <span class="label">Tổng tiền/ Amount:</span>
@@ -583,7 +582,7 @@ const PaymentPeriodManagement = () => {
         } else {
             setEditingRecord(null);
             setFormData({
-                description: 'building_fee',
+                description: 'Phí quản lý',
                 start_date: '',
                 end_date: '',
                 is_mandatory: true
@@ -627,7 +626,7 @@ const PaymentPeriodManagement = () => {
         setFormData({
             ...formData,
             is_mandatory: isMandatory,
-            description: isMandatory ? 'building_fee' : ''
+            description: isMandatory ? 'Phí quản lý' : ''
         });
     };
 
@@ -736,12 +735,12 @@ const PaymentPeriodManagement = () => {
                     const newDetails = prev.map((h) =>
                         h.householdId === targetHousehold.id
                             ? {
-                                  ...h,
-                                  status: 'Paid',
-                                  paidAmount: targetHousehold.required_amount,
-                                  paidDate: new Date().toISOString(),
-                                  method: paymentMethod === 'Tiền mặt' ? 'cash' : 'transfer'
-                              }
+                                ...h,
+                                status: 'Paid',
+                                paidAmount: targetHousehold.required_amount,
+                                paidDate: new Date().toISOString(),
+                                method: paymentMethod === 'Tiền mặt' ? 'cash' : 'transfer'
+                            }
                             : h
                     );
 
@@ -872,9 +871,8 @@ const PaymentPeriodManagement = () => {
                     <th colspan="${colSpan}" style="border: none; background: white; height: 10px;"></th>
                 </tr>
                 <tr style="height: 40px;">
-                    ${
-                        periodInfo && !periodInfo.is_mandatory
-                            ? `
+                    ${periodInfo && !periodInfo.is_mandatory
+                ? `
                         <th style="background-color: #366092; color: white;">STT</th>
                         <th style="background-color: #366092; color: white;">Chủ Hộ</th>
                         <th style="background-color: #366092; color: white;">Phòng</th>
@@ -882,7 +880,7 @@ const PaymentPeriodManagement = () => {
                         <th style="background-color: #366092; color: white;">Ngày Đóng</th>
                         <th style="background-color: #366092; color: white;">Hình thức</th>
                     `
-                            : `
+                : `
                         <th rowspan="2" style="background-color: #366092; color: white;">STT</th>
                         <th rowspan="2" style="background-color: #366092; color: white;">Chủ Hộ</th>
                         <th rowspan="2" style="background-color: #366092; color: white;">Phòng</th>
@@ -894,12 +892,11 @@ const PaymentPeriodManagement = () => {
                         <th rowspan="2" style="background-color: #366092; color: white;">Hình thức</th>
                         <th rowspan="2" style="background-color: #366092; color: white;">Trạng Thái</th>
                     `
-                    }
+            }
                 </tr>
-                ${
-                    periodInfo && !periodInfo.is_mandatory
-                        ? ''
-                        : `
+                ${periodInfo && !periodInfo.is_mandatory
+                ? ''
+                : `
                 <tr style="height: 30px;">
                     <th style="background-color: #4f81bd; color: white;">Phí Dịch Vụ</th>
                     <th style="background-color: #4f81bd; color: white;">Phí Quản Lý</th>
@@ -910,7 +907,7 @@ const PaymentPeriodManagement = () => {
                     <th style="background-color: #4f81bd; color: white;">Tiền Internet</th>
                     <th style="background-color: #4f81bd; color: white;">Khác</th>
                 </tr>`
-                }
+            }
             </thead>
             <tbody>`;
 
@@ -945,10 +942,10 @@ const PaymentPeriodManagement = () => {
                 row.paymentInfo && row.paymentInfo.method
                     ? row.paymentInfo.method
                     : row.method === 'cash'
-                      ? 'Tiền mặt'
-                      : row.method === 'transfer'
-                        ? 'Chuyển khoản'
-                        : row.method;
+                        ? 'Tiền mặt'
+                        : row.method === 'transfer'
+                            ? 'Chuyển khoản'
+                            : row.method;
 
             // Fallback: If Paid but no method, assume Cash or show 'Chưa rõ'
             if (row.status === 'Paid' && !methodStr) {
@@ -979,12 +976,11 @@ const PaymentPeriodManagement = () => {
                     <td class="text">${row.householdName || ''}</td>
                     <td class="text">${row.room || ''}</td>
                     <td class="money">${row.paidAmount || 0}</td>
-                    <td class="text" style="text-align: center;">${
-                        row.paymentInfo && row.paymentInfo.date
-                            ? row.paymentInfo.date
-                            : row.paidDate
-                              ? new Date(row.paidDate).toLocaleDateString('vi-VN')
-                              : ''
+                    <td class="text" style="text-align: center;">${row.paymentInfo && row.paymentInfo.date
+                        ? row.paymentInfo.date
+                        : row.paidDate
+                            ? new Date(row.paidDate).toLocaleDateString('vi-VN')
+                            : ''
                     }</td>
                     <td class="text">${methodDisplay}</td>
                 </tr>`;
@@ -1006,12 +1002,11 @@ const PaymentPeriodManagement = () => {
                     
                     <td class="money" style="font-weight: bold;">${row.requiredAmount || 0}</td>
                     <td class="money">${row.paidAmount || 0}</td>
-                    <td class="text" style="text-align: center;">${
-                        row.paymentInfo && row.paymentInfo.date
-                            ? row.paymentInfo.date
-                            : row.paidDate
-                              ? new Date(row.paidDate).toLocaleDateString('vi-VN')
-                              : ''
+                    <td class="text" style="text-align: center;">${row.paymentInfo && row.paymentInfo.date
+                        ? row.paymentInfo.date
+                        : row.paidDate
+                            ? new Date(row.paidDate).toLocaleDateString('vi-VN')
+                            : ''
                     }</td>
                     <td class="text">${methodDisplay}</td>
                     <td class="text" style="color: ${row.status === 'Paid' ? 'green' : 'red'}; font-weight: bold;">
@@ -1096,12 +1091,12 @@ const PaymentPeriodManagement = () => {
                 paymentInfo:
                     hh.status === 'Paid'
                         ? {
-                              household_name: hh.householdName,
-                              householdId: hh.householdId,
-                              date: hh.paidDate ? hh.paidDate.split('T')[0].split('-').reverse().join('-') : '',
-                              method: hh.method === 'cash' ? 'Tiền mặt' : hh.method,
-                              amount: hh.paidAmount
-                          }
+                            household_name: hh.householdName,
+                            householdId: hh.householdId,
+                            date: hh.paidDate ? hh.paidDate.split('T')[0].split('-').reverse().join('-') : '',
+                            method: hh.method === 'cash' ? 'Tiền mặt' : hh.method,
+                            amount: hh.paidAmount
+                        }
                         : null
             }))
             .sort((a, b) => {
@@ -1216,7 +1211,7 @@ const PaymentPeriodManagement = () => {
         // NEW WORKFLOW:
         // 1. Create Payment Period First to get ID
         // 2. Import Data using that ID
-        
+
         try {
             // Step 1: Create Period
             const createPayload = {
@@ -1232,15 +1227,15 @@ const PaymentPeriodManagement = () => {
                 body: JSON.stringify(createPayload)
             });
             const createResult = await createResponse.json();
-            
+
             if (createResult.code !== 1000) {
-                 throw new Error(createResult.message || 'Không thể tạo đợt thu mới');
+                throw new Error(createResult.message || 'Không thể tạo đợt thu mới');
             }
-            
+
             const newPeriodId = createResult.result.paymentPeriodId || createResult.result.payment_period_id;
 
             // Step 2: Import using ID
-            uploadData.append('description', description); 
+            uploadData.append('description', description);
             uploadData.append('startDate', formData.start_date);
             uploadData.append('endDate', formData.end_date);
             uploadData.append('isMandatory', isMandatory);
@@ -1610,26 +1605,14 @@ const PaymentPeriodManagement = () => {
                                 <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
                                     Tên đợt thu <span style={{ color: '#ef4444' }}>*</span>
                                 </Typography>
-                                {formData.is_mandatory ? (
-                                    <TextField
-                                        fullWidth
-                                        value="Phí quản lý dịch vụ chung cư"
-                                        size="small"
-                                        InputProps={{
-                                            readOnly: true,
-                                            style: { backgroundColor: 'rgba(0, 0, 0, 0.05)' }
-                                        }}
-                                    />
-                                ) : (
-                                    <TextField
-                                        fullWidth
-                                        placeholder="Nhập tên đợt thu"
-                                        name="description"
-                                        value={formData.description}
-                                        onChange={handleChange}
-                                        size="small"
-                                    />
-                                )}
+                                <TextField
+                                    fullWidth
+                                    placeholder={formData.is_mandatory ? "Ví dụ: Phí quản lý, Phí gửi xe, Phí dịch vụ..." : "Nhập tên đợt thu"}
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    size="small"
+                                />
                             </Box>
                             <Stack direction="row" spacing={2}>
                                 <Box sx={{ flex: 1 }}>
@@ -2245,21 +2228,21 @@ const PaymentPeriodManagement = () => {
                                                 <TableCell>
                                                     {row.startDate && Array.isArray(row.startDate)
                                                         ? [...row.startDate]
-                                                              .reverse()
-                                                              .map((d) => String(d).padStart(2, '0'))
-                                                              .join('/')
+                                                            .reverse()
+                                                            .map((d) => String(d).padStart(2, '0'))
+                                                            .join('/')
                                                         : row.startDate
-                                                          ? String(row.startDate).split('-').reverse().join('/')
-                                                          : ''}
+                                                            ? String(row.startDate).split('-').reverse().join('/')
+                                                            : ''}
                                                     {' - '}
                                                     {row.endDate && Array.isArray(row.endDate)
                                                         ? [...row.endDate]
-                                                              .reverse()
-                                                              .map((d) => String(d).padStart(2, '0'))
-                                                              .join('/')
+                                                            .reverse()
+                                                            .map((d) => String(d).padStart(2, '0'))
+                                                            .join('/')
                                                         : row.endDate
-                                                          ? String(row.endDate).split('-').reverse().join('/')
-                                                          : ''}
+                                                            ? String(row.endDate).split('-').reverse().join('/')
+                                                            : ''}
                                                 </TableCell>
                                                 <TableCell align="right" sx={{ fontWeight: 700 }}>
                                                     {(() => {
@@ -2375,12 +2358,12 @@ const PaymentPeriodManagement = () => {
                                 prev.map((h) =>
                                     h.householdId === viewPaymentDetail.householdId
                                         ? {
-                                              ...h,
-                                              status: 'Unpaid',
-                                              paidAmount: 0,
-                                              paidDate: null,
-                                              method: null
-                                          }
+                                            ...h,
+                                            status: 'Unpaid',
+                                            paidAmount: 0,
+                                            paidDate: null,
+                                            method: null
+                                        }
                                         : h
                                 )
                             );

@@ -330,10 +330,10 @@ export default function Dashboard() {
                             {/* ROW 1 — CHARTS */}
                             <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ mb: 3 }}>
                                 <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
-                                    <FeeByCategoryChart />
+                                    <FeeByCategoryChart data={feeStats.feesByCategory} />
                                 </Box>
                                 <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
-                                    <CollectionPerformanceChart />
+                                    <CollectionPerformanceChart data={feeStats.feesByCategory} />
                                 </Box>
                             </Stack>
 
@@ -343,7 +343,7 @@ export default function Dashboard() {
                                     <PaymentStatusBarChart data={feeStats} />
                                 </Box>
                                 <Box sx={{ width: { xs: '100%', md: 'calc(50% - 12px)' }, minWidth: 0 }}>
-                                    <RevenueOverTimeChart />
+                                    <RevenueOverTimeChart data={feeStats.revenueOverTime} />
                                 </Box>
                             </Stack>
                         </>

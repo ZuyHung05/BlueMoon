@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Card, CardContent, Typography, Box, useTheme } from '@mui/material';
 import {
   BarChart,
@@ -8,26 +9,53 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
   Cell
 } from 'recharts';
 
-// Mock data - Replace with API later
-const data = [
-  { feeType: 'Phí quản lý', amount: 450, color: '#3b82f6' },
-  { feeType: 'Phí gửi xe', amount: 285, color: '#22c55e' },
-  { feeType: 'Phí dịch vụ', amount: 198, color: '#f59e0b' },
-  { feeType: 'Phí bảo trì', amount: 142, color: '#8b5cf6' },
-  { feeType: 'Phí điện nước', amount: 125, color: '#ef4444' }
-];
+// Color palette for bars
+const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444'];
 
-export default function CollectionPerformanceChart() {
+export default function CollectionPerformanceChart({ data = [] }) {
   const theme = useTheme();
 
   const axisTextStyle = {
     fontSize: 12,
     fill: theme.palette.text.secondary
   };
+
+  // Transform data for horizontal bar chart (convert to millions)
+  const chartData = data.map((item, index) => ({
+    feeType: item.name || item.category || 'N/A',
+    amount: (item.amount || 0) / 1000000, // Convert to millions
+    color: item.color || COLORS[index % COLORS.length]
+  }));
+
+  // Show placeholder if no data
+  if (!data.length) {
+    return (
+      <Card
+        sx={{
+          height: '100%',
+          boxShadow: 2,
+          borderRadius: 2,
+          bgcolor: 'background.paper',
+          border: `1px solid ${theme.palette.divider}`
+        }}
+      >
+        <CardContent>
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
+            Top 5 loại phí thu nhiều nhất
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Tổng thu theo từng loại phí (triệu đồng)
+          </Typography>
+          <Box sx={{ width: '100%', height: 350, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography color="text.secondary">Không có dữ liệu</Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -51,43 +79,38 @@ export default function CollectionPerformanceChart() {
           <ResponsiveContainer key={theme.palette.mode}>
             <BarChart
               layout="vertical"
-              data={data}
+              data={chartData}
               margin={{ top: 20, right: 30, left: 20, bottom: 0 }}
             >
-              <CartesianGrid 
-                strokeDasharray="3 3" 
-                stroke={theme.palette.text.secondary} 
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={theme.palette.text.secondary}
                 strokeOpacity={0.7}
                 vertical={true}
                 horizontal={false}
               />
 
-              <XAxis 
+              <XAxis
                 type="number"
-                tick={axisTextStyle} 
+                tick={axisTextStyle}
                 axisLine={axisTextStyle}
                 tickLine={axisTextStyle}
-                label={{ 
-                  value: 'Triệu đồng', 
-                  position: 'insideBottom', 
-                  offset: -5,
-                  style: { fill: theme.palette.text.secondary, fontSize: 12 }
-                }}
+                tickFormatter={(value) => `${value.toFixed(0)}`}
               />
 
               <YAxis
                 dataKey="feeType"
                 type="category"
-                tick={axisTextStyle} 
+                tick={axisTextStyle}
                 axisLine={axisTextStyle}
                 tickLine={axisTextStyle}
                 width={110}
               />
 
               <Tooltip
-                formatter={(value) => [`${value}M ₫`, 'Tổng thu']}
-                contentStyle={{ 
-                  backgroundColor: theme.palette.background.paper, 
+                formatter={(value) => [`${value.toFixed(1)}M ₫`, 'Tổng thu']}
+                contentStyle={{
+                  backgroundColor: theme.palette.background.paper,
                   borderRadius: '8px',
                   border: `1px solid ${theme.palette.divider}`,
                   color: theme.palette.text.secondary
@@ -102,7 +125,7 @@ export default function CollectionPerformanceChart() {
                 barSize={25}
                 radius={[0, 8, 8, 0]}
               >
-                {data.map((entry, index) => (
+                {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Bar>
@@ -113,3 +136,12 @@ export default function CollectionPerformanceChart() {
     </Card>
   );
 }
+
+CollectionPerformanceChart.propTypes = {
+  data: PropTypes.arrayOf(PropTypes.shape({
+    name: PropTypes.string,
+    category: PropTypes.string,
+    amount: PropTypes.number,
+    color: PropTypes.string
+  }))
+};

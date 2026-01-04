@@ -121,7 +121,7 @@ public class DashboardRepository {
     @SuppressWarnings("unchecked")
     public java.util.List<Object[]> getOverdueHouseholds(int limit) {
         String sql = """
-                SELECT 
+                SELECT
                     h.household_id,
                     a.room_number,
                     COALESCE(SUM(p.amount), 0) as total_debt,
@@ -157,7 +157,7 @@ public class DashboardRepository {
                     FROM month_series
                     WHERE month_date < CURRENT_DATE
                 )
-                SELECT 
+                SELECT
                     TO_CHAR(ms.month_date, 'Mon') as month_name,
                     COALESCE(SUM(p.amount), 0) / 1000000.0 as debt_millions
                 FROM month_series ms
@@ -180,11 +180,11 @@ public class DashboardRepository {
     @SuppressWarnings("unchecked")
     public java.util.List<Object[]> getRecentPayments(int limit) {
         String sql = """
-                SELECT 
+                SELECT
                     a.room_number,
                     COALESCE(pp.description, 'Phí quản lý') as fee_description,
                     p.amount,
-                    CASE 
+                    CASE
                         WHEN p.pay_date IS NOT NULL THEN 'Đã thanh toán'
                         WHEN pp.end_date::date < CURRENT_DATE THEN 'Trễ hạn'
                         ELSE 'Chưa thanh toán'
@@ -200,6 +200,59 @@ public class DashboardRepository {
 
         Query query = entityManager.createNativeQuery(sql);
         query.setParameter("limit", limit);
+        return query.getResultList();
+    }
+
+    /**
+     * Lấy tổng thu theo loại phí (từ payment_period.description)
+     * Returns: List of [description, totalAmount]
+     */
+    @SuppressWarnings("unchecked")
+    public java.util.List<Object[]> getRevenueByCategory(int limit) {
+        String sql = """
+                SELECT
+                    pp.description,
+                    COALESCE(SUM(p.amount), 0) as total_amount
+                FROM pay p
+                JOIN payment_period pp ON p.payment_period_id = pp.payment_period_id
+                WHERE p.pay_date IS NOT NULL
+                GROUP BY pp.description
+                ORDER BY total_amount DESC
+                LIMIT :limit
+                """;
+
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter("limit", limit);
+        return query.getResultList();
+    }
+
+    /**
+     * Lấy doanh thu 12 tháng gần nhất (rolling)
+     * Returns: List of [monthLabel, year, revenue]
+     * Ví dụ: Nếu đang ở tháng 1/2026, trả về từ tháng 2/2025 đến tháng 1/2026
+     */
+    @SuppressWarnings("unchecked")
+    public java.util.List<Object[]> getMonthlyRevenue(int months) {
+        String sql = """
+                WITH month_series AS (
+                    SELECT generate_series(
+                        DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '%d months',
+                        DATE_TRUNC('month', CURRENT_DATE),
+                        '1 month'::interval
+                    )::date as month_date
+                )
+                SELECT
+                    'Tháng ' || EXTRACT(MONTH FROM ms.month_date)::int as month_label,
+                    EXTRACT(YEAR FROM ms.month_date)::int as year,
+                    COALESCE(SUM(p.amount), 0) as revenue
+                FROM month_series ms
+                LEFT JOIN pay p ON DATE_TRUNC('month', p.pay_date) = DATE_TRUNC('month', ms.month_date)
+                    AND p.pay_date IS NOT NULL
+                GROUP BY ms.month_date
+                ORDER BY ms.month_date
+                """.formatted(months - 1);
+
+        Query query = entityManager.createNativeQuery(sql);
         return query.getResultList();
     }
 }

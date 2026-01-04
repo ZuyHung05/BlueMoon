@@ -91,13 +91,8 @@ public class DashboardService {
                         recentPayments.add(payment);
                 }
 
-                // Fee categories (using existing data)
-                List<DashboardStatsResponse.CategoryFee> feesByCategory = Arrays.asList(
-                                new DashboardStatsResponse.CategoryFee("Phí quản lý", paidAmount * 0.38, "#3b82f6"),
-                                new DashboardStatsResponse.CategoryFee("Phí gửi xe", paidAmount * 0.24, "#22c55e"),
-                                new DashboardStatsResponse.CategoryFee("Phí dịch vụ", paidAmount * 0.17, "#f59e0b"),
-                                new DashboardStatsResponse.CategoryFee("Phí bảo trì", paidAmount * 0.12, "#8b5cf6"),
-                                new DashboardStatsResponse.CategoryFee("Phí điện nước", paidAmount * 0.09, "#ef4444"));
+                // Fee categories - fetched from database
+                List<DashboardStatsResponse.CategoryFee> feesByCategory = fetchRevenueByCategory();
 
                 // Monthly revenue
                 List<DashboardStatsResponse.MonthlyRevenue> revenueOverTime = generateMonthlyRevenue();
@@ -215,14 +210,38 @@ public class DashboardService {
                                 .build();
         }
 
+        /**
+         * Lấy doanh thu 12 tháng gần nhất từ database
+         */
         private List<DashboardStatsResponse.MonthlyRevenue> generateMonthlyRevenue() {
-                String[] months = { "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12" };
-                Double[] amounts = { 95000000.0, 98000000.0, 102000000.0, 105000000.0, 108000000.0, 120000000.0 };
-
                 List<DashboardStatsResponse.MonthlyRevenue> revenue = new ArrayList<>();
-                for (int i = 0; i < months.length; i++) {
-                        revenue.add(new DashboardStatsResponse.MonthlyRevenue(months[i], amounts[i]));
+                List<Object[]> data = dashboardRepository.getMonthlyRevenue(12);
+
+                for (Object[] row : data) {
+                        String monthLabel = (String) row[0];
+                        Double amount = ((Number) row[2]).doubleValue();
+                        revenue.add(new DashboardStatsResponse.MonthlyRevenue(monthLabel, amount));
                 }
+
                 return revenue;
+        }
+
+        /**
+         * Lấy tổng thu theo loại phí từ database
+         */
+        private List<DashboardStatsResponse.CategoryFee> fetchRevenueByCategory() {
+                String[] colors = { "#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444" };
+                List<DashboardStatsResponse.CategoryFee> categories = new ArrayList<>();
+                List<Object[]> data = dashboardRepository.getRevenueByCategory(5);
+
+                for (int i = 0; i < data.size(); i++) {
+                        Object[] row = data.get(i);
+                        String description = (String) row[0];
+                        Double amount = ((Number) row[1]).doubleValue();
+                        String color = colors[i % colors.length];
+                        categories.add(new DashboardStatsResponse.CategoryFee(description, amount, color));
+                }
+
+                return categories;
         }
 }

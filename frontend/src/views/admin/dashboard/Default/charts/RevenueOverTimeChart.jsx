@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Card, CardContent, Typography, Box, useTheme } from '@mui/material';
 import {
   LineChart,
@@ -11,24 +12,38 @@ import {
   Legend
 } from 'recharts';
 
-// Mock data (replace with real backend response)
-const data = [
-  { name: 'Tháng 1', revenue: 45000000 },
-  { name: 'Tháng 2', revenue: 52000000 },
-  { name: 'Tháng 3', revenue: 48000000 },
-  { name: 'Tháng 4', revenue: 62000000 },
-  { name: 'Tháng 5', revenue: 73000000 },
-  { name: 'Tháng 6', revenue: 81000000 },
-  { name: 'Tháng 7', revenue: 76000000 },
-  { name: 'Tháng 8', revenue: 88000000 },
-  { name: 'Tháng 9', revenue: 94000000 },
-  { name: 'Tháng 10', revenue: 102000000 },
-  { name: 'Tháng 11', revenue: 97000000 },
-  { name: 'Tháng 12', revenue: 115000000 }
-];
-
-export default function RevenueOverTimeChart() {
+export default function RevenueOverTimeChart({ data = [] }) {
   const theme = useTheme();
+
+  // Transform data for line chart
+  const chartData = data.map(item => ({
+    name: item.name || item.month || 'N/A',
+    revenue: item.revenue || item.amount || 0
+  }));
+
+  // Show placeholder if no data
+  if (!data.length) {
+    return (
+      <Card
+        sx={{
+          height: '100%',
+          boxShadow: 2,
+          borderRadius: 2,
+          bgcolor: 'background.paper',
+          border: `1px solid ${theme.palette.divider}`
+        }}
+      >
+        <CardContent>
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
+            Tổng thu 12 tháng gần nhất
+          </Typography>
+          <Box sx={{ width: '100%', height: 350, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography color="text.secondary">Không có dữ liệu</Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -48,17 +63,17 @@ export default function RevenueOverTimeChart() {
         <Box sx={{ width: '100%', height: 350 }}>
           <ResponsiveContainer key={theme.palette.mode}>
             <LineChart
-              data={data}
+              data={chartData}
               margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
             >
-              <CartesianGrid 
+              <CartesianGrid
                 strokeDasharray="3 3"
                 stroke={theme.palette.text.secondary}
                 strokeOpacity={0.7}
               />
 
-              <XAxis 
-                dataKey="name" 
+              <XAxis
+                dataKey="name"
                 tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
               />
               <YAxis
@@ -68,8 +83,8 @@ export default function RevenueOverTimeChart() {
 
               <Tooltip
                 formatter={(value) => [`${value.toLocaleString()} ₫`, 'Tổng thu']}
-                contentStyle={{ 
-                  backgroundColor: theme.palette.background.paper, 
+                contentStyle={{
+                  backgroundColor: theme.palette.background.paper,
                   borderRadius: '8px',
                   border: `1px solid ${theme.palette.divider}`,
                   color: theme.palette.text.secondary
@@ -77,12 +92,12 @@ export default function RevenueOverTimeChart() {
                 itemStyle={{ color: theme.palette.text.secondary }}
               />
 
-              <Legend 
-                verticalAlign="bottom" 
+              <Legend
+                verticalAlign="bottom"
                 height={36}
                 wrapperStyle={{
                   paddingTop: '10px',
-                  color: theme.palette.text.secondary 
+                  color: theme.palette.text.secondary
                 }}
               />
 
@@ -102,3 +117,11 @@ export default function RevenueOverTimeChart() {
   );
 }
 
+RevenueOverTimeChart.propTypes = {
+  data: PropTypes.arrayOf(PropTypes.shape({
+    name: PropTypes.string,
+    month: PropTypes.string,
+    revenue: PropTypes.number,
+    amount: PropTypes.number
+  }))
+};
