@@ -1,96 +1,188 @@
-# Project: Cong Nghe Phan Mem
+# 🌙 BlueMoon - Hệ Thống Quản Lý Chung Cư
 
-This project includes a bot engine powered by a chat model and a frontend interface for user interaction.
+<div align="center">
 
-## Getting Started
+![BlueMoon](https://img.shields.io/badge/BlueMoon-Residential%20Management-blue?style=for-the-badge)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-green?style=for-the-badge&logo=springboot)
+![React](https://img.shields.io/badge/React-19.2.0-61DAFB?style=for-the-badge&logo=react)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791?style=for-the-badge&logo=postgresql)
 
-Follow the steps below to set up and run the project.
+**Hệ thống quản lý toàn diện cho chung cư**
 
----
 
-## Backend: Bot Engine
 
-The bot engine is located in the `bot_engine` directory. It uses Google Generative AI and a SQL database to process and respond to user queries.
-
-### Steps to Run the Bot Engine
-
-1. Navigate to the `bot_engine` directory:
-
-   ```bash
-   cd bot_engine
-   ```
-
-2. Create a `.env` file to store sensitive environment variables. Refer to the [bot engine README](bot_engine/README.md) for detailed instructions.
-
-3. Install the required dependencies:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. Run the bot engine:
-
-   ```bash
-   python agent.py
-   ```
+</div>
 
 ---
 
-## Frontend: User Interface
 
-The frontend is located in the `frontend` directory. It provides a user-friendly interface to interact with the chat model.
 
-### Steps to Run the Frontend
+## 🎯 Giới thiệu
 
-1. Navigate to the `frontend` directory:
-
-   ```bash
-   cd frontend
-   ```
-
-2. Install the required dependencies:
-
-   ```bash
-   yarn install
-   ```
-
-3. Start the development server:
-
-   ```bash
-   yarn dev
-   ```
-
-4. Open your browser and navigate to the URL displayed in the terminal (usually `http://localhost:3000`).
+Đây là Project phục vụ cho môn Kỹ thuật phần mềm - IT4082 kỳ 2025.1
 
 ---
 
-## Project Structure
+## Tính năng
 
-```
-cong_nghe_phan_mem/
-├── bot_engine/       # Backend bot engine
-│   ├── agent.py      # Main script for the bot engine
-│   ├── utils.py      # Utility functions
-│   ├── prompts/      # System prompts for the agent
-│   └── README.md     # Bot engine documentation
-├── frontend/         # Frontend user interface
-│   ├── src/          # Source code for the frontend
-│   ├── public/       # Static assets
-│   └── README.md     # Frontend documentation
-└── README.md         # Global project documentation
+### 👥 Quản lý Cư dân & Hộ gia đình
+- Thêm, sửa, xóa thông tin cư dân
+- Quản lý hộ gia đình và thành viên
+- Lịch sử biến đổi nhân khẩu
+- Đăng ký tạm trú/tạm vắng
+
+### 🚗 Quản lý Phương tiện
+- Đăng ký phương tiện (xe máy, ô tô, xe đạp)
+- Bản đồ bãi đỗ xe tương tác
+- Theo dõi vị trí đỗ xe
+
+### 💰 Quản lý Phí & Thanh toán
+- Quản lý các loại phí (dịch vụ, quản lý, đóng góp)
+- Theo dõi trạng thái thanh toán
+- Xuất báo cáo Excel/Phiếu thu
+
+### 📊 Dashboard & Thống kê
+- Dashboard phí dịch vụ (dành cho Accountant/Admin)
+- Dashboard cư dân (dành cho Manager/Admin)
+- Biểu đồ phân tích theo thời gian
+- Thống kê tổng quan
+
+### 🤖 AI Chatbot
+- Truy vấn database bằng ngôn ngữ tự nhiên
+- Hỗ trợ tiếng Việt
+- Powered by PremSQL với model `prem-1B-SQL`
+
+---
+
+## 🛠️ Công nghệ sử dụng
+
+- **Backend**: Spring Boot 3.5.6 (Java 17)
+- **Frontend**: React 19.2.0 (Vite)
+- **Database**: PostgreSQL
+- **AI Chatbot**: FastAPI (Python) + PremSQL
+
+---
+
+
+
+## 📦 Cài đặt
+
+### 1️⃣ Clone Repository
+
+```bash
+git clone https://github.com/ZuyHung05/BlueMoon.git
+cd BlueMoon
 ```
 
+### 2️⃣ Cấu hình Database
+
+Tạo database PostgreSQL:
+
+```sql
+CREATE DATABASE bluemoon;
+```
+
+Cập nhật thông tin database trong `src/main/resources/application.properties`:
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/bluemoon
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+```
+
+### 3️⃣ Cài đặt Backend
+
+```bash
+# Build project với Maven
+mvn clean install
+
+# Hoặc skip tests
+mvn clean install -DskipTests
+```
+
+### 4️⃣ Cài đặt Frontend
+
+```bash
+cd frontend
+
+# Cài đặt dependencies
+yarn install
+# Hoặc: npm install
+```
+
+### 5️⃣ Cài đặt AI Chatbot (Tùy chọn)
+
+```bash
+cd premsql_bot
+
+# Tạo môi trường ảo Python
+py -3.11 -m venv venv
+
+# Kích hoạt môi trường ảo
+# Windows:
+venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+
+# Cài đặt PyTorch với CUDA (nếu có GPU)
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+
+# Hoặc CPU only
+pip3 install torch torchvision
+
+# Cài đặt dependencies
+pip install -r requirements.txt
+```
+
+Tạo file `.env` trong thư mục `premsql_bot`:
+
+```env
+# Database PostgreSQL
+DB_URI=postgresql://username:password@localhost:5432/bluemoon
+
+# Device cho PremSQL (cuda hoặc cpu)
+PREMSQL_DEVICE=cuda
+```
+
 ---
 
-## Notes
+## 🎮 Hướng dẫn sử dụng
 
-- Ensure you have Python 3.8+ and Node.js installed on your system.
-- The `.env` file for the bot engine should not be committed to version control.
-- Use `yarn` for managing frontend dependencies and `pip` for backend dependencies.
+### Chạy Backend
+
+```bash
+# Từ thư mục gốc
+mvn spring-boot:run
+
+# Hoặc chạy file JAR
+java -jar target/BlueMoon-0.0.1-SNAPSHOT.jar
+```
+
+Backend sẽ chạy tại: **http://localhost:8080**
+
+### Chạy Frontend
+
+```bash
+cd frontend
+
+npm run dev
+```
+
+Frontend sẽ chạy tại: **http://localhost:3000** 
+
+
+
+
 
 ---
 
-## License
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+<div align="center">
+
+**Nếu project hữu ích, đừng quên cho chúng mình một Star!**
+
+Made with ❤️ by Group 7 Huster
+
+</div>
 

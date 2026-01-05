@@ -156,8 +156,12 @@ SQL: SELECT r.full_name FROM residents r JOIN household h ON r.resident_id = h.h
 Q: Ho gia dinh nao song o tang 5?
 SQL: SELECT r.full_name FROM residents r JOIN household h ON r.resident_id = h.head_of_household JOIN apartment a ON h.apartment_id = a.apartment_id WHERE a.floor = 5;
 
+
 Q: Ho gia dinh nao co xe may?
 SQL: SELECT r.full_name FROM residents r JOIN household h ON r.resident_id = h.head_of_household WHERE h.household_id IN (SELECT household_id FROM vehicle WHERE type = 'bike');
+
+Q: Có bao nhiêu hộ gia đình có cả ô tô và xe máy?
+SQL: SELECT COUNT(*) FROM household WHERE household_id IN (SELECT household_id FROM vehicle WHERE type = 'car') AND household_id IN (SELECT household_id FROM vehicle WHERE type = 'bike');
 
 """
 
@@ -166,8 +170,9 @@ SQL: SELECT r.full_name FROM residents r JOIN household h ON r.resident_id = h.h
 - Use `EXTRACT(YEAR FROM AGE(date_of_birth))` to calculate age.
 - Do NOT hardcode dates for age calculations (like '1970-01-01').
 - Use `head_of_household` to join with `residents.resident_id` when searching for household heads.
+- When asked 'Which household' or 'Which resident' (Hộ gia đình nào / Cư dân nào), ALWAYS select the 'full_name' of the resident or household head. NEVER select the ID.
 - Return ONLY the SQL query, no explanations.
-
+- Priority return name instead of ID.
 {database_context}
 {examples}
 ### Database Schema
@@ -235,10 +240,16 @@ def get_sql_answer(question: str, db_uri: str = None) -> dict:
             dsn_or_db_path=db_uri
         )
         
+        result_content = execution_result.get("result")
+        
+        # Neu ket qua rong (list rong, string rong, hoac None) va khong phai la so 0
+        if not result_content and result_content != 0:
+            result_content = "Không có"
+            
         return {
             "question": question,
             "generated_sql": generated_sql,
-            "result": execution_result.get("result"),
+            "result": result_content,
             "error": execution_result.get("error")
         }
         
@@ -252,7 +263,7 @@ def get_sql_answer(question: str, db_uri: str = None) -> dict:
 
 
 if __name__ == "__main__":
-    test_question = "Co bao nhieu ho gia dinh trong he thong?"
+    test_question = "Có bao nhiêu hộ gia đình có cả ô tô và xe máy?"
     
     print(f"Question: {test_question}")
     result = get_sql_answer(test_question)
